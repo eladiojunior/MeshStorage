@@ -107,4 +107,15 @@ public class ServerStorageService {
 
     }
 
+    /**
+     * LIsta de Server Storages registrados para utilização, seja os disponíveis ou não.
+     * @return Lista de Server Storages encontrados.
+     */
+    public List<ServerStorage> getListServerStorage(boolean hasAvailable) throws ApiBusinessException {
+        if (hasAvailable)
+            return serverStorageRepository.findByAvailableTrue();
+        else
+            return serverStorageRepository.findAll();
+    }
+
 }

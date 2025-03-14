@@ -5,10 +5,14 @@ import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.models.response.FileStorageResponse;
 import br.com.devd2.meshstorageserver.models.response.ServerStorageResponse;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class HelperMapper {
 
     /**
      * Converte um objeto Entity (ServerStorage) para Response (ServerStorageResponse).
+     *
      * @param serverStorage - Objeto a ser convertido em Response
      * @return
      */
@@ -25,9 +29,9 @@ public class HelperMapper {
         return response;
     }
 
-
     /**
      * Converte um objeto Entity (FileStorage) para Response (FileStorageResponse).
+     *
      * @param fileStorage - Objeto a ser convertido em Response
      * @return
      */
@@ -42,6 +46,15 @@ public class HelperMapper {
         response.setFileType(fileStorage.getFileType());
         response.setFileLength(fileStorage.getFileLength());
         return response;
+    }
+
+    /**
+     * Converte lista de objeto Entity (ServerStorage) para lista de Response (ServerStorageResponse).
+     * @param listServerStorage - Lista de Entites para conversão.
+     * @return Lista de Responses convertidas.
+     */
+    public static List<ServerStorageResponse> ConvertToResponse(List<ServerStorage> listServerStorage) {
+        return listServerStorage.stream().map(HelperMapper::ConvertToResponse).collect(Collectors.toList());
     }
 
 }
