@@ -1,6 +1,8 @@
 package br.com.devd2.meshstorageclient.components;
 
 import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.simp.stomp.StompFrameHandler;
+import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -9,6 +11,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -18,7 +21,7 @@ public class ServerStorageAgent {
     private StompSession session;
     private final String serverName = "FileServer1";
     private final String storageName = "/mnt/storage";
-    private final String urlServer = "ws://localhost:8080/server";
+    private final String urlServer = "ws://localhost:8181/server-storage-websocket";
 
     public ServerStorageAgent() {
 
@@ -36,6 +39,18 @@ public class ServerStorageAgent {
             // Aguarda a conexão ser estabelecida antes de continuar
             this.session = futureSession.get();
 
+            // Inscrever-se para receber comandos de armazenamento
+            this.session.subscribe("/topic/store-command", new StompFrameHandler() {
+                @Override
+                public Type getPayloadType(StompHeaders headers) {
+                    return String.class;
+                }
+                @Override
+                public void handleFrame(StompHeaders headers, Object payload) {
+                    System.out.println("Comando recebido: " + payload);
+                }
+            });
+
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -47,7 +62,7 @@ public class ServerStorageAgent {
         try {
             long freeSpace = new File(storageName).getFreeSpace() / (1024 * 1024); // MB
             if (session != null && session.isConnected()) {
-                session.send("/status-update", serverName + "|" + storageName + "|" + freeSpace);
+                session.send("/app/status-update", serverName + "|" + storageName + "|" + freeSpace);
             }
         } catch (Exception e) {
             e.printStackTrace();

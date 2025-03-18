@@ -1,0 +1,4 @@
+# Configuracao do servidor
+# -----------------------------------------------------
+server:
+  port: ${SERVER_PORT}
