@@ -19,6 +19,7 @@ public class WebSocketController {
     @MessageMapping("/store-file")
     @SendTo("/topic/store-command")
     public String sendStorageCommand(String fileInfo) {
+
         return "Armazene o arquivo: " + fileInfo;
     }
 }

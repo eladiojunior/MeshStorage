@@ -6,7 +6,13 @@
       <list>
         <option value="$PROJECT_DIR$/meshstorage-server/pom.xml" />
         <option value="$PROJECT_DIR$/meshstorage-client/pom.xml" />
+        <option value="$PROJECT_DIR$/meshstorage-agent/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/meshstorage-agent/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_23" project-jdk-name="17" project-jdk-type="JavaSDK">
