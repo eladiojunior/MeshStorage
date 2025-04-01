@@ -6,6 +6,10 @@ import lombok.Data;
 public class StorageClient {
     private String serverName;
     private String ipServer;
+    private String osName;
+
     private String storageName;
-    private String osServer;
+
+    private long totalSpaceMB;
+    private long freeSpaceMB;
 }
