@@ -31,8 +31,6 @@ public class SwaggerConfig {
                         .description("API para gestão de servidores de armazenamento e registro de arquivos físicos de forma centralizada")
                         .contact(new Contact().name("DevD2 - Soluções Tecnológicas").email("atendimento@devd2.com.br").url("https://wwww.devd2.com.br"))
                         .license(new License().name("Apache 2.0").url("http://springdoc.org")));
-                //.addSecurityItem(securityRequirement)
-                //.components(new io.swagger.v3.oas.models.Components().addSecuritySchemes("bearerAuth", securityScheme));
     }
 
 }

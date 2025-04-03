@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.ConnectException;
 import java.util.Scanner;
+import java.util.UUID;
 
 @EnableScheduling //Ativa a execução de tarefas agendadas
 @SpringBootApplication
@@ -33,8 +34,9 @@ public class MeshstorageClientApplication {
 
     private static void verificarParametros(String[] args) throws ConnectException {
 
-        var server = getParametro("-server", args);
-        var storage = getParametro("-storage", args);
+        var server = getParametro("-server-name", args);
+        var storageName = getParametro("-storage-name", args);
+        var storagePath = getParametro("-storage-path", args);
 
         try (var scanner = new Scanner(System.in)) {
             if (server.isBlank()) {
@@ -46,17 +48,31 @@ public class MeshstorageClientApplication {
             } else {
                 System.out.println(String.format(">> Nome Servidor: %s", server));
             }
-            if (storage.isBlank()) {
+
+            if (storageName.isBlank()) {
+                var nomeStorageDefault = "STORAGE1";
+                System.out.printf(">> Nome do Armazenamento [%s]: ", nomeStorageDefault);
+                storageName = scanner.nextLine().trim();
+                if (storageName.isBlank())
+                    storageName = nomeStorageDefault;
+                if (storageName.isBlank()) {
+                    throw new IllegalArgumentException("Nome do armazenamento não informado.");
+                }
+            } else {
+                System.out.println(String.format(">> Nome do Armazenamento: %s", storageName));
+            }
+
+            if (storagePath.isBlank()) {
                 System.out.print(">> Local de Armazenamento: ");
-                storage = scanner.nextLine().trim();
-                if (storage.isBlank()) {
+                storagePath = scanner.nextLine().trim();
+                if (storagePath.isBlank()) {
                    throw new IllegalArgumentException("Local de armazenamento não informado.");
                 }
             } else {
-                System.out.println(String.format(">> Local de Armazenamento: %s", storage));
+                System.out.println(String.format(">> Local de Armazenamento: %s", storagePath));
             }
         }
-        if (!UtilClient.isStorageValid(storage)) {
+        if (!UtilClient.isStorageValid(storagePath)) {
             throw new IllegalArgumentException("Local de armazenamento inválido ou inexistente.");
         }
 
@@ -65,20 +81,22 @@ public class MeshstorageClientApplication {
             new AnnotationConfigApplicationContext("br.com.devd2.meshstorageclient.config")) {
             storageConfig = context.getBean(StorageConfig.class);
         }
-        storageConfig.getClient().setStorageName(storage);
-
-        storageConfig.getClient().setServerName(server);
         var ipMaquina = UtilClient.getMachineIp();
         System.out.println(String.format(">> IP Servidor: %s", ipMaquina));
-        storageConfig.getClient().setIpServer(ipMaquina);
-
         var nomeOs = UtilClient.getOperatingSystem();
         System.out.println(String.format(">> Sistema Operacional: %s", nomeOs));
+
+        storageConfig.getClient().setIdClient(UtilClient.gerarHashIdCliente(server, storageName));
+        storageConfig.getClient().setServerName(server);
+        storageConfig.getClient().setStorageName(storageName);
+        storageConfig.getClient().setStoragePath(storagePath);
+        storageConfig.getClient().setIpServer(ipMaquina);
         storageConfig.getClient().setOsName(nomeOs);
 
         if (!storageConfig.testConnectServer()) {
             throw new ConnectException("Conexão com o servidor MeshStorage não realizada, verifique as configurações.");
         }
+
     }
 
     private static String getParametro(String nameParam, String[] args) {

@@ -9,7 +9,7 @@ public class WebSocketController {
 
     // Recebe atualizações de espaço dos file servers
     @MessageMapping("/status-update")
-    @SendTo("/topic/storage-status")
+    @SendTo("/client/storage-status")
     public String receiveStatusUpdate(String message) {
         System.out.println("Status recebido: " + message);
         return "Atualização recebida: " + message;
@@ -17,7 +17,7 @@ public class WebSocketController {
 
     // Comando para um file server armazenar um arquivo
     @MessageMapping("/store-file")
-    @SendTo("/topic/store-command")
+    @SendTo("/client/store-command")
     public String sendStorageCommand(String fileInfo) {
 
         return "Armazene o arquivo: " + fileInfo;

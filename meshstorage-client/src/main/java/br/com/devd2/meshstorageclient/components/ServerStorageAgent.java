@@ -19,12 +19,12 @@ public class ServerStorageAgent {
     public void sendStatus() {
         try {
 
-            if (!storageConfig.isConnectedServer())
+            if (!storageConfig.testConnectServer())
                 return; //Não connectado...
 
-            var storageName = storageConfig.getClient().getStorageName();
-            storageConfig.getClient().setTotalSpaceMB(UtilClient.getTotalSpaceStorage(storageName));
-            storageConfig.getClient().setFreeSpaceMB(UtilClient.getFreeSpaceStorage(storageName));
+            var storagePath = storageConfig.getClient().getStoragePath();
+            storageConfig.getClient().setTotalSpaceMB(UtilClient.getTotalSpaceStorage(storagePath));
+            storageConfig.getClient().setFreeSpaceMB(UtilClient.getFreeSpaceStorage(storagePath));
 
             var session = storageConfig.getSession();
             if (session != null && session.isConnected()) {

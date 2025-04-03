@@ -5,7 +5,7 @@ import org.springframework.messaging.simp.stomp.StompHeaders;
 
 import java.lang.reflect.Type;
 
-public class ClientsHandler implements StompFrameHandler {
+public class ClientFrameHandler implements StompFrameHandler {
 
     @Override
     public Type getPayloadType(StompHeaders headers) {

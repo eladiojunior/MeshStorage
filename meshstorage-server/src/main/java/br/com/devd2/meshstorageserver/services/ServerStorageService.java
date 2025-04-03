@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ServerStorageService {
@@ -15,6 +16,16 @@ public class ServerStorageService {
 
     public ServerStorageService(ServerStorageRepository fileServerRepository) {
         this.serverStorageRepository = fileServerRepository;
+    }
+
+    /**
+     * Recupera um ServerStorage pelo idClient.
+     * @param idClient - Identificador único do Client de Storage;
+     * @return ServerStorage ou nulo se não existir;
+     */
+    public ServerStorage findByIdClient(String idClient) {
+        Optional<ServerStorage> serverStorage = serverStorageRepository.findByIdClient(idClient);
+        return serverStorage.orElse(null);
     }
 
     /**

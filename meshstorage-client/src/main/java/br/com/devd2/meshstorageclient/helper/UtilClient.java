@@ -3,6 +3,9 @@ package br.com.devd2.meshstorageclient.helper;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class UtilClient {
 
@@ -76,6 +79,27 @@ public class UtilClient {
             freeSpace = storage.getFreeSpace() / (1024 * 1024);
         }
         return freeSpace;
+    }
+
+    /**
+     * Responsável por gerar um HASH de identificação do client, de forma única.
+     * @param serverName - Nome do Servidor de Storage
+     * @param storageName - Nome do Storage no Client.
+     * @return String com o HASH de identificação.
+     */
+    public static String gerarHashIdCliente(String serverName, String storageName) {
+        String input = serverName + storageName;
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte hashByte : hashBytes) {
+                hexString.append(String.format("%02x", hashByte));
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Erro ao gerar hash: algorítmo não encontrado.", e);
+        }
     }
 
 }
