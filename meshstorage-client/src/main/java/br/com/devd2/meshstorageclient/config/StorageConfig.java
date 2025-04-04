@@ -1,8 +1,10 @@
 package br.com.devd2.meshstorageclient.config;
 
-import br.com.devd2.meshstorageclient.components.ClientFrameHandler;
-import br.com.devd2.meshstorageclient.models.StorageClient;
+import br.com.devd2.meshstorageclient.components.ClientCommandPrivateHandler;
+import br.com.devd2.meshstorage.models.StorageClient;
+import br.com.devd2.meshstorageclient.services.StorageService;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -19,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 @Component
 public class StorageConfig {
     private static StorageClient client;
+
     @Getter
     private StompSession session;
     private boolean isConnectedServer;
@@ -59,7 +62,7 @@ public class StorageConfig {
             isConnectedServer = true;
 
             // Inscrever-se para receber comandos de armazenamento
-            this.session.subscribe("/client/store-command", new ClientFrameHandler());
+            this.session.subscribe("/user/client/private", new ClientCommandPrivateHandler());
 
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("Erro: " + e.getMessage());
@@ -67,10 +70,10 @@ public class StorageConfig {
 
     }
 
-    public boolean testConnectServer() {
+    public boolean notConnectServer() {
         if (!isConnectedServer || (session == null || !session.isConnected()))
             openConnectServerWs();
-        return isConnectedServer;
+        return !isConnectedServer;
     }
 
 }

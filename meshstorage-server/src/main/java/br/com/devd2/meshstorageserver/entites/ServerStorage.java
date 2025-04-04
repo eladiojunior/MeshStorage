@@ -14,6 +14,7 @@ public class ServerStorage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String sessionIdClient;
     private String idClient; //Idenificador do Client HASH (ServerName + StorageName)
     private String serverName;
     private String storageName;

@@ -4,8 +4,11 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class UtilClient {
 
@@ -100,6 +103,19 @@ public class UtilClient {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Erro ao gerar hash: algorítmo não encontrado.", e);
         }
+    }
+
+    /**
+     * Montar a estrutura de armazenamento no padrão ano\mes\dia\nome_arquivo.extensao.
+     * @param nomeArquivo - Nome do arquivo para armazenamento.
+     * @return String no padrão de estrutura do Client.
+     */
+    public static String montarPathStorage(String nomeArquivo) {
+        LocalDateTime agora = LocalDateTime.now();
+        String dataPath = agora.format(DateTimeFormatter.ofPattern(
+                "yyyy" + File.separator + "MM" + File.separator + "dd"
+        ));
+        return Paths.get(dataPath, nomeArquivo).toString();
     }
 
 }

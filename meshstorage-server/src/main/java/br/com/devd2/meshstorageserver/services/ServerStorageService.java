@@ -31,7 +31,8 @@ public class ServerStorageService {
     /**
      * Responsável por recuperar o melhor storage disponível no momento
      * para armazenamento das informações.
-     * @return
+     * @return ServerStoreage ou erro.
+     * @throws ApiBusinessException Erro de negócio.
      */
     public ServerStorage getBestServerStorage() throws ApiBusinessException {
         List<ServerStorage> listServerStorage = serverStorageRepository.findByAvailableTrueOrderByFreeSpaceDesc();

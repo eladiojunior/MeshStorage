@@ -1,4 +1,4 @@
-package br.com.devd2.meshstorageserver.models;
+package br.com.devd2.meshstorage.models;
 
 import lombok.Data;
 

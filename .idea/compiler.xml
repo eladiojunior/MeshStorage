@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="meshstorage-server" />
         <module name="meshstorage-client" />
+        <module name="meshstorage-common" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

@@ -1,9 +1,6 @@
 package br.com.devd2.meshstorageserver.entites;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -11,16 +8,25 @@ import java.time.LocalDateTime;
 @Entity
 @Data
 public class FileStorage {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String idFile; //Chave de identificação externa do arquivo.
+    private String idClientStorage; //Identificador do Client Storage que está armazenado.
     private String fileLogicName;
     private String fileFisicalName;
     private String fileType;
-    private String serverStorage;
-    private byte[] fileData;
-    private Long fileLength;
-    private String hashFileData;
+    private int fileLength;
+    @Transient
+    private byte[] fileContent;
+    private String textOcrFileContent;
+    private String hashFileContent;
+    private boolean hasFileSentForPurge; //Sinaliza que o arquivo foi enviado para expurgo.
     private LocalDateTime dateTimeFileStorage;
+
+    @ManyToOne
+    @JoinColumn(name = "applicationId")
+    private Application application;
+
 }

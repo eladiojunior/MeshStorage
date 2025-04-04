@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.ConnectException;
 import java.util.Scanner;
-import java.util.UUID;
 
 @EnableScheduling //Ativa a execução de tarefas agendadas
 @SpringBootApplication
@@ -46,7 +45,7 @@ public class MeshstorageClientApplication {
                 if (server.isBlank())
                     server = nomeServidorDefault;
             } else {
-                System.out.println(String.format(">> Nome Servidor: %s", server));
+                System.out.printf(">> Nome Servidor: %s%n", server);
             }
 
             if (storageName.isBlank()) {
@@ -59,7 +58,7 @@ public class MeshstorageClientApplication {
                     throw new IllegalArgumentException("Nome do armazenamento não informado.");
                 }
             } else {
-                System.out.println(String.format(">> Nome do Armazenamento: %s", storageName));
+                System.out.printf(">> Nome do Armazenamento: %s%n", storageName);
             }
 
             if (storagePath.isBlank()) {
@@ -69,7 +68,7 @@ public class MeshstorageClientApplication {
                    throw new IllegalArgumentException("Local de armazenamento não informado.");
                 }
             } else {
-                System.out.println(String.format(">> Local de Armazenamento: %s", storagePath));
+                System.out.printf(">> Local de Armazenamento: %s%n", storagePath);
             }
         }
         if (!UtilClient.isStorageValid(storagePath)) {
@@ -82,9 +81,9 @@ public class MeshstorageClientApplication {
             storageConfig = context.getBean(StorageConfig.class);
         }
         var ipMaquina = UtilClient.getMachineIp();
-        System.out.println(String.format(">> IP Servidor: %s", ipMaquina));
+        System.out.printf(">> IP Servidor: %s%n", ipMaquina);
         var nomeOs = UtilClient.getOperatingSystem();
-        System.out.println(String.format(">> Sistema Operacional: %s", nomeOs));
+        System.out.printf(">> Sistema Operacional: %s%n", nomeOs);
 
         storageConfig.getClient().setIdClient(UtilClient.gerarHashIdCliente(server, storageName));
         storageConfig.getClient().setServerName(server);
@@ -93,7 +92,7 @@ public class MeshstorageClientApplication {
         storageConfig.getClient().setIpServer(ipMaquina);
         storageConfig.getClient().setOsName(nomeOs);
 
-        if (!storageConfig.testConnectServer()) {
+        if (storageConfig.notConnectServer()) {
             throw new ConnectException("Conexão com o servidor MeshStorage não realizada, verifique as configurações.");
         }
 

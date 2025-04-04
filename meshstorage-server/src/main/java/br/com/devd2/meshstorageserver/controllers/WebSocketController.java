@@ -7,19 +7,18 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class WebSocketController {
 
-    // Recebe atualizações de espaço dos file servers
-    @MessageMapping("/status-update")
-    @SendTo("/client/storage-status")
-    public String receiveStatusUpdate(String message) {
+    @MessageMapping("/status-update-client")
+    public void receiveStatusUpdate(String message) {
+
         System.out.println("Status recebido: " + message);
-        return "Atualização recebida: " + message;
+
     }
 
     // Comando para um file server armazenar um arquivo
-    @MessageMapping("/store-file")
-    @SendTo("/client/store-command")
-    public String sendStorageCommand(String fileInfo) {
+    @MessageMapping("/status-upload-file")
+    public void receiverStatusUpdateFile(String fileInfo) {
 
-        return "Armazene o arquivo: " + fileInfo;
+        System.out.println("Status file: " + fileInfo);
+
     }
 }

@@ -1,7 +1,7 @@
 package br.com.devd2.meshstorageclient.components;
 
 import br.com.devd2.meshstorageclient.config.StorageConfig;
-import br.com.devd2.meshstorageclient.helper.JsonUtil;
+import br.com.devd2.meshstorage.helper.JsonUtil;
 import br.com.devd2.meshstorageclient.helper.UtilClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ public class ServerStorageAgent {
     public void sendStatus() {
         try {
 
-            if (!storageConfig.testConnectServer())
+            if (storageConfig.notConnectServer())
                 return; //Não connectado...
 
             var storagePath = storageConfig.getClient().getStoragePath();
@@ -29,7 +29,7 @@ public class ServerStorageAgent {
             var session = storageConfig.getSession();
             if (session != null && session.isConnected()) {
                 var jsonClient = JsonUtil.toJson(storageConfig.getClient());
-                session.send("/app/status-update", jsonClient);
+                session.send("/server/status-update-client", jsonClient);
             }
 
         } catch (Exception e) {
