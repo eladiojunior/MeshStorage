@@ -1,7 +1,9 @@
 package br.com.devd2.meshstorageserver.helper;
 
+import br.com.devd2.meshstorageserver.entites.Application;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
+import br.com.devd2.meshstorageserver.models.response.ApplicationResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStorageResponse;
 import br.com.devd2.meshstorageserver.models.response.ServerStorageResponse;
 
@@ -53,8 +55,36 @@ public class HelperMapper {
      * @param listServerStorage - Lista de Entites para conversão.
      * @return Lista de Responses convertidas.
      */
-    public static List<ServerStorageResponse> ConvertToResponse(List<ServerStorage> listServerStorage) {
-        return listServerStorage.stream().map(HelperMapper::ConvertToResponse).collect(Collectors.toList());
+    public static List<ServerStorageResponse> ConvertToResponseListServerStorage(List<ServerStorage> listServerStorage) {
+        return listServerStorage.stream().map(HelperMapper::ConvertToResponse).toList();
     }
+
+    /**
+     * Converte um objeto Entity (Application) para Response (ApplicationResponse).
+     *
+     * @param application - Objeto a ser convertido em Response
+     * @return
+     */
+    public static ApplicationResponse ConvertToResponse(Application application) {
+        if (application == null)
+            return null;
+        ApplicationResponse response = new ApplicationResponse();
+        response.setId(application.getId());
+        response.setApplicationName(application.getApplicationName());
+        response.setApplicationDescription(application.getApplicationDescription());
+        response.setMaximumFileSize(application.getMaximumFileSize());
+        response.setAllowedFileTypes(application.getAllowedFileTypes().split(";"));
+        return response;
+    }
+
+    /**
+     * Converte lista de objeto Entity (Application) para lista de Response (ApplicationResponse).
+     * @param list - Lista de Entites para conversão.
+     * @return Lista de Responses convertidas.
+     */
+    public static List<ApplicationResponse> ConvertToResponseListApplication(List<Application> list) {
+        return list.stream().map(HelperMapper::ConvertToResponse).collect(Collectors.toList());
+    }
+
 
 }

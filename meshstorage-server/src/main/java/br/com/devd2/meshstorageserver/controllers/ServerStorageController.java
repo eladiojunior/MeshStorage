@@ -115,7 +115,7 @@ public class ServerStorageController {
             @RequestParam @Parameter(description = "Flag de disponibilidade do storage para utilização")boolean available) {
         try {
             var listServerStorage = serverStorageService.getListServerStorage(available);
-            var response = HelperMapper.ConvertToResponse(listServerStorage);
+            var response = HelperMapper.ConvertToResponseListServerStorage(listServerStorage);
             return ResponseEntity.ok(response);
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
