@@ -72,8 +72,12 @@ public class HelperMapper {
         response.setId(application.getId());
         response.setApplicationName(application.getApplicationName());
         response.setApplicationDescription(application.getApplicationDescription());
-        response.setMaximumFileSize(application.getMaximumFileSize());
+        response.setMaximumFileSize(application.getMaximumFileSizeMB());
         response.setAllowedFileTypes(application.getAllowedFileTypes().split(";"));
+        response.setAllowDuplicateFile(application.isAllowDuplicateFile());
+        response.setCompressFileContent(application.isCompressFileContent());
+        response.setApplyOcrFileContent(application.isApplyOcrFileContent());
+        response.setDateTimeApplication(application.getDateTimeApplication());
         return response;
     }
 

@@ -22,6 +22,7 @@ public class WebSocketDisconnectListener implements ApplicationListener<SessionD
             return;
         HelperSessionClients.get().removeSessionToClient(sessionId);
 
+
         logger.info("Cliente DESCONECTADO: SessionId={} => IdClient={}", sessionId, idClient);
 
     }

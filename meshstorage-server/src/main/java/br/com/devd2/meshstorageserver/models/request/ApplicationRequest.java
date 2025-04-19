@@ -21,4 +21,10 @@ public class ApplicationRequest {
     @Min(value = 1, message = "Tamanho (em MegaByte) máximo dos aquivos deve ser maior que 0 (zero).")
     private Long maximumFileSize;
 
+    private boolean compressFileContent; //Realizar a compressão dos arquivos antes de armazenar;
+
+    private boolean applyOcrFileContent; //Aplicar OCR em arquivos de Imagem/PDF para indexação de conteúdo e HASH;
+
+    private boolean allowDuplicateFile; //Verificar se permite duplicidade de conteúdo ou hash em bytes do arquivo;
+
 }

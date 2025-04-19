@@ -47,7 +47,10 @@ public class ApplicationService {
         application.setApplicationName(request.getApplicationName());
         application.setApplicationDescription(request.getApplicationDescription());
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
-        application.setMaximumFileSize(request.getMaximumFileSize());
+        application.setMaximumFileSizeMB(request.getMaximumFileSize());
+        application.setAllowDuplicateFile(request.isAllowDuplicateFile());
+        application.setApplyOcrFileContent(request.isApplyOcrFileContent());
+        application.setCompressFileContent(request.isCompressFileContent());
         application.setDateTimeApplication(LocalDateTime.now());
 
         return applicationRepository.save(application);
@@ -82,7 +85,10 @@ public class ApplicationService {
         application.setApplicationName(request.getApplicationName());
         application.setApplicationDescription(request.getApplicationDescription());
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
-        application.setMaximumFileSize(request.getMaximumFileSize());
+        application.setMaximumFileSizeMB(request.getMaximumFileSize());
+        application.setAllowDuplicateFile(request.isAllowDuplicateFile());
+        application.setCompressFileContent(request.isCompressFileContent());
+        application.setApplyOcrFileContent(request.isApplyOcrFileContent());
 
         return applicationRepository.save(application);
 

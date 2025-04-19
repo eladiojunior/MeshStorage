@@ -20,7 +20,18 @@ public class MeshstorageClientApplication {
         System.out.println("| Configuração do Client do MeshStorage --------------------- v1.0.0 |");
         System.out.println("+--------------------------------------------------------------------+");
         try {
-            verificarParametros(args);
+            StorageConfig storageConfig = getStorageConfig();
+            if (storageConfig != null && storageConfig.isExistendClient()) {
+                System.out.printf(">> Nome Servidor: %s%n", storageConfig.getClient().getServerName());
+                System.out.printf(">> IP Servidor: %s%n", storageConfig.getClient().getIpServer());
+                System.out.printf(">> Sistema Operacional: %s%n", storageConfig.getClient().getOsName());
+                System.out.printf(">> Nome do Armazenamento: %s%n", storageConfig.getClient().getStorageName());
+                System.out.printf(">> Local de Armazenamento: %s%n", storageConfig.getClient().getStoragePath());
+            } else {
+                verificarParametros(args, storageConfig);
+                System.out.println("| Existe uma interface Web para verificar status                     |");
+                System.out.println("| ==> http://localhost:8081/                                         |");
+            }
             System.out.println("+--------------------------------------------------------------------+");
             System.out.println("| Configuração realizada com sucesso!                                |");
             System.out.println("+--------------------------------------------------------------------+");
@@ -31,7 +42,13 @@ public class MeshstorageClientApplication {
         }
     }
 
-    private static void verificarParametros(String[] args) throws ConnectException {
+    /**
+     * Verifica os paramentros enviados no Main pela usuário.
+     * @param args Array de argumentos do Main
+     * @param storageConfig Instancia do StorageConfig.
+     * @throws ConnectException Caso identificado erro na conexão com o WebSocket do Servidor.
+     */
+    private static void verificarParametros(String[] args, StorageConfig storageConfig) throws ConnectException {
 
         var server = getParametro("-server-name", args);
         var storageName = getParametro("-storage-name", args);
@@ -75,11 +92,6 @@ public class MeshstorageClientApplication {
             throw new IllegalArgumentException("Local de armazenamento inválido ou inexistente.");
         }
 
-        StorageConfig storageConfig;
-        try (AnnotationConfigApplicationContext context =
-            new AnnotationConfigApplicationContext("br.com.devd2.meshstorageclient.config")) {
-            storageConfig = context.getBean(StorageConfig.class);
-        }
         var ipMaquina = UtilClient.getMachineIp();
         System.out.printf(">> IP Servidor: %s%n", ipMaquina);
         var nomeOs = UtilClient.getOperatingSystem();
@@ -96,8 +108,29 @@ public class MeshstorageClientApplication {
             throw new ConnectException("Conexão com o servidor MeshStorage não realizada, verifique as configurações.");
         }
 
+        storageConfig.gravarStorageServer();
+
     }
 
+    /**
+     * Recupera um StorageConfig do contexto da aplicação.
+     * @return instancia do StorageConfig
+     */
+    private static StorageConfig getStorageConfig() {
+        var config = new StorageConfig();
+        try (AnnotationConfigApplicationContext context =
+                     new AnnotationConfigApplicationContext("br.com.devd2.meshstorageclient.config")) {
+            config = context.getBean(StorageConfig.class);
+        }
+        return config;
+    }
+
+    /**
+     * Recupera o parametro informado do array de Args do Main.
+     * @param nameParam Nome do parametro esperado
+     * @param args - Array de argumentos do Main
+     * @return Valor do parametro ou vazio se não existir
+     */
     private static String getParametro(String nameParam, String[] args) {
         String resultValue = "";
         for (int i = 0; i < args.length; i++) {
