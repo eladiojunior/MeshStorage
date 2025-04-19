@@ -22,6 +22,7 @@ public class MeshstorageClientApplication {
         try {
             StorageConfig storageConfig = getStorageConfig();
             if (storageConfig != null && storageConfig.isExistendClient()) {
+                System.out.printf(">> Url Websocket Server: %s%n", storageConfig.getClient().getUrlWebsocketServer());
                 System.out.printf(">> Nome Servidor: %s%n", storageConfig.getClient().getServerName());
                 System.out.printf(">> IP Servidor: %s%n", storageConfig.getClient().getIpServer());
                 System.out.printf(">> Sistema Operacional: %s%n", storageConfig.getClient().getOsName());
@@ -50,11 +51,23 @@ public class MeshstorageClientApplication {
      */
     private static void verificarParametros(String[] args, StorageConfig storageConfig) throws ConnectException {
 
+        var urlWebsocketServer = getParametro("-url-websocket-server", args);
         var server = getParametro("-server-name", args);
         var storageName = getParametro("-storage-name", args);
         var storagePath = getParametro("-storage-path", args);
 
         try (var scanner = new Scanner(System.in)) {
+
+            if (urlWebsocketServer.isBlank()) {
+                var urlWebsocketServerDefault = UtilClient.getUrlWebsocketServer();
+                System.out.printf(">> Url Websocket Server [%s]: ", urlWebsocketServerDefault);
+                urlWebsocketServer = scanner.nextLine().trim();
+                if (urlWebsocketServer.isBlank())
+                    urlWebsocketServer = urlWebsocketServerDefault;
+            } else {
+                System.out.printf(">> Url Websocket Server: %s%n", urlWebsocketServer);
+            }
+
             if (server.isBlank()) {
                 var nomeServidorDefault = UtilClient.getMachineName();
                 System.out.printf(">> Nome Servidor [%s]: ", nomeServidorDefault);
@@ -98,6 +111,7 @@ public class MeshstorageClientApplication {
         System.out.printf(">> Sistema Operacional: %s%n", nomeOs);
 
         storageConfig.getClient().setIdClient(UtilClient.gerarHashIdCliente(server, storageName));
+        storageConfig.getClient().setUrlWebsocketServer(urlWebsocketServer);
         storageConfig.getClient().setServerName(server);
         storageConfig.getClient().setStorageName(storageName);
         storageConfig.getClient().setStoragePath(storagePath);

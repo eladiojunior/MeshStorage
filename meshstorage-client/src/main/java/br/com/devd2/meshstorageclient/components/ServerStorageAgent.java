@@ -3,12 +3,14 @@ package br.com.devd2.meshstorageclient.components;
 import br.com.devd2.meshstorageclient.config.StorageConfig;
 import br.com.devd2.meshstorage.helper.JsonUtil;
 import br.com.devd2.meshstorageclient.helper.UtilClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ServerStorageAgent {
-
+    private static final Logger logger = LoggerFactory.getLogger(ServerStorageAgent.class);
     private final StorageConfig storageConfig;
 
     public ServerStorageAgent(StorageConfig storageConfig) {
@@ -32,8 +34,8 @@ public class ServerStorageAgent {
                 session.send("/server/status-update-client", jsonClient);
             }
 
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+        } catch (Exception error) {
+            logger.error("Error ao enviar status para o servidor.", error);
         }
     }
 

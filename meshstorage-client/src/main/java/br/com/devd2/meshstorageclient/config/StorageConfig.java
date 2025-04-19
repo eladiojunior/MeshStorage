@@ -2,13 +2,11 @@ package br.com.devd2.meshstorageclient.config;
 
 import br.com.devd2.meshstorageclient.components.ClientCommandPrivateHandler;
 import br.com.devd2.meshstorage.models.StorageClient;
-import br.com.devd2.meshstorageclient.services.StorageService;
+import br.com.devd2.meshstorageclient.helper.UtilClient;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -21,8 +19,6 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -33,9 +29,6 @@ public class StorageConfig {
     @Getter
     private StompSession session;
     private boolean isConnectedServer;
-
-    @Value("${url-websocket-server}")
-    private String urlServer;
 
     public boolean isExistendClient() {
         if (client == null)
@@ -61,16 +54,21 @@ public class StorageConfig {
             WebSocketStompClient stompClient = new WebSocketStompClient(client);
             stompClient.setMessageConverter(new StringMessageConverter());
 
+            var storagePath = getClient().getStoragePath();
+            getClient().setTotalSpaceMB(UtilClient.getTotalSpaceStorage(storagePath));
+            getClient().setFreeSpaceMB(UtilClient.getFreeSpaceStorage(storagePath));
+
             StompHeaders connectHeaders = new StompHeaders();
             connectHeaders.add("id-client", getClient().getIdClient());
             connectHeaders.add("server-name", getClient().getServerName());
+            connectHeaders.add("ip-server", getClient().getIpServer());
             connectHeaders.add("storage-name", getClient().getStorageName());
             connectHeaders.add("storage-total-space", String.valueOf(getClient().getTotalSpaceMB()));
             connectHeaders.add("storage-free-space", String.valueOf(getClient().getFreeSpaceMB()));
 
             // Conectar ao servidor WebSocket de forma assíncrona
             CompletableFuture<StompSession> futureSession =
-                    stompClient.connectAsync(urlServer, new WebSocketHttpHeaders(),
+                    stompClient.connectAsync(getClient().getUrlWebsocketServer(), new WebSocketHttpHeaders(),
                             connectHeaders, new StompSessionHandlerAdapter() {});
 
             // Aguarda a conexão ser estabelecida antes de continuar

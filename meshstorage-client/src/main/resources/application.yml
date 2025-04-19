@@ -1,8 +1,4 @@
 # Configuracao do servidor
 # -----------------------------------------------------
 server:
-  port: ${SERVER_PORT}
-
-# Configuracao de acesso ao servidor MeshStorage
-# -----------------------------------------------------
-url-websocket-server: ${URL_WEBSOCKET_SERVER}
+  port: 8081

@@ -6,6 +6,7 @@ import lombok.Data;
 public class StorageClient {
 
     private String idClient;
+    private String urlWebsocketServer;
     private String serverName;
     private String ipServer;
     private String osName;

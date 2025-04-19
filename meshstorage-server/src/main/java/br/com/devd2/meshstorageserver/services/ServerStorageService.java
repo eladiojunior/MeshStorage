@@ -2,6 +2,8 @@ package br.com.devd2.meshstorageserver.services;
 
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
+import br.com.devd2.meshstorageserver.helper.HelperServer;
+import br.com.devd2.meshstorageserver.models.ServerStorageModel;
 import br.com.devd2.meshstorageserver.models.request.ServerStorageRequest;
 import br.com.devd2.meshstorageserver.repositories.ServerStorageRepository;
 import org.springframework.stereotype.Service;
@@ -53,32 +55,39 @@ public class ServerStorageService {
 
     /**
      * Registra um ServerStorage na estrutura para utilização.
-     * @param request - Informações do Server Storage para utilização.
+     * @param model - Informações do Server Storage para utilização.
      * @return Informações do Server Storage registrado.
-     * @throws ApiBusinessException
+     * @throws ApiBusinessException Erro de negócio
      */
-    public ServerStorage registerServerStorage(ServerStorageRequest request) throws ApiBusinessException {
+    public ServerStorage registerServerStorage(ServerStorageModel model) throws ApiBusinessException {
 
-        if (request == null)
+        if (model == null)
             throw new ApiBusinessException("Informações do ServerStorage não pode ser nulo.");
-        if (request.getServeName() == null || request.getServeName().isEmpty())
+        if (model.getIdClient() == null || model.getIdClient().isEmpty())
+            throw new ApiBusinessException("ID do Client (identificador do Cliente) não pode ser nulo ou vazio.");
+        if (model.getServeName() == null || model.getServeName().isEmpty())
             throw new ApiBusinessException("Server name (nome do servidor) não pode ser nulo ou vazio.");
-        if (request.getStorageName() == null || request.getStorageName().isEmpty())
+        if (model.getIpServer() == null || model.getIpServer().isEmpty())
+            throw new ApiBusinessException("IP do Server (endereço IP do servidor) não pode ser nulo ou vazio.");
+        if (!HelperServer.IsValidIp(model.getIpServer()))
+            throw new ApiBusinessException("IP do Server (endereço IP do servidor) inválido.");
+        if (model.getStorageName() == null || model.getStorageName().isEmpty())
             throw new ApiBusinessException("Storage name (nome do local de armazenamento) não pode ser nulo ou vazio.");
 
         //Verificar se existe um server/storage registrado.
         ServerStorage server = serverStorageRepository
-                .findByServerNameAndStorageName(request.getServeName(), request.getStorageName())
+                .findByServerNameAndStorageName(model.getServeName(), model.getStorageName())
                 .orElse(null);
         if (server != null)
-            throw new ApiBusinessException(String.format("Existem um Server [%1s] e Storage [%2s] registrado.", request.getServeName(), request.getStorageName()));
+            throw new ApiBusinessException(String.format("Existem um Server [%1s] e Storage [%2s] registrado.", model.getServeName(), model.getStorageName()));
 
         server = new ServerStorage();
-        server.setServerName(request.getServeName());
-        server.setIpServer(request.getIpServer());
-        server.setStorageName(request.getStorageName());
-        server.setTotalSpace(request.getTotalSpace());
-        server.setFreeSpace(request.getTotalSpace());
+        server.setIdClient(model.getIdClient());
+        server.setServerName(model.getServeName());
+        server.setIpServer(model.getIpServer());
+        server.setStorageName(model.getStorageName());
+        server.setTotalSpace(model.getTotalSpace());
+        server.setFreeSpace(model.getTotalSpace());
         server.setAvailable(true);
         server.setDateTimeAvailable(LocalDateTime.now());
         server.setDateTimeServerStorage(LocalDateTime.now());

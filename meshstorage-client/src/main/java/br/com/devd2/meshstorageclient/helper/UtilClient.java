@@ -1,14 +1,14 @@
 package br.com.devd2.meshstorageclient.helper;
 
 import java.io.File;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Enumeration;
 
 public class UtilClient {
 
@@ -30,9 +30,21 @@ public class UtilClient {
      */
     public static String getMachineIp() {
         try {
-            return InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            return "Desconhecido";
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+            return "IP não encontrado";
+        } catch (SocketException e) {
+            return "Erro ao recuperar IP";
         }
     }
 
@@ -118,4 +130,7 @@ public class UtilClient {
         return Paths.get(dataPath, nomeArquivo).toString();
     }
 
+    public static String getUrlWebsocketServer() {
+        return "ws://localhost:8181/server-storage-websocket";
+    }
 }

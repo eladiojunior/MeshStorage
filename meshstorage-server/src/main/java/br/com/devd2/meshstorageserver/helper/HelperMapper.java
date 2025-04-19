@@ -16,18 +16,20 @@ public class HelperMapper {
      * Converte um objeto Entity (ServerStorage) para Response (ServerStorageResponse).
      *
      * @param serverStorage - Objeto a ser convertido em Response
-     * @return
+     * @return Instancia de Respose
      */
     public static ServerStorageResponse ConvertToResponse(ServerStorage serverStorage) {
         if (serverStorage == null) {
             return null;
         }
         ServerStorageResponse response = new ServerStorageResponse();
-        response.setId(serverStorage.getId());
+        response.setIdClient(serverStorage.getIdClient());
         response.setServerName(serverStorage.getServerName());
         response.setStorageName(serverStorage.getStorageName());
         response.setFreeSpace(serverStorage.getFreeSpace());
         response.setTotalSpace(serverStorage.getTotalSpace());
+        response.setAvailable(serverStorage.isAvailable());
+        response.setDateTimeAvailable(serverStorage.getDateTimeAvailable());
         return response;
     }
 
@@ -35,7 +37,7 @@ public class HelperMapper {
      * Converte um objeto Entity (FileStorage) para Response (FileStorageResponse).
      *
      * @param fileStorage - Objeto a ser convertido em Response
-     * @return
+     * @return Instancia de Response
      */
     public static FileStorageResponse ConvertToResponse(FileStorage fileStorage) {
         if (fileStorage == null) {
@@ -63,7 +65,7 @@ public class HelperMapper {
      * Converte um objeto Entity (Application) para Response (ApplicationResponse).
      *
      * @param application - Objeto a ser convertido em Response
-     * @return
+     * @return Instancia de Response
      */
     public static ApplicationResponse ConvertToResponse(Application application) {
         if (application == null)
