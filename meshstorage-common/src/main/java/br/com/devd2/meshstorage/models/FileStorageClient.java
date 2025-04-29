@@ -8,7 +8,4 @@ public class FileStorageClient {
     private String fileName;
     private String dataBase64;
     private String pathStorage;
-    //Retorno
-    private boolean isErrorWrite;
-    private String messageErrorWrite;
 }

@@ -4,7 +4,6 @@ import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperServer;
 import br.com.devd2.meshstorageserver.models.ServerStorageModel;
-import br.com.devd2.meshstorageserver.models.request.ServerStorageRequest;
 import br.com.devd2.meshstorageserver.repositories.ServerStorageRepository;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +50,17 @@ public class ServerStorageService {
      */
     public List<ServerStorage> findByServerName(String serverName) {
         return serverStorageRepository.findByServerName(serverName);
+    }
+
+    /**
+     * Recupera um Server/Storage pelos nomes registrado na base.
+     * @param serverName - Nome do server (ServerName), pode ser o nome do servidor ou codenome;
+     * @param storageName - Nome do armazenamento (StorageName), pode ser o nome do local de armazenamento ou codenome;
+     * @return Instância de um ServerStorage ou null
+     */
+    public ServerStorage findByServerNameAndStorageName(String serverName, String storageName) {
+        Optional<ServerStorage> serverStorage = serverStorageRepository.findByServerNameAndStorageName(serverName, storageName);
+        return serverStorage.orElse(null);
     }
 
     /**
@@ -123,6 +133,31 @@ public class ServerStorageService {
         server.setFreeSpace(freeSpace);
         server.setAvailable(available);
         server.setDateTimeAvailable(LocalDateTime.now());
+
+        return serverStorageRepository.save(server);
+
+    }
+
+    /**
+     * Atualiza o IdClient do Server Storage caso ele mude.
+     * @param id - Identificador do Server/Storage no banco.
+     * @param idClient - Identificador do Cliente Server/Storage no servidor;
+     * @throws ApiBusinessException - Erro de negócio
+     * @return ServerStorage atualizado.
+     */
+    public ServerStorage updateIdClientServerStorage(Long id, String idClient) throws ApiBusinessException {
+
+        if (id == null || id == 0)
+            throw new ApiBusinessException("Id do Server Storage não pode ser nulo ou zero.");
+        if (idClient == null || idClient.isEmpty())
+            throw new ApiBusinessException("Id Client (identificador do storage cliente) não pode ser nulo ou vazio.");
+
+        //Verificar Server Storage existente para atualização.
+        ServerStorage server = serverStorageRepository.findById(id).orElse(null);
+        if (server == null)
+            throw new ApiBusinessException("Server Storage não identificado para atualização do seu status.");
+
+        server.setIdClient(idClient);
 
         return serverStorageRepository.save(server);
 

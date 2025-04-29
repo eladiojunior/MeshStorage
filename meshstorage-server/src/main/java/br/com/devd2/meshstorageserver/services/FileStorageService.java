@@ -79,6 +79,10 @@ public class FileStorageService {
             if (sizeFileMB > application.getMaximumFileSizeMB())
                 throw new ApiBusinessException("Arquivo com tamnho de ["+sizeFileMB+"MB], maior que o permitido para aplicação (Max="+application.getMaximumFileSizeMB()+"MB).");
 
+            //Verificar qual o ClientStorage será utilizado...
+            var bestStorage = serverStorageService.getBestServerStorage();
+            var idClient = bestStorage.getIdClient();
+
             var textOcrFileContent = "";
             if (application.isApplyOcrFileContent() && OcrUtil.isAllowedTypeForOcr(file.getContentType())) {
                 textOcrFileContent = OcrUtil.extractTextFormFile(file.getInputStream());
@@ -112,17 +116,13 @@ public class FileStorageService {
             //Gravar
             fileStorageRepository.save(fileStorageEntity);
 
-            //Verificar qual o ClientStorage será utilizado...
-            var bestStorage = serverStorageService.getBestServerStorage();
-            var sessionIdClient = bestStorage.getSessionIdClient();
-
             //Enviar para armazenar fisicamente...
             var fileStorage = new FileStorageClient();
             fileStorage.setIdFile(fileStorageEntity.getId());
             fileStorage.setFileName(fileStorageEntity.getFileFisicalName());
             fileStorage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
 
-            messagingTemplate.convertAndSendToUser(sessionIdClient, "/client/private", fileStorage);
+            messagingTemplate.convertAndSendToUser(idClient, "/client/private", fileStorage);
 
             return fileStorageEntity;
 

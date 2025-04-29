@@ -47,7 +47,7 @@ public class ApplicationService {
         application.setApplicationName(request.getApplicationName());
         application.setApplicationDescription(request.getApplicationDescription());
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
-        application.setMaximumFileSizeMB(request.getMaximumFileSize());
+        application.setMaximumFileSizeMB(request.getMaximumFileSizeMB());
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
         application.setCompressFileContent(request.isCompressFileContent());
@@ -85,7 +85,7 @@ public class ApplicationService {
         application.setApplicationName(request.getApplicationName());
         application.setApplicationDescription(request.getApplicationDescription());
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
-        application.setMaximumFileSizeMB(request.getMaximumFileSize());
+        application.setMaximumFileSizeMB(request.getMaximumFileSizeMB());
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
         application.setCompressFileContent(request.isCompressFileContent());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
@@ -111,7 +111,7 @@ public class ApplicationService {
             if (valid) continue;
             throw new ApiBusinessException(String.format("Tipos de arquivos (ContentType) [%1s] inválido.", contentType));
         }
-        if (request.getMaximumFileSize() == null || request.getMaximumFileSize() < 1)
+        if (request.getMaximumFileSizeMB() == null || request.getMaximumFileSizeMB() < 1)
             throw new ApiBusinessException("Tamanho máximo dos arquivos (em MegaBytes) não pode ser menor ou igual a zero.");
     }
 

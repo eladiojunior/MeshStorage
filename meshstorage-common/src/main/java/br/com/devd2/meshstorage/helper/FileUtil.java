@@ -1,5 +1,7 @@
 package br.com.devd2.meshstorage.helper;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -11,8 +13,23 @@ public class FileUtil {
         return null;
     }
 
-    public static String hashConteudo(byte[] bytesFile) {
-        return null;
+    /**
+     * Aplicar um padrão HASH em um conteúdo de array de byte[]
+     * @param data - Array de bytes para aplicar o HASH
+     * @return String do HASH aplicado.
+     */
+    public static String hashConteudo(byte[] data) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(data);
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException erro) {
+            throw new RuntimeException("Erro ao gerar hash SHA-256", erro);
+        }
     }
 
     /**

@@ -14,8 +14,11 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 public class WebSocketDisconnectListener implements ApplicationListener<SessionDisconnectEvent> {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketDisconnectListener.class);
 
-    @Autowired
-    private ServerStorageService serverStorageService;
+    private final ServerStorageService serverStorageService;
+
+    public WebSocketDisconnectListener(ServerStorageService serverStorageService) {
+        this.serverStorageService = serverStorageService;
+    }
 
     @Override
     public void onApplicationEvent(SessionDisconnectEvent event) {

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -21,8 +22,11 @@ public class WebSocketConnectListener implements
         ApplicationListener<SessionConnectedEvent> {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketConnectListener.class);
 
-    @Autowired
-    private ServerStorageService serverStorageService;
+    private final ServerStorageService serverStorageService;
+
+    public WebSocketConnectListener(ServerStorageService serverStorageService) {
+        this.serverStorageService = serverStorageService;
+    }
 
     @Override
     public void onApplicationEvent(SessionConnectedEvent event) {
@@ -33,6 +37,8 @@ public class WebSocketConnectListener implements
         try {
 
             String idClient = connectHeaders.getFirstNativeHeader("id-client");
+            String serverName = connectHeaders.getFirstNativeHeader("server-name");
+            String storageName = connectHeaders.getFirstNativeHeader("storage-name");
 
             //Verificar se existe um Session para o Client...
             if (!HelperSessionClients.get().hasSessionToIdClient(idClient)) {
@@ -41,9 +47,15 @@ public class WebSocketConnectListener implements
             }
 
             //Verificar se o Client existe no banco...
-            var storage = serverStorageService.findByIdClient(idClient);
+            var storage = serverStorageService.findByServerNameAndStorageName(serverName, storageName);
             if (storage != null) {
 
+                if (!Objects.equals(idClient, storage.getIdClient()))
+                {//Identificador diferente do registrado... atualizar...
+                    logger.info("Id Cliente será atualizado de [{}] para [{}].", storage.getIdClient(), idClient);
+                    idClient = storage.getIdClient();
+                    serverStorageService.updateIdClientServerStorage(storage.getId(), idClient);
+                }
 
                 if (storage.isAvailable())
                 {//Existe e está ativo!
@@ -61,9 +73,7 @@ public class WebSocketConnectListener implements
             }
 
             //Não existe, novo client... registrar!
-            String serverName = connectHeaders.getFirstNativeHeader("server-name");
             String ipServer = connectHeaders.getFirstNativeHeader("ip-server");
-            String storageName = connectHeaders.getFirstNativeHeader("storage-name");
             String stringTotalSpace = connectHeaders.getFirstNativeHeader("storage-total-space");
             var totalSpace =  stringTotalSpace == null ? 0 : Long.parseLong(stringTotalSpace);
             String stringFreeSpace = connectHeaders.getFirstNativeHeader("storage-free-space");

@@ -1,4 +1,5 @@
-# Configuracao do servidor
+# Configuracao da aplicação.
 # -----------------------------------------------------
-server:
-  port: 8081
+spring:
+  main:
+    web-application-type: none

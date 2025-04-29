@@ -1,34 +1,36 @@
 package br.com.devd2.meshstorageclient.config;
 
-import br.com.devd2.meshstorageclient.components.ClientCommandPrivateHandler;
 import br.com.devd2.meshstorage.models.StorageClient;
-import br.com.devd2.meshstorageclient.helper.UtilClient;
+import br.com.devd2.meshstorageclient.components.StorageClientEndpoint;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import lombok.Getter;
-import org.springframework.messaging.converter.StringMessageConverter;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
-import org.springframework.stereotype.Component;
-import org.springframework.web.socket.WebSocketHttpHeaders;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.messaging.WebSocketStompClient;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.WebSocketContainer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.net.URI;
 
-@Component
 public class StorageConfig {
-    private static StorageClient client;
+    private static final Logger logger = LogManager.getLogger(StorageConfig.class);
+    private static StorageConfig instancia;
+    private StorageClient client;
+    private StorageClientEndpoint clientEndpoint;
+    private WebSocketContainer container;
 
-    @Getter
-    private StompSession session;
-    private boolean isConnectedServer;
+    private StorageConfig() {
+        container = ContainerProvider.getWebSocketContainer();
+    }
+
+    public static StorageConfig get() {
+        if (instancia == null)
+            instancia = new StorageConfig();
+        return instancia;
+    }
 
     public boolean isExistendClient() {
         if (client == null)
@@ -44,50 +46,19 @@ public class StorageConfig {
     }
 
     private void openConnectServerWs() {
-
-        isConnectedServer = false;
-
         try {
-
-            // Criar WebSocket Client
-            StandardWebSocketClient client = new StandardWebSocketClient();
-            WebSocketStompClient stompClient = new WebSocketStompClient(client);
-            stompClient.setMessageConverter(new StringMessageConverter());
-
-            var storagePath = getClient().getStoragePath();
-            getClient().setTotalSpaceMB(UtilClient.getTotalSpaceStorage(storagePath));
-            getClient().setFreeSpaceMB(UtilClient.getFreeSpaceStorage(storagePath));
-
-            StompHeaders connectHeaders = new StompHeaders();
-            connectHeaders.add("id-client", getClient().getIdClient());
-            connectHeaders.add("server-name", getClient().getServerName());
-            connectHeaders.add("ip-server", getClient().getIpServer());
-            connectHeaders.add("storage-name", getClient().getStorageName());
-            connectHeaders.add("storage-total-space", String.valueOf(getClient().getTotalSpaceMB()));
-            connectHeaders.add("storage-free-space", String.valueOf(getClient().getFreeSpaceMB()));
-
-            // Conectar ao servidor WebSocket de forma assíncrona
-            CompletableFuture<StompSession> futureSession =
-                    stompClient.connectAsync(getClient().getUrlWebsocketServer(), new WebSocketHttpHeaders(),
-                            connectHeaders, new StompSessionHandlerAdapter() {});
-
-            // Aguarda a conexão ser estabelecida antes de continuar
-            this.session = futureSession.get();
-            isConnectedServer = true;
-
-            // Inscrever-se para receber comandos de armazenamento
-            this.session.subscribe("/user/client/private", new ClientCommandPrivateHandler());
-
-        } catch (InterruptedException | ExecutionException e) {
-            System.out.println("Erro: " + e.getMessage());
+            // Conecta ao servidor
+            clientEndpoint = new StorageClientEndpoint();
+            container.connectToServer(clientEndpoint, URI.create(getClient().getUrlWebsocketServer()));
+        } catch (Exception error) {
+            logger.error("Erro ao conectar com o Server", error);
         }
-
     }
 
     public boolean notConnectServer() {
-        if (!isConnectedServer || (session == null || !session.isConnected()))
+        if (clientEndpoint == null || !clientEndpoint.isConnected())
             openConnectServerWs();
-        return !isConnectedServer;
+        return false;
     }
 
     /**
@@ -105,7 +76,7 @@ public class StorageConfig {
             storageClient = gson.fromJson(reader, StorageClient.class);
             reader.close();
         } catch (Exception erro) {
-            erro.printStackTrace();
+            logger.error("Erro ao carregar o arquivo de StorageServer.", erro);
         }
         return storageClient;
     }
@@ -121,8 +92,12 @@ public class StorageConfig {
             gson.toJson(client, StorageClient.class, writer);
             writer.close();
         } catch (Exception erro) {
-            erro.printStackTrace();
+            logger.error("Erro ao gravar o arquivo de StorageServer.", erro);
         }
+    }
+
+    public StorageClientEndpoint getSession() {
+        return clientEndpoint;
     }
 
 }
