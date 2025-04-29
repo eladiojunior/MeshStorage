@@ -24,6 +24,7 @@ public class FileStorage {
     private String hashFileContent;
     private boolean hasFileSentForPurge; //Sinaliza que o arquivo foi enviado para expurgo.
     private LocalDateTime dateTimeFileStorage;
+    private Integer fileStatusCode;
 
     @ManyToOne
     @JoinColumn(name = "applicationId")

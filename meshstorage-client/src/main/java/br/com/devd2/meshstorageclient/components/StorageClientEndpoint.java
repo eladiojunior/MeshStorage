@@ -75,12 +75,16 @@ public class StorageClientEndpoint {
 
     public void subscribeChannel(String destination) {
 
-        StorageClient client = StorageConfig.get().getClient();
+        //StorageClient client = StorageConfig.get().getClient();
+        String subscribeFrame = "SUBSCRIBE\nid:sub-001\ndestination:" + destination + "\n\n\u0000";
+        sendMessage(subscribeFrame);
+        /*
         String subscribeFrame = "SUBSCRIBE\n" +
                 "id:"+client.getIdClient()+"\n" +
                 "destination:" + destination + "\n\n" +
                 "\u0000";
         sendMessage(subscribeFrame);
+         */
     }
 
 }

@@ -27,4 +27,12 @@ public class HelperSessionClients {
     public void removeSessionToClient(String sessionId) {
         sessionToClientMap.remove(sessionId);
     }
+    public String getSessionClient(String idClient) {
+        for (Map.Entry<String, String> entry : sessionToClientMap.entrySet()) {
+            if (entry.getValue().equals(idClient)) {
+                return entry.getKey();
+            }
+        }
+        return null; // Se não encontrar
+    }
 }

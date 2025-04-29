@@ -60,7 +60,7 @@ public class FileUtil {
      */
     public static String generatePisicalName(String originalFilename) {
         var extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        var prefixName = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return prefixName + "_" + UUID.randomUUID().toString() + extension;
+        var prefixName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return prefixName + "_" + UUID.randomUUID().toString().toUpperCase() + extension.toLowerCase();
     }
 }

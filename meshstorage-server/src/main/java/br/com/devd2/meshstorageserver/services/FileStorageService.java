@@ -1,11 +1,14 @@
 package br.com.devd2.meshstorageserver.services;
 
+import br.com.devd2.meshstorage.enums.FileStorageStatusEnum;
 import br.com.devd2.meshstorage.helper.FileBase64Util;
 import br.com.devd2.meshstorage.helper.FileUtil;
+import br.com.devd2.meshstorage.helper.JsonUtil;
 import br.com.devd2.meshstorage.helper.OcrUtil;
 import br.com.devd2.meshstorage.models.FileStorageClient;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
+import br.com.devd2.meshstorageserver.helper.HelperSessionClients;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -81,7 +84,6 @@ public class FileStorageService {
 
             //Verificar qual o ClientStorage será utilizado...
             var bestStorage = serverStorageService.getBestServerStorage();
-            var idClient = bestStorage.getIdClient();
 
             var textOcrFileContent = "";
             if (application.isApplyOcrFileContent() && OcrUtil.isAllowedTypeForOcr(file.getContentType())) {
@@ -112,17 +114,26 @@ public class FileStorageService {
             fileStorageEntity.setTextOcrFileContent(textOcrFileContent);
             fileStorageEntity.setHashFileContent(hashFileContent);
             fileStorageEntity.setDateTimeFileStorage(LocalDateTime.now());
+            fileStorageEntity.setFileStatusCode(FileStorageStatusEnum.SENT_TO_STORAGE.getCode());
 
             //Gravar
             fileStorageRepository.save(fileStorageEntity);
 
             //Enviar para armazenar fisicamente...
             var fileStorage = new FileStorageClient();
-            fileStorage.setIdFile(fileStorageEntity.getId());
+            fileStorage.setIdFile(fileStorageEntity.getIdFile());
             fileStorage.setFileName(fileStorageEntity.getFileFisicalName());
             fileStorage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
 
-            messagingTemplate.convertAndSendToUser(idClient, "/client/private", fileStorage);
+            String jsonFileStorage = JsonUtil.toJson(fileStorage);
+
+            var idClient = bestStorage.getIdClient();
+            var sessionClient = HelperSessionClients.get().getSessionClient(idClient);
+            if (sessionClient == null || sessionClient.isEmpty())
+                throw new ApiBusinessException("Não foi possível identificar uma sessão de Storage para enviar o arquivo.");
+
+            //messagingTemplate.convertAndSendToUser(sessionClient, "/client/private", jsonFileStorage);
+            messagingTemplate.convertAndSend("/client/private", jsonFileStorage);
 
             return fileStorageEntity;
 

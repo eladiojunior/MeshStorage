@@ -4,7 +4,8 @@ import lombok.Data;
 
 @Data
 public class FileStorageClientStatus {
-    private Long idFile;
-    private boolean isErrorWrite;
-    private String messageErrorWrite;
+    private String idFile;
+    private boolean isError;
+    private String messageError;
+    private Integer fileStatusCode;
 }
