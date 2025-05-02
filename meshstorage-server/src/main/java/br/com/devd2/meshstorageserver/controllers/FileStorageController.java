@@ -39,7 +39,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @PostMapping(value="/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity uploadFile(
+    public ResponseEntity<?> uploadFile(
             @RequestParam("applicationName") String applicationName,
             @RequestParam("file") MultipartFile file) {
 
@@ -65,7 +65,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/download/{idFile}")
-    public ResponseEntity download(
+    public ResponseEntity<?> download(
             @PathVariable String idFile) {
         try {
             FileStorage file = fileStorageService.getFile(idFile);
@@ -75,10 +75,32 @@ public class FileStorageController {
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {
-            var message = "Erro ao registrar um arquivo no Server Storage.";
+            var message = "Erro ao baixar um arquivo no Server Storage.";
             log.error(message, error);
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }
+
+
+    }
+
+    @Operation(summary = "Remover arquivo do ServerStorage", description = "Remover um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Arquivo removido com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseEntity.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/delete/{idFile}")
+    public ResponseEntity<?> delete (@PathVariable String idFile) {
+        try {
+            fileStorageService.deleteFile(idFile);
+            return ResponseEntity.ok().build();
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao remover um arquivo no Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+
 
     }
 

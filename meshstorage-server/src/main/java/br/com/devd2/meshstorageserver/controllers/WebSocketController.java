@@ -32,8 +32,8 @@ public class WebSocketController {
         }
     }
 
-    @MessageMapping("/status-upload-file")
-    public void receiverStatusUpdateFile(@Payload FileStorageClientStatus clientStatus) {
+    @MessageMapping("/status-file-storage")
+    public void receiverStatusFileStorage(@Payload FileStorageClientStatus clientStatus) {
 
         System.out.println("Status file: " + clientStatus);
 

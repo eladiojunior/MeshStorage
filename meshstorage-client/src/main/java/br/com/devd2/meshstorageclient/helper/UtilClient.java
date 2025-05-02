@@ -6,11 +6,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 
 public class UtilClient {
+
+    /**
+     * Recupera a Url padrão de acesso ao Websocket
+     * @return Url do Websocket do server.
+     */
+    public static String getUrlWebsocketServer() {
+        return "ws://localhost:8181/server-storage-websocket";
+    }
 
     /**
      * Recupera o Nome da máquina do servidor.
@@ -102,7 +108,7 @@ public class UtilClient {
      * @param storageName - Nome do Storage no Client.
      * @return String com o HASH de identificação.
      */
-    public static String gerarHashIdCliente(String serverName, String storageName) {
+    public static String generateHashIdClient(String serverName, String storageName) {
         String input = serverName + storageName;
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -122,15 +128,22 @@ public class UtilClient {
      * @param nomeArquivo - Nome do arquivo para armazenamento.
      * @return String no padrão de estrutura do Client.
      */
-    public static String montarPathStorage(String nomeArquivo) {
-        LocalDateTime agora = LocalDateTime.now();
-        String dataPath = agora.format(DateTimeFormatter.ofPattern(
-                "yyyy" + File.separator + "MM" + File.separator + "dd"
-        ));
+    public static String mountPathStorage(String nomeArquivo) {
+        String ano = nomeArquivo.substring(0, 4);
+        String mes = nomeArquivo.substring(4, 6);
+        String dia = nomeArquivo.substring(6, 8);
+        String dataPath = ano + File.separator + mes + File.separator + dia;
         return Paths.get(dataPath, nomeArquivo).toString();
     }
 
-    public static String getUrlWebsocketServer() {
-        return "ws://localhost:8181/server-storage-websocket";
+    /**
+     * Responsável pela verificação da estrutura do caminho de armazenamento e
+     * caso não exista criar a estruutra de pastas.
+     * @param pathFileStorage - Path de armazemento do arquivo físico.
+     */
+    public static void checkAndCreatePathStorage(String pathFileStorage) {
+        File file = new File(pathFileStorage);
+        if (!file.getParentFile().exists() && !file.getParentFile().mkdirs())
+            throw new RuntimeException("Erro ao criar o estrutura de pastas no storage: " + file.getAbsolutePath());
     }
 }

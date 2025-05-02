@@ -5,7 +5,8 @@ import br.com.devd2.meshstorage.helper.FileBase64Util;
 import br.com.devd2.meshstorage.helper.FileUtil;
 import br.com.devd2.meshstorage.helper.JsonUtil;
 import br.com.devd2.meshstorage.helper.OcrUtil;
-import br.com.devd2.meshstorage.models.FileStorageClient;
+import br.com.devd2.meshstorage.models.messages.FileDeleteMessage;
+import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperSessionClients;
@@ -17,15 +18,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class FileStorageService {
     private final ApplicationRepository applicationRepository;
     private final FileStorageRepository fileStorageRepository;
-
     private final ServerStorageService serverStorageService;
-
     private final SimpMessagingTemplate messagingTemplate;
 
     public FileStorageService(ApplicationRepository applicationRepository, FileStorageRepository fileStorageRepository,
@@ -107,7 +107,7 @@ public class FileStorageService {
             fileStorageEntity.setApplication(application);
             fileStorageEntity.setIdFile(UUID.randomUUID().toString());
             fileStorageEntity.setFileLogicName(file.getOriginalFilename());
-            fileStorageEntity.setFileFisicalName(FileUtil.generatePisicalName(file.getOriginalFilename()));
+            fileStorageEntity.setFileFisicalName(FileUtil.generatePisicalName(Objects.requireNonNull(file.getOriginalFilename())));
             fileStorageEntity.setFileLength(bytesFile.length);
             fileStorageEntity.setFileContent(bytesFile);
             fileStorageEntity.setFileType(file.getContentType());
@@ -120,7 +120,7 @@ public class FileStorageService {
             fileStorageRepository.save(fileStorageEntity);
 
             //Enviar para armazenar fisicamente...
-            var fileStorage = new FileStorageClient();
+            var fileStorage = new FileRegisterMessage();
             fileStorage.setIdFile(fileStorageEntity.getIdFile());
             fileStorage.setFileName(fileStorageEntity.getFileFisicalName());
             fileStorage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
@@ -132,7 +132,6 @@ public class FileStorageService {
             if (sessionClient == null || sessionClient.isEmpty())
                 throw new ApiBusinessException("Não foi possível identificar uma sessão de Storage para enviar o arquivo.");
 
-            //messagingTemplate.convertAndSendToUser(sessionClient, "/client/private", jsonFileStorage);
             messagingTemplate.convertAndSend("/client/private", jsonFileStorage);
 
             return fileStorageEntity;
@@ -143,4 +142,31 @@ public class FileStorageService {
 
     }
 
+    /**
+     * Solicita a remoção de um arquivo do Server Storage.
+     * @param idFile - Identificador do arquivo para remover.
+     */
+    public void deleteFile(String idFile) throws ApiBusinessException {
+
+        if (idFile == null || idFile.isEmpty())
+            throw new ApiBusinessException("Identificador do arquivo não pode ser nulo ou vazio.");
+
+        var file = fileStorageRepository.findByIdFile(idFile).orElse(null);
+        if (file == null)
+            throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
+
+        //Enviar comando de DELETE para o Storage...
+        var fileStorage = new FileDeleteMessage();
+        fileStorage.setIdFile(file.getIdFile());
+        fileStorage.setFileName(file.getFileFisicalName());
+
+        String jsonFileStorage = JsonUtil.toJson(fileStorage);
+        var idClient = file.getIdClientStorage();
+        var sessionClient = HelperSessionClients.get().getSessionClient(idClient);
+        if (sessionClient == null || sessionClient.isEmpty())
+            throw new ApiBusinessException("Não foi possível identificar uma sessão de Storage para remover o arquivo.");
+
+        messagingTemplate.convertAndSend("/client/private", jsonFileStorage);
+
+    }
 }

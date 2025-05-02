@@ -1,8 +1,17 @@
 package br.com.devd2.meshstorageclient.components;
 
+import br.com.devd2.meshstorage.enums.FileStorageStatusEnum;
+import br.com.devd2.meshstorage.models.FileStorageClient;
+import br.com.devd2.meshstorage.models.FileStorageClientStatus;
 import br.com.devd2.meshstorage.models.StorageClient;
+import br.com.devd2.meshstorage.models.messages.FileDeleteMessage;
+import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
+import br.com.devd2.meshstorage.models.messages.GenericMessage;
 import br.com.devd2.meshstorageclient.config.StorageConfig;
 import br.com.devd2.meshstorageclient.helper.UtilClient;
+import br.com.devd2.meshstorageclient.services.StorageService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.websocket.*;
 import lombok.Getter;
 
@@ -21,9 +30,100 @@ public class StorageClientEndpoint {
         subscribeChannel("/client/private");
     }
 
+    public static String extractJsonPayload(String stompMessage) {
+        String[] parts = stompMessage.split("\\r?\\n\\r?\\n", 2);
+        if (parts.length < 2) {
+            throw new IllegalArgumentException("Mensagem STOMP inválida, corpo não encontrado.");
+        }
+        return parts[1].trim(); // O JSON está após a quebra de linha dupla
+    }
+
     @OnMessage
     public void onMessage(String message) {
-        System.out.println("==> Mensagem recebida do servidor: " + message);
+        try {
+
+            message = extractJsonPayload(message);
+            if (message.isEmpty())
+                return;
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(message);
+            String type = node.get("type").asText();
+
+            switch (type) {
+                case "FILE_REGISTER":
+                    registreFileStorage(mapper, message);
+                    break;
+                case "FILE_DELETE":
+                    deleteFileStorage(mapper, message);
+                    break;
+                default:
+                    System.err.println("Tipo de mensagem desconhecido: " + type);
+            }
+        } catch (Exception error) {
+            System.err.println("Erro ao processar mensagem: " + error.getMessage());
+        }
+    }
+
+    private void deleteFileStorage(ObjectMapper mapper, String message) throws Exception {
+
+        FileDeleteMessage fileDeleteMessage = mapper.readValue(message, FileDeleteMessage.class);
+
+        //Informar o status para o Server.
+        FileStorageClientStatus fileStorageClientStatus = new FileStorageClientStatus();
+        fileStorageClientStatus.setIdFile(fileDeleteMessage.getIdFile());
+
+        boolean isError = false;
+        String messageError = null;
+        int fileStatusCode = FileStorageStatusEnum.DELETEC_SUCCESSFULLY.getCode();
+        try {
+            boolean result = StorageService.get().removerFileStorage(fileDeleteMessage.getFileName());
+            if (result)
+                System.out.println("==> File deleted: " + fileDeleteMessage.getFileName());
+            else
+                System.out.println("==> File does not exist: " + fileDeleteMessage.getFileName());
+        } catch (Exception error) {
+            isError = true;
+            messageError = error.getMessage();
+            fileStatusCode = FileStorageStatusEnum.STORAGE_FAILED.getCode();
+        }
+        fileStorageClientStatus.setFileStatusCode(fileStatusCode);
+        fileStorageClientStatus.setError(isError);
+        fileStorageClientStatus.setMessageError(messageError);
+
+        StorageService.get().statusFileStorage(fileStorageClientStatus);
+
+    }
+
+    private void registreFileStorage(ObjectMapper mapper, String message) throws Exception {
+
+        FileRegisterMessage fileRegisterMessage = mapper.readValue(message, FileRegisterMessage.class);
+        FileStorageClient fileStorageClient = new FileStorageClient();
+        fileStorageClient.setIdFile(fileRegisterMessage.getIdFile());
+        fileStorageClient.setFileName(fileRegisterMessage.getFileName());
+        fileStorageClient.setDataBase64(fileRegisterMessage.getDataBase64());
+
+        //Informar o status para o Server.
+        FileStorageClientStatus fileStorageClientStatus = new FileStorageClientStatus();
+        fileStorageClientStatus.setIdFile(fileRegisterMessage.getIdFile());
+
+        boolean isError = false;
+        String messageError = null;
+        int fileStatusCode = FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode();
+        try {
+            String pathFileStorage = StorageService.get().writeFileStorage(fileStorageClient);
+            System.out.println("==> File registred: " + pathFileStorage);
+        } catch (Exception error) {
+            isError = true;
+            messageError = error.getMessage();
+            fileStatusCode = FileStorageStatusEnum.STORAGE_FAILED.getCode();
+        }
+        fileStorageClientStatus.setFileStatusCode(fileStatusCode);
+        fileStorageClientStatus.setError(isError);
+        fileStorageClientStatus.setMessageError(messageError);
+
+        StorageService.get().statusFileStorage(fileStorageClientStatus);
+
     }
 
     @OnClose
@@ -74,17 +174,9 @@ public class StorageClientEndpoint {
     }
 
     public void subscribeChannel(String destination) {
-
-        //StorageClient client = StorageConfig.get().getClient();
-        String subscribeFrame = "SUBSCRIBE\nid:sub-001\ndestination:" + destination + "\n\n\u0000";
+        StorageClient client = StorageConfig.get().getClient();
+        String subscribeFrame = "SUBSCRIBE\nid:"+client.getIdClient()+"\ndestination:" + destination + "\n\n\u0000";
         sendMessage(subscribeFrame);
-        /*
-        String subscribeFrame = "SUBSCRIBE\n" +
-                "id:"+client.getIdClient()+"\n" +
-                "destination:" + destination + "\n\n" +
-                "\u0000";
-        sendMessage(subscribeFrame);
-         */
     }
 
 }

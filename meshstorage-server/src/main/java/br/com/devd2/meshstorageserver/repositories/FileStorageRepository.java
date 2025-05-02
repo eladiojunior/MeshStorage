@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface FileStorageRepository extends JpaRepository<FileStorage, Long> {
     Optional<FileStorage> findByApplicationIdAndHashFileContent(Long applicationId, String hashFileContent);
+    Optional<FileStorage> findByIdFile(String idFile);
 }

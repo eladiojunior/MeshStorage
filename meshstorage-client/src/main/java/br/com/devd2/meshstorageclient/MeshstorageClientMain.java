@@ -119,7 +119,7 @@ public class MeshstorageClientMain {
         String nomeOs = UtilClient.getOperatingSystem();
         System.out.printf(">> Sistema Operacional: %s%n", nomeOs);
 
-        storageConfig.getClient().setIdClient(UtilClient.gerarHashIdCliente(server, storageName));
+        storageConfig.getClient().setIdClient(UtilClient.generateHashIdClient(server, storageName));
         storageConfig.getClient().setUrlWebsocketServer(urlWebsocketServer);
         storageConfig.getClient().setServerName(server);
         storageConfig.getClient().setStorageName(storageName);

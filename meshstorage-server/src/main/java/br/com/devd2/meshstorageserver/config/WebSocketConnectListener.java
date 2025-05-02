@@ -87,9 +87,9 @@ public class WebSocketConnectListener implements
             model.setTotalSpace(totalSpace);
             model.setFreeSpace(freeSpace);
 
-            serverStorageService.registerServerStorage(model);
+            var result = serverStorageService.registerServerStorage(model);
 
-            logger.info("Cliente CONECTADO: IdClient={}, ServerName={}, StorageName={}", idClient, serverName, storageName);
+            logger.info("Cliente CONECTADO: Id={}, IdClient={}, ServerName={}, StorageName={}", result.getId(), result.getIdClient(), result.getServerName(), result.getStorageName());
 
         } catch (Exception erro) {
             logger.error("Erro ao registrar ou atualizar o Storage.", erro);
