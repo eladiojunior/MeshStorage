@@ -35,6 +35,7 @@ public class WebSocketController {
     @MessageMapping("/status-file-storage")
     public void receiverStatusFileStorage(@Payload FileStorageClientStatus clientStatus) {
 
+        //TODO Criar estrutura para sinalizar o sucesso ou erro para que o servidor responda na API.
         System.out.println("Status file: " + clientStatus);
 
     }
