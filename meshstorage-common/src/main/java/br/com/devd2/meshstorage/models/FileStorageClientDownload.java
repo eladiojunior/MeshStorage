@@ -1,5 +1,6 @@
 package br.com.devd2.meshstorage.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
@@ -8,6 +9,7 @@ public class FileStorageClientDownload {
     /**
      * Identificador do arquivo em banco como chave: UUID.randomUUID().toString()
      */
+    @JsonProperty("idFile")
     private String idFile;
 
     /**
@@ -20,21 +22,25 @@ public class FileStorageClientDownload {
      * Formando:
      * {20250813_8ebbea50-434a-4dbb-8456-aebd461e0ecc.png} = Nome do arquivo fisico para armazenamento;
      */
+    @JsonProperty("fileName")
     private String fileName;
 
     /**
      * Conteúdo do arquivo em base64.
      */
+    @JsonProperty("dataBase64")
     private String dataBase64;
 
     /**
      * Indicador de erro no download.
      */
+    @JsonProperty("isError")
     private boolean isError;
 
     /**
      * Mensagem de erro caso ocorra.
      */
+    @JsonProperty("messageError")
     private String messageError;
 
 }

@@ -72,6 +72,8 @@ public class FileStorageService {
 
             return fileStorage;
 
+        } catch (ApiBusinessException error) {
+            throw error;
         } catch (Exception error) {
             throw new ApiBusinessException(error.getMessage());
         }
