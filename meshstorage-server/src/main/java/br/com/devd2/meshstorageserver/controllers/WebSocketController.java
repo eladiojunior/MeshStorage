@@ -1,7 +1,9 @@
 package br.com.devd2.meshstorageserver.controllers;
 
+import br.com.devd2.meshstorage.models.FileStorageClientDownload;
 import br.com.devd2.meshstorage.models.FileStorageClientStatus;
 import br.com.devd2.meshstorage.models.StorageClientStatus;
+import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.services.ServerStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +16,11 @@ public class WebSocketController {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketController.class);
 
     private final ServerStorageService serverStorageService;
+    private final WebSocketMessaging webSocketMessaging;
 
-    public WebSocketController(ServerStorageService serverStorageService) {
+    public WebSocketController(ServerStorageService serverStorageService, WebSocketMessaging webSocketMessaging) {
         this.serverStorageService = serverStorageService;
+        this.webSocketMessaging = webSocketMessaging;
     }
 
     @MessageMapping("/status-update-client")
@@ -34,10 +38,12 @@ public class WebSocketController {
 
     @MessageMapping("/status-file-storage")
     public void receiverStatusFileStorage(@Payload FileStorageClientStatus clientStatus) {
-
-        //TODO Criar estrutura para sinalizar o sucesso ou erro para que o servidor responda na API.
-        System.out.println("Status file: " + clientStatus);
+        webSocketMessaging.notifyFileStatusClient(clientStatus);
 
     }
 
+    @MessageMapping("/download-file-storage")
+    public void receiverDownloadFileStorage(@Payload FileStorageClientDownload clientDownload) {
+        webSocketMessaging.notifyFileDownloadClient(clientDownload);
+    }
 }

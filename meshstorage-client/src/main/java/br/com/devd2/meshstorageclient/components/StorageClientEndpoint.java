@@ -5,8 +5,8 @@ import br.com.devd2.meshstorage.models.FileStorageClient;
 import br.com.devd2.meshstorage.models.FileStorageClientStatus;
 import br.com.devd2.meshstorage.models.StorageClient;
 import br.com.devd2.meshstorage.models.messages.FileDeleteMessage;
+import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
-import br.com.devd2.meshstorage.models.messages.GenericMessage;
 import br.com.devd2.meshstorageclient.config.StorageConfig;
 import br.com.devd2.meshstorageclient.helper.UtilClient;
 import br.com.devd2.meshstorageclient.services.StorageService;
@@ -23,11 +23,18 @@ public class StorageClientEndpoint {
 
     @OnOpen
     public void onOpen(Session session) {
+
         this.session = session;
+
         // Conectar ao broker STOMP após WebSocket aberto
         sendStompConnect();
+
         // Se inscrever no canal desejado após conexão
-        subscribeChannel("/client/private");
+        String idClientStorage = StorageConfig.get().getClient().getIdClient();
+        subscribeChannel("/client/"+idClientStorage);
+
+        System.out.println("==> Conexão aberta com o Servidor.");
+
     }
 
     public static String extractJsonPayload(String stompMessage) {
@@ -57,78 +64,20 @@ public class StorageClientEndpoint {
                 case "FILE_DELETE":
                     deleteFileStorage(mapper, message);
                     break;
+                case "FILE_DOWNLOAD":
+                    downloadFileStorage(mapper, message);
+                    break;
                 default:
-                    System.err.println("Tipo de mensagem desconhecido: " + type);
+                    System.err.println("!Tipo de mensagem desconhecido: " + type);
             }
         } catch (Exception error) {
-            System.err.println("Erro ao processar mensagem: " + error.getMessage());
+            System.err.println("!Erro ao processar mensagem => " + error.getMessage());
         }
-    }
-
-    private void deleteFileStorage(ObjectMapper mapper, String message) throws Exception {
-
-        FileDeleteMessage fileDeleteMessage = mapper.readValue(message, FileDeleteMessage.class);
-
-        //Informar o status para o Server.
-        FileStorageClientStatus fileStorageClientStatus = new FileStorageClientStatus();
-        fileStorageClientStatus.setIdFile(fileDeleteMessage.getIdFile());
-
-        boolean isError = false;
-        String messageError = null;
-        int fileStatusCode = FileStorageStatusEnum.DELETEC_SUCCESSFULLY.getCode();
-        try {
-            boolean result = StorageService.get().removerFileStorage(fileDeleteMessage.getFileName());
-            if (result)
-                System.out.println("==> File deleted: " + fileDeleteMessage.getFileName());
-            else
-                System.out.println("==> File does not exist: " + fileDeleteMessage.getFileName());
-        } catch (Exception error) {
-            isError = true;
-            messageError = error.getMessage();
-            fileStatusCode = FileStorageStatusEnum.STORAGE_FAILED.getCode();
-        }
-        fileStorageClientStatus.setFileStatusCode(fileStatusCode);
-        fileStorageClientStatus.setError(isError);
-        fileStorageClientStatus.setMessageError(messageError);
-
-        StorageService.get().statusFileStorage(fileStorageClientStatus);
-
-    }
-
-    private void registreFileStorage(ObjectMapper mapper, String message) throws Exception {
-
-        FileRegisterMessage fileRegisterMessage = mapper.readValue(message, FileRegisterMessage.class);
-        FileStorageClient fileStorageClient = new FileStorageClient();
-        fileStorageClient.setIdFile(fileRegisterMessage.getIdFile());
-        fileStorageClient.setFileName(fileRegisterMessage.getFileName());
-        fileStorageClient.setDataBase64(fileRegisterMessage.getDataBase64());
-
-        //Informar o status para o Server.
-        FileStorageClientStatus fileStorageClientStatus = new FileStorageClientStatus();
-        fileStorageClientStatus.setIdFile(fileRegisterMessage.getIdFile());
-
-        boolean isError = false;
-        String messageError = null;
-        int fileStatusCode = FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode();
-        try {
-            String pathFileStorage = StorageService.get().writeFileStorage(fileStorageClient);
-            System.out.println("==> File registred: " + pathFileStorage);
-        } catch (Exception error) {
-            isError = true;
-            messageError = error.getMessage();
-            fileStatusCode = FileStorageStatusEnum.STORAGE_FAILED.getCode();
-        }
-        fileStorageClientStatus.setFileStatusCode(fileStatusCode);
-        fileStorageClientStatus.setError(isError);
-        fileStorageClientStatus.setMessageError(messageError);
-
-        StorageService.get().statusFileStorage(fileStorageClientStatus);
-
     }
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        System.out.println("==> Conexão fechada: " + reason.getReasonPhrase());
+        System.out.println("==> Conexão fechada com o Servidor.");
     }
 
     @OnError
@@ -177,6 +126,69 @@ public class StorageClientEndpoint {
         StorageClient client = StorageConfig.get().getClient();
         String subscribeFrame = "SUBSCRIBE\nid:"+client.getIdClient()+"\ndestination:" + destination + "\n\n\u0000";
         sendMessage(subscribeFrame);
+    }
+
+    private void deleteFileStorage(ObjectMapper mapper, String message) throws Exception {
+
+        FileDeleteMessage fileDeleteMessage = mapper.readValue(message, FileDeleteMessage.class);
+
+        //Informar o status para o Server.
+        FileStorageClientStatus fileStorageClientStatus = new FileStorageClientStatus();
+        fileStorageClientStatus.setIdFile(fileDeleteMessage.getIdFile());
+
+        boolean isError = false;
+        String messageError = null;
+        int fileStatusCode = FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode();
+        try {
+            StorageService.get().removerFileStorage(fileDeleteMessage.getFileName());
+        } catch (Exception error) {
+            isError = true;
+            messageError = error.getMessage();
+            fileStatusCode = FileStorageStatusEnum.STORAGE_FAILED.getCode();
+        }
+        fileStorageClientStatus.setFileStatusCode(fileStatusCode);
+        fileStorageClientStatus.setError(isError);
+        fileStorageClientStatus.setMessageError(messageError);
+
+        StorageService.get().notifyServerStatusFileStorage(fileStorageClientStatus);
+
+    }
+
+    private void registreFileStorage(ObjectMapper mapper, String message) throws Exception {
+
+        FileRegisterMessage fileRegisterMessage = mapper.readValue(message, FileRegisterMessage.class);
+        FileStorageClient fileStorageClient = new FileStorageClient();
+        fileStorageClient.setIdFile(fileRegisterMessage.getIdFile());
+        fileStorageClient.setFileName(fileRegisterMessage.getFileName());
+        fileStorageClient.setDataBase64(fileRegisterMessage.getDataBase64());
+
+        //Informar o status para o Server.
+        FileStorageClientStatus fileStorageClientStatus = new FileStorageClientStatus();
+        fileStorageClientStatus.setIdFile(fileRegisterMessage.getIdFile());
+
+        boolean isError = false;
+        String messageError = null;
+        int fileStatusCode = FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode();
+        try {
+            StorageService.get().writeFileStorage(fileStorageClient);
+        } catch (Exception error) {
+            isError = true;
+            messageError = error.getMessage();
+            fileStatusCode = FileStorageStatusEnum.STORAGE_FAILED.getCode();
+        }
+        fileStorageClientStatus.setFileStatusCode(fileStatusCode);
+        fileStorageClientStatus.setError(isError);
+        fileStorageClientStatus.setMessageError(messageError);
+
+        StorageService.get().notifyServerStatusFileStorage(fileStorageClientStatus);
+
+    }
+
+    private void downloadFileStorage(ObjectMapper mapper, String message) throws Exception {
+
+        FileDownloadMessage fileDownloadMessage = mapper.readValue(message, FileDownloadMessage.class);
+        StorageService.get().downloadFileStorage(fileDownloadMessage.getIdFile(), fileDownloadMessage.getFileName());
+
     }
 
 }

@@ -51,7 +51,7 @@ public class StorageConfig {
             clientEndpoint = new StorageClientEndpoint();
             container.connectToServer(clientEndpoint, URI.create(getClient().getUrlWebsocketServer()));
         } catch (Exception error) {
-            logger.error("Erro ao conectar com o Server", error);
+            logger.error("!Erro ao conectar com o Server => {}", error.getMessage());
         }
     }
 
@@ -63,7 +63,7 @@ public class StorageConfig {
 
     /**
      * Recupera as informações do Storage já registrado.
-     * @return
+     * @return Instância do StorageServer carregado
      */
     private StorageClient carregarStorageServer() {
         StorageClient storageClient = null;
@@ -76,7 +76,7 @@ public class StorageConfig {
             storageClient = gson.fromJson(reader, StorageClient.class);
             reader.close();
         } catch (Exception erro) {
-            logger.error("Erro ao carregar o arquivo de StorageServer.", erro);
+            logger.error("!Erro ao carregar o arquivo de StorageServer => {}", erro.getMessage());
         }
         return storageClient;
     }
@@ -92,7 +92,7 @@ public class StorageConfig {
             gson.toJson(client, StorageClient.class, writer);
             writer.close();
         } catch (Exception erro) {
-            logger.error("Erro ao gravar o arquivo de StorageServer.", erro);
+            logger.error("!Erro ao gravar o arquivo de StorageServer => {}", erro.getMessage());
         }
     }
 

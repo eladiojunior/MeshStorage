@@ -92,7 +92,7 @@ public class FileStorageController {
     public ResponseEntity<?> delete (@PathVariable String idFile) {
         try {
             fileStorageService.deleteFile(idFile);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Arquivo ["+idFile+"] removido.");
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {

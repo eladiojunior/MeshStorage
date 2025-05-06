@@ -3,20 +3,20 @@ package br.com.devd2.meshstorageserver.services;
 import br.com.devd2.meshstorage.enums.FileStorageStatusEnum;
 import br.com.devd2.meshstorage.helper.FileBase64Util;
 import br.com.devd2.meshstorage.helper.FileUtil;
-import br.com.devd2.meshstorage.helper.JsonUtil;
 import br.com.devd2.meshstorage.helper.OcrUtil;
+import br.com.devd2.meshstorage.models.FileStorageClientDownload;
+import br.com.devd2.meshstorage.models.FileStorageClientStatus;
 import br.com.devd2.meshstorage.models.messages.FileDeleteMessage;
+import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
+import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
-import br.com.devd2.meshstorageserver.helper.HelperSessionClients;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -26,15 +26,14 @@ public class FileStorageService {
     private final ApplicationRepository applicationRepository;
     private final FileStorageRepository fileStorageRepository;
     private final ServerStorageService serverStorageService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketMessaging webSocketMessaging;
 
     public FileStorageService(ApplicationRepository applicationRepository, FileStorageRepository fileStorageRepository,
-                              SimpMessagingTemplate messagingTemplate,
-                              ServerStorageService serverStorageService) {
+                              ServerStorageService serverStorageService, WebSocketMessaging webSocketMessaging) {
         this.applicationRepository = applicationRepository;
         this.fileStorageRepository = fileStorageRepository;
-        this.messagingTemplate = messagingTemplate;
         this.serverStorageService = serverStorageService;
+        this.webSocketMessaging = webSocketMessaging;
     }
 
     /**
@@ -48,7 +47,34 @@ public class FileStorageService {
         if (idFile == null || idFile.isEmpty())
             throw new ApiBusinessException("Id File (chave do arquivo) não pode ser nulo ou vazio.");
 
-        return null;
+        var fileStorage = fileStorageRepository.findByIdFile(idFile).orElse(null);
+        if (fileStorage == null)
+            throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
+
+        //Enviar comando de DOWNLOAD para o Storage...
+        var fileStorageMessage = new FileDownloadMessage();
+        fileStorageMessage.setIdFile(fileStorage.getIdFile());
+        fileStorageMessage.setFileName(fileStorage.getFileFisicalName());
+
+        try {
+
+            FileStorageClientDownload fileStorageClientDownload =
+                    webSocketMessaging.startFileDownloadClient(fileStorage.getIdClientStorage(), fileStorageMessage);
+            if (fileStorageClientDownload.isError())
+                throw new ApiBusinessException(fileStorageClientDownload.getMessageError());
+
+            //Carregar os dados do arquivo.
+            byte[] bytesFile = FileBase64Util.base64ToBytes(fileStorageClientDownload.getDataBase64());
+            if (fileStorage.isCompressFileContent()) {
+                bytesFile = FileUtil.descompressZipFileContent(bytesFile);
+            }
+            fileStorage.setFileContent(bytesFile);
+
+            return fileStorage;
+
+        } catch (Exception error) {
+            throw new ApiBusinessException(error.getMessage());
+        }
 
     }
 
@@ -103,13 +129,26 @@ public class FileStorageService {
                     throw new ApiBusinessException("Identificado que esse arquivo já existe na aplicação, não é permitido.");
             }
 
+            boolean fileCompressZip = false;
+            String nomeFisicoArquivo = FileUtil.generatePisicalName(Objects.requireNonNull(file.getOriginalFilename()));
+            if (application.isCompressFileContent() && !FileUtil.hasFileNameCompress(nomeFisicoArquivo))
+            {
+                bytesFile = FileUtil.compressZipFileContent(nomeFisicoArquivo, bytesFile);
+                nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, ".zip");
+                fileCompressZip = true;
+            }
+
+            var idClientStorage = bestStorage.getIdClient();
+
             var fileStorageEntity = new FileStorage();
             fileStorageEntity.setApplication(application);
             fileStorageEntity.setIdFile(UUID.randomUUID().toString());
+            fileStorageEntity.setIdClientStorage(idClientStorage);
             fileStorageEntity.setFileLogicName(file.getOriginalFilename());
-            fileStorageEntity.setFileFisicalName(FileUtil.generatePisicalName(Objects.requireNonNull(file.getOriginalFilename())));
+            fileStorageEntity.setFileFisicalName(nomeFisicoArquivo);
             fileStorageEntity.setFileLength(bytesFile.length);
             fileStorageEntity.setFileContent(bytesFile);
+            fileStorageEntity.setCompressFileContent(fileCompressZip);
             fileStorageEntity.setFileType(file.getContentType());
             fileStorageEntity.setTextOcrFileContent(textOcrFileContent);
             fileStorageEntity.setHashFileContent(hashFileContent);
@@ -120,24 +159,25 @@ public class FileStorageService {
             fileStorageRepository.save(fileStorageEntity);
 
             //Enviar para armazenar fisicamente...
-            var fileStorage = new FileRegisterMessage();
-            fileStorage.setIdFile(fileStorageEntity.getIdFile());
-            fileStorage.setFileName(fileStorageEntity.getFileFisicalName());
-            fileStorage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
+            var fileRegisterMessage = new FileRegisterMessage();
+            fileRegisterMessage.setIdFile(fileStorageEntity.getIdFile());
+            fileRegisterMessage.setFileName(fileStorageEntity.getFileFisicalName());
+            fileRegisterMessage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
 
-            String jsonFileStorage = JsonUtil.toJson(fileStorage);
+            FileStorageClientStatus fileStorageClientStatus =
+                    webSocketMessaging.startFileRegisterClient(idClientStorage, fileRegisterMessage);
+            if (fileStorageClientStatus.isError())
+                throw new ApiBusinessException(fileStorageClientStatus.getMessageError());
 
-            var idClient = bestStorage.getIdClient();
-            var sessionClient = HelperSessionClients.get().getSessionClient(idClient);
-            if (sessionClient == null || sessionClient.isEmpty())
-                throw new ApiBusinessException("Não foi possível identificar uma sessão de Storage para enviar o arquivo.");
+            fileStorageEntity.setFileStatusCode(fileStorageClientStatus.getFileStatusCode());
 
-            messagingTemplate.convertAndSend("/client/private", jsonFileStorage);
+            //Gravar status...
+            fileStorageRepository.save(fileStorageEntity);
 
             return fileStorageEntity;
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception error) {
+            throw new ApiBusinessException(error.getMessage());
         }
 
     }
@@ -151,22 +191,31 @@ public class FileStorageService {
         if (idFile == null || idFile.isEmpty())
             throw new ApiBusinessException("Identificador do arquivo não pode ser nulo ou vazio.");
 
-        var file = fileStorageRepository.findByIdFile(idFile).orElse(null);
-        if (file == null)
+        var fileStorage = fileStorageRepository.findByIdFile(idFile).orElse(null);
+        if (fileStorage == null)
             throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
 
         //Enviar comando de DELETE para o Storage...
-        var fileStorage = new FileDeleteMessage();
-        fileStorage.setIdFile(file.getIdFile());
-        fileStorage.setFileName(file.getFileFisicalName());
+        var fileDeleteMessage = new FileDeleteMessage();
+        fileDeleteMessage.setIdFile(fileStorage.getIdFile());
+        fileDeleteMessage.setFileName(fileStorage.getFileFisicalName());
 
-        String jsonFileStorage = JsonUtil.toJson(fileStorage);
-        var idClient = file.getIdClientStorage();
-        var sessionClient = HelperSessionClients.get().getSessionClient(idClient);
-        if (sessionClient == null || sessionClient.isEmpty())
-            throw new ApiBusinessException("Não foi possível identificar uma sessão de Storage para remover o arquivo.");
+        try {
 
-        messagingTemplate.convertAndSend("/client/private", jsonFileStorage);
+            FileStorageClientStatus fileStorageClientStatus =
+                    webSocketMessaging.startFileDeleteClient(fileStorage.getIdClientStorage(), fileDeleteMessage);
+            if (fileStorageClientStatus.isError())
+                throw new ApiBusinessException(fileStorageClientStatus.getMessageError());
+
+            fileStorage.setFileStatusCode(fileStorageClientStatus.getFileStatusCode());
+
+            //Gravar exclusão logica...
+            fileStorageRepository.save(fileStorage);
+
+        } catch (Exception error) {
+            throw new ApiBusinessException(error.getMessage());
+        }
 
     }
+
 }

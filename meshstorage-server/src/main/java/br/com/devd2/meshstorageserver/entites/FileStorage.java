@@ -20,6 +20,7 @@ public class FileStorage {
     private int fileLength;
     @Transient
     private byte[] fileContent;
+    private boolean compressFileContent; //Arquivo armazenado em ZIP compressão;
     private String textOcrFileContent;
     private String hashFileContent;
     private boolean hasFileSentForPurge; //Sinaliza que o arquivo foi enviado para expurgo.

@@ -1,6 +1,9 @@
 package br.com.devd2.meshstorageclient.helper;
 
+import br.com.devd2.meshstorage.helper.FileBase64Util;
+
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -146,4 +149,5 @@ public class UtilClient {
         if (!file.getParentFile().exists() && !file.getParentFile().mkdirs())
             throw new RuntimeException("Erro ao criar o estrutura de pastas no storage: " + file.getAbsolutePath());
     }
+
 }

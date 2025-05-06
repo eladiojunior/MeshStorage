@@ -31,7 +31,7 @@ public class TimerTaskStatusClient extends TimerTask {
             }
 
         } catch (Exception error) {
-            logger.error("Error ao enviar status para o servidor.", error);
+            logger.error("!Error ao enviar status para o servidor => {}", error.getMessage());
         }
     }
 
