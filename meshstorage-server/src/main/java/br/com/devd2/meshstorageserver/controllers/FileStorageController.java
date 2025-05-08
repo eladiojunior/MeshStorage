@@ -80,7 +80,6 @@ public class FileStorageController {
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }
 
-
     }
 
     @Operation(summary = "Remover arquivo do ServerStorage", description = "Remover um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).")
@@ -91,8 +90,31 @@ public class FileStorageController {
     @GetMapping("/delete/{idFile}")
     public ResponseEntity<?> delete (@PathVariable String idFile) {
         try {
-            fileStorageService.deleteFile(idFile);
-            return ResponseEntity.ok("Arquivo ["+idFile+"] removido.");
+            var fileStorage = fileStorageService.deleteFile(idFile);
+            var response = HelperMapper.ConvertToResponse(fileStorage);
+            return ResponseEntity.ok(response);
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao remover um arquivo no Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+
+    }
+
+    @Operation(summary = "Lista de arquivos do ServerStorage", description = "Lista os arquivos de uma aplicação (nome) de forma paginada.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de arquivos recuperados da aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/listar")
+    public ResponseEntity<?> list (@RequestParam("applicationName") String applicationName,
+                                   @RequestParam(name = "pageNumber", defaultValue = "1") int pageNumber,
+                                   @RequestParam(name = "recordsPerPage", defaultValue = "15") int recordsPerPage) {
+        try {
+            var list = fileStorageService.listFilesByApplicationName(applicationName, pageNumber, recordsPerPage);
+            return ResponseEntity.ok(list);
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {

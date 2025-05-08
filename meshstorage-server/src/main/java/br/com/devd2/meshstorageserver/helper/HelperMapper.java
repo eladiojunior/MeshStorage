@@ -92,5 +92,12 @@ public class HelperMapper {
         return list.stream().map(HelperMapper::ConvertToResponse).collect(Collectors.toList());
     }
 
-
+    /**
+     * Converte lista de objeto Entity (FileStorage) para lista de Response (FileStorageResponse).
+     * @param list - Lista de Entites para conversão.
+     * @return Lista de Responses convertidas.
+     */
+    public static List<FileStorageResponse> ConvertToResponseListFileStorage(List<FileStorage> list) {
+        return list.stream().map(HelperMapper::ConvertToResponse).collect(Collectors.toList());
+    }
 }

@@ -140,7 +140,7 @@ public class StorageClientEndpoint {
         String messageError = null;
         int fileStatusCode = FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode();
         try {
-            StorageService.get().removerFileStorage(fileDeleteMessage.getFileName());
+            StorageService.get().removerFileStorage(fileDeleteMessage.getApplicationStorageFolder(), fileDeleteMessage.getFileName());
         } catch (Exception error) {
             isError = true;
             messageError = error.getMessage();
@@ -159,6 +159,7 @@ public class StorageClientEndpoint {
         FileRegisterMessage fileRegisterMessage = mapper.readValue(message, FileRegisterMessage.class);
         FileStorageClient fileStorageClient = new FileStorageClient();
         fileStorageClient.setIdFile(fileRegisterMessage.getIdFile());
+        fileStorageClient.setApplicationName(fileRegisterMessage.getApplicationStorageFolder());
         fileStorageClient.setFileName(fileRegisterMessage.getFileName());
         fileStorageClient.setDataBase64(fileRegisterMessage.getDataBase64());
 
@@ -187,7 +188,9 @@ public class StorageClientEndpoint {
     private void downloadFileStorage(ObjectMapper mapper, String message) throws Exception {
 
         FileDownloadMessage fileDownloadMessage = mapper.readValue(message, FileDownloadMessage.class);
-        StorageService.get().downloadFileStorage(fileDownloadMessage.getIdFile(), fileDownloadMessage.getFileName());
+        StorageService.get().downloadFileStorage(fileDownloadMessage.getIdFile(),
+                fileDownloadMessage.getApplicationStorageFolder(),
+                fileDownloadMessage.getFileName());
 
     }
 

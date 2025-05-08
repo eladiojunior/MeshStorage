@@ -1,17 +1,21 @@
 package br.com.devd2.meshstorageclient.helper;
 
-import br.com.devd2.meshstorage.helper.FileBase64Util;
-
 import java.io.File;
-import java.io.FileOutputStream;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.Normalizer;
 import java.util.Enumeration;
+import java.util.regex.Pattern;
 
 public class UtilClient {
+
+    private static final Pattern NON_ASCII   = Pattern.compile("[^\\p{ASCII}]");     // tudo que não é ASCII
+    private static final Pattern NON_ALNUM   = Pattern.compile("[^a-zA-Z0-9._-]");    // caracteres que queremos filtrar
+    private static final Pattern MULTI_DOT   = Pattern.compile("\\.{2,}");            // .. → .
+    private static final Pattern MULTI_SPACE = Pattern.compile("\\s+");               // espaço duplicado
 
     /**
      * Recupera a Url padrão de acesso ao Websocket
@@ -127,16 +131,42 @@ public class UtilClient {
     }
 
     /**
-     * Montar a estrutura de armazenamento no padrão ano\mes\dia\nome_arquivo.extensao.
+     * Montar a estrutura de armazenamento no padrão nome_sistema\ano\mes\dia\nome_arquivo.extensao;
+     * @param applicationName - Nome da aplicação para compor a estrutura de armazenamento.
      * @param nomeArquivo - Nome do arquivo para armazenamento.
      * @return String no padrão de estrutura do Client.
      */
-    public static String mountPathStorage(String nomeArquivo) {
+    public static String mountPathStorage(String applicationName, String nomeArquivo) {
+        if (applicationName.isEmpty())
+            applicationName = "NO_APPLICATION";
+        applicationName = cleanString(applicationName).replaceAll(" ", "_");
         String ano = nomeArquivo.substring(0, 4);
         String mes = nomeArquivo.substring(4, 6);
         String dia = nomeArquivo.substring(6, 8);
-        String dataPath = ano + File.separator + mes + File.separator + dia;
-        return Paths.get(dataPath, nomeArquivo).toString();
+        return Paths.get(applicationName, ano, mes, dia, nomeArquivo).toString();
+    }
+
+    /**
+     * Remove acentos, substitui caracteres especiais e
+     * deixa apenas [a‑zA‑Z0‑9 . _ -].
+     */
+    public static String cleanString(String input) {
+        if (input == null) return null;
+
+        // 1) Normaliza para NFD (letra + acento separado)
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+
+        // 2) Remove diacríticos (acentos) – fica só ASCII estendido
+        String noAccents  = NON_ASCII.matcher(normalized).replaceAll("");
+
+        // 3) Filtra tudo que não é alfanumérico, espaço, ponto, _ ou -
+        String safe       = NON_ALNUM.matcher(noAccents).replaceAll(" ");
+
+        // 4) Espaços / pontos duplicados → simples
+        safe = MULTI_SPACE.matcher(safe).replaceAll(" ").trim();
+        safe = MULTI_DOT.matcher(safe).replaceAll(".");
+
+        return safe;
     }
 
     /**

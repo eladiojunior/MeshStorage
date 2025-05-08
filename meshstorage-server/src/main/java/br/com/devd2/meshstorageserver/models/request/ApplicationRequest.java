@@ -14,13 +14,23 @@ public class ApplicationRequest {
     private String[] allowedFileTypes = new String[] {"application/pdf", "image/jpeg", "image/gif"};
 
     @NotNull(message = "Tamanho (em MegaByte) máximo dos aquivos deve ser informado.")
-    @Min(value = 1, message = "Tamanho (em MegaByte) máximo dos aquivos deve ser maior que 0 (zero).")
+    @Min(value = 1, message = "Tamanho (em MegaByte) máximo dos aquivos deve ser MAIOR que 0 (zero).")
+    @Min(value = 20, message = "Tamanho (em MegaByte) máximo dos aquivos deve ser MENOR que 20 (vinte).")
     private Long maximumFileSizeMB;
 
-    private boolean compressFileContent = false; //Realizar a compressão dos arquivos antes de armazenar;
+    /**
+     * Realizar a compressão dos arquivos antes de armazenar;
+     */
+    private boolean compressFileContent = false;
 
-    private boolean applyOcrFileContent = false; //Aplicar OCR em arquivos de Imagem/PDF para indexação de conteúdo e HASH;
+    /**
+     * Aplicar OCR em arquivos de Imagem/PDF para indexação de conteúdo e HASH;
+     */
+    private boolean applyOcrFileContent = false;
 
-    private boolean allowDuplicateFile = true; //Verificar se permite duplicidade de conteúdo ou hash em bytes do arquivo;
+    /**
+     * Verificar se permite duplicidade de conteúdo ou hash em bytes do arquivo;
+     */
+    private boolean allowDuplicateFile = true;
 
 }

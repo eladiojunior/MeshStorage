@@ -13,6 +13,12 @@ public class FileStorageClientDownload {
     private String idFile;
 
     /**
+     * Nome da aplicação para montrar a estrutura de armazenamento do arquivo.
+     */
+    @JsonProperty("applicationName")
+    private String applicationName;
+
+    /**
      * O nome físico do arquivo será utilizando no Storage para separar em pastas para controle.
      * -----
      * Exemplo: 20250813_8ebbea50-434a-4dbb-8456-aebd461e0ecc.png

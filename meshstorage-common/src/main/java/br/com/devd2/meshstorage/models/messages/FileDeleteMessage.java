@@ -6,6 +6,8 @@ import lombok.Data;
 public class FileDeleteMessage extends GenericMessage {
     private String idFile;
     private String fileName;
+    private String applicationStorageFolder;
+
     public FileDeleteMessage() {
         this.setType("FILE_DELETE");
     }

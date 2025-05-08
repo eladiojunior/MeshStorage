@@ -14,6 +14,8 @@ public class FileStorage {
     private Long id;
     private String idFile; //Chave de identificação externa do arquivo.
     private String idClientStorage; //Identificador do Client Storage que está armazenado.
+    private String applicationStorageFolder; //Estrutura de pasta da aplicação, início do armazenamento.
+
     private String fileLogicName;
     private String fileFisicalName;
     private String fileType;

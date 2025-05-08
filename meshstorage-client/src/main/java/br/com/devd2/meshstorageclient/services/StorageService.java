@@ -37,7 +37,7 @@ public class StorageService {
         String pathFileStorage = "";
         try {
             pathFileStorage = Paths.get(StorageConfig.get().getClient().getStoragePath(),
-                    UtilClient.mountPathStorage(fileStorageClient.getFileName())).toString();
+                    UtilClient.mountPathStorage(fileStorageClient.getApplicationName(), fileStorageClient.getFileName())).toString();
             UtilClient.checkAndCreatePathStorage(pathFileStorage);
             byte[] fileBytes = FileBase64Util.base64ToBytes(fileStorageClient.getDataBase64());
             try (FileOutputStream fos = new FileOutputStream(pathFileStorage)) {
@@ -65,14 +65,15 @@ public class StorageService {
 
     /**
      * Realiza a remoção do arquivo fisicamente do Storage.
+     * @param applicationName - Nome da aplicação para compor a estrutura de pasta de armazenamento.
      * @param fileName - Nome do arquivo com a estrutura de pasta no padrão.
      * @throws Exception - Erro no processo de remover o arquivo do storage.
      */
-    public void removerFileStorage(String fileName) throws Exception {
+    public void removerFileStorage(String applicationName, String fileName) throws Exception {
         String pathFileStorage = "";
         try {
             pathFileStorage = Paths.get(StorageConfig.get().getClient().getStoragePath(),
-                    UtilClient.mountPathStorage(fileName)).toString();
+                    UtilClient.mountPathStorage(applicationName, fileName)).toString();
             File file = new File(pathFileStorage);
 
             boolean result = false;
@@ -95,7 +96,7 @@ public class StorageService {
      * @param idFile - Identificador do arquivo.
      * @param fileName - Nome do arquivo para recuperar no Storage.
      */
-    public void downloadFileStorage(String idFile, String fileName) {
+    public void downloadFileStorage(String idFile, String applicationName, String fileName) {
         String pathFileStorage = "";
 
         FileStorageClientDownload fileStorageClientDownload = new FileStorageClientDownload();
@@ -105,7 +106,7 @@ public class StorageService {
         try {
 
             pathFileStorage = Paths.get(StorageConfig.get().getClient().getStoragePath(),
-                    UtilClient.mountPathStorage(fileName)).toString();
+                    UtilClient.mountPathStorage(applicationName, fileName)).toString();
             File fileDownload = new File(pathFileStorage);
             if (!fileDownload.exists()) {
                 fileStorageClientDownload.setError(true);

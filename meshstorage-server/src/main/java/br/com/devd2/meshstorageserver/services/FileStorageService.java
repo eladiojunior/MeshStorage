@@ -12,8 +12,12 @@ import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
 import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
+import br.com.devd2.meshstorageserver.helper.HelperMapper;
+import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,7 +59,7 @@ public class FileStorageService {
         var fileStorageMessage = new FileDownloadMessage();
         fileStorageMessage.setIdFile(fileStorage.getIdFile());
         fileStorageMessage.setFileName(fileStorage.getFileFisicalName());
-
+        fileStorageMessage.setApplicationStorageFolder(fileStorage.getApplicationStorageFolder());
         try {
 
             FileStorageClientDownload fileStorageClientDownload =
@@ -146,6 +150,7 @@ public class FileStorageService {
             fileStorageEntity.setApplication(application);
             fileStorageEntity.setIdFile(UUID.randomUUID().toString());
             fileStorageEntity.setIdClientStorage(idClientStorage);
+            fileStorageEntity.setApplicationStorageFolder(application.getApplicationName());
             fileStorageEntity.setFileLogicName(file.getOriginalFilename());
             fileStorageEntity.setFileFisicalName(nomeFisicoArquivo);
             fileStorageEntity.setFileLength(bytesFile.length);
@@ -164,6 +169,7 @@ public class FileStorageService {
             var fileRegisterMessage = new FileRegisterMessage();
             fileRegisterMessage.setIdFile(fileStorageEntity.getIdFile());
             fileRegisterMessage.setFileName(fileStorageEntity.getFileFisicalName());
+            fileRegisterMessage.setApplicationStorageFolder(fileStorageEntity.getApplicationStorageFolder());
             fileRegisterMessage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
 
             FileStorageClientStatus fileStorageClientStatus =
@@ -188,7 +194,7 @@ public class FileStorageService {
      * Solicita a remoção de um arquivo do Server Storage.
      * @param idFile - Identificador do arquivo para remover.
      */
-    public void deleteFile(String idFile) throws ApiBusinessException {
+    public FileStorage deleteFile(String idFile) throws ApiBusinessException {
 
         if (idFile == null || idFile.isEmpty())
             throw new ApiBusinessException("Identificador do arquivo não pode ser nulo ou vazio.");
@@ -200,6 +206,7 @@ public class FileStorageService {
         //Enviar comando de DELETE para o Storage...
         var fileDeleteMessage = new FileDeleteMessage();
         fileDeleteMessage.setIdFile(fileStorage.getIdFile());
+        fileDeleteMessage.setApplicationStorageFolder(fileStorage.getApplicationStorageFolder());
         fileDeleteMessage.setFileName(fileStorage.getFileFisicalName());
 
         try {
@@ -214,10 +221,44 @@ public class FileStorageService {
             //Gravar exclusão logica...
             fileStorageRepository.save(fileStorage);
 
+            return fileStorage;
+
         } catch (Exception error) {
             throw new ApiBusinessException(error.getMessage());
         }
 
     }
 
+    /**
+     * Recupera a lista de arquivos de uma aplicação (nome) de forma painada.
+     * @param applicationName - Nome da aplicação para recuperação dos arquivos.
+     * @param pageNumber - Número da página da paginação
+     * @param recordsPerPage - Número de registros por página.
+     * @return Instancia com a lista de arquivos da aplicação.
+     */
+    public ListFileStorageResponse listFilesByApplicationName(String applicationName, int pageNumber, int recordsPerPage) throws ApiBusinessException {
+
+        if (applicationName == null || applicationName.isEmpty())
+            throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
+
+        var application = applicationRepository.findByApplicationName(applicationName).orElse(null);
+        if (application == null)
+            throw new ApiBusinessException("Aplicação não identificada pelo seu nome ("+applicationName+"), obrigatório.");
+
+        if (pageNumber == 0)
+            pageNumber = 1;
+
+        if (recordsPerPage == 0)
+            recordsPerPage = 15;
+
+        ListFileStorageResponse result = new ListFileStorageResponse();
+        var totalRecords = fileStorageRepository.countByApplicationId(application.getId()).orElse(0L);
+        result.setTotalRecords(totalRecords);
+        Pageable pageable = PageRequest.of(pageNumber-1, recordsPerPage);
+        var listFileStorage = fileStorageRepository.findByApplicationId(application.getId(), pageable);
+        var listFileResponse = HelperMapper.ConvertToResponseListFileStorage(listFileStorage.stream().toList());
+        result.setFiles(listFileResponse);
+        return result;
+
+    }
 }

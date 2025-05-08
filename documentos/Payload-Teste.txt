@@ -1,0 +1,15 @@
+{
+  "applicationName": "AWEB",
+  "applicationDescription": "Plataforma de Adesão de Plano",
+  "allowedFileTypes": [
+    "text/csv",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "image/gif",
+    "image/jpeg",
+    "image/png"
+  ],
+  "maximumFileSizeMB": 5,
+  "compressFileContent": true,
+  "applyOcrFileContent": false,
+  "allowDuplicateFile": true
+}
