@@ -28,7 +28,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update  # update, create, create-drop
-    show-sql: true
+    show-sql: false
 
   servlet:
     multipart:

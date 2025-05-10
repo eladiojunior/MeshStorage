@@ -7,6 +7,7 @@ import br.com.devd2.meshstorageserver.models.response.ErrorResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStorageResponse;
 import br.com.devd2.meshstorageserver.services.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -109,11 +110,18 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/listar")
-    public ResponseEntity<?> list (@RequestParam("applicationName") String applicationName,
-                                   @RequestParam(name = "pageNumber", defaultValue = "1") int pageNumber,
-                                   @RequestParam(name = "recordsPerPage", defaultValue = "15") int recordsPerPage) {
+    public ResponseEntity<?> list (@RequestParam("applicationName")
+                                       @Parameter(description = "Nome da aplicação responsável pelos arquivos") String applicationName,
+                                   @RequestParam(name = "pageNumber", defaultValue = "1")
+                                       @Parameter(description = "Número da página da paginação") int pageNumber,
+                                   @RequestParam(name = "recordsPerPage", defaultValue = "15")
+                                       @Parameter(description = "Quantidade de registro que devem ser retornado por página na paginação") int recordsPerPage,
+                                   @RequestParam(name = "isFilesSentForBackup", defaultValue = "false")
+                                       @Parameter(description = "Filtro de arquivos já enviados para backup") boolean isFilesSentForBackup,
+                                   @RequestParam(name = "isFilesRemoved", defaultValue = "false")
+                                       @Parameter(description = "Filtro de arquivos removidos do armazenamento") boolean isFilesRemoved) {
         try {
-            var list = fileStorageService.listFilesByApplicationName(applicationName, pageNumber, recordsPerPage);
+            var list = fileStorageService.listFilesByApplicationName(applicationName, pageNumber, recordsPerPage, isFilesSentForBackup, isFilesRemoved);
             return ResponseEntity.ok(list);
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));

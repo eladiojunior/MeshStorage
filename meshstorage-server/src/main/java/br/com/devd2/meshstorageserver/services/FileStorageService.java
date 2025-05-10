@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -55,6 +56,18 @@ public class FileStorageService {
         if (fileStorage == null)
             throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
 
+        if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.SENT_TO_ARCHIVED.getCode() &&
+                fileStorage.isFileSentForBackup())
+            throw new ApiBusinessException("Arquivo enviado para armazenamento de longo prazo (backup) em [" +
+                    fileStorage.getDateTimeBackupFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
+                    "]. Solicitar recuperação do arquivo no backup.");
+
+        if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode() &&
+                fileStorage.getDateTimeRemovedFileStorage() != null)
+            throw new ApiBusinessException("Arquivo removido do armazenamento em [" +
+                    fileStorage.getDateTimeRemovedFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
+                    "]. Solicitar recuperação do arquivo no backup.");
+
         //Enviar comando de DOWNLOAD para o Storage...
         var fileStorageMessage = new FileDownloadMessage();
         fileStorageMessage.setIdFile(fileStorage.getIdFile());
@@ -73,6 +86,8 @@ public class FileStorageService {
                 bytesFile = FileUtil.descompressZipFileContent(bytesFile);
             }
             fileStorage.setFileContent(bytesFile);
+
+            //TODO registrar quando (DataHora), por quem (aplicacao/usuario) o arquivo foi acessado e de onde (IP/Geolocalizacao).
 
             return fileStorage;
 
@@ -131,8 +146,8 @@ public class FileStorageService {
             {//Verificar duplicicade de HASH
                 var fileStorage = fileStorageRepository.findByApplicationIdAndHashFileContent(
                         application.getId(), hashFileContent).orElse(null);
-                if (fileStorage != null)
-                    throw new ApiBusinessException("Identificado que esse arquivo já existe na aplicação, não é permitido.");
+                if (fileStorage != null && fileStorage.getFileStatusCode()!=FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode())
+                    throw new ApiBusinessException("Arquivo já existe na aplicação e armazenado confirmado, duplicidade não é permitido.");
             }
 
             boolean fileCompressZip = false;
@@ -159,11 +174,8 @@ public class FileStorageService {
             fileStorageEntity.setFileType(file.getContentType());
             fileStorageEntity.setTextOcrFileContent(textOcrFileContent);
             fileStorageEntity.setHashFileContent(hashFileContent);
-            fileStorageEntity.setDateTimeFileStorage(LocalDateTime.now());
+            fileStorageEntity.setDateTimeRegisteredFileStorage(LocalDateTime.now());
             fileStorageEntity.setFileStatusCode(FileStorageStatusEnum.SENT_TO_STORAGE.getCode());
-
-            //Gravar
-            fileStorageRepository.save(fileStorageEntity);
 
             //Enviar para armazenar fisicamente...
             var fileRegisterMessage = new FileRegisterMessage();
@@ -184,6 +196,8 @@ public class FileStorageService {
 
             return fileStorageEntity;
 
+        } catch (ApiBusinessException error) {
+            throw error;
         } catch (Exception error) {
             throw new ApiBusinessException(error.getMessage());
         }
@@ -203,6 +217,18 @@ public class FileStorageService {
         if (fileStorage == null)
             throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
 
+        if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.SENT_TO_ARCHIVED.getCode() &&
+                fileStorage.isFileSentForBackup())
+            throw new ApiBusinessException("Arquivo enviado para armazenamento de longo prazo (backup) em [" +
+                    fileStorage.getDateTimeBackupFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
+                    "]. Não será possível remove-lo.");
+
+        if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode() &&
+                fileStorage.getDateTimeRemovedFileStorage() != null)
+            throw new ApiBusinessException("Arquivo removido do armazenamento em [" +
+                    fileStorage.getDateTimeRemovedFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
+                    "]. Não será possível remove-lo.");
+
         //Enviar comando de DELETE para o Storage...
         var fileDeleteMessage = new FileDeleteMessage();
         fileDeleteMessage.setIdFile(fileStorage.getIdFile());
@@ -216,6 +242,7 @@ public class FileStorageService {
             if (fileStorageClientStatus.isError())
                 throw new ApiBusinessException(fileStorageClientStatus.getMessageError());
 
+            fileStorage.setDateTimeRemovedFileStorage(LocalDateTime.now());
             fileStorage.setFileStatusCode(fileStorageClientStatus.getFileStatusCode());
 
             //Gravar exclusão logica...
@@ -223,6 +250,8 @@ public class FileStorageService {
 
             return fileStorage;
 
+        } catch (ApiBusinessException error) {
+            throw error;
         } catch (Exception error) {
             throw new ApiBusinessException(error.getMessage());
         }
@@ -234,9 +263,11 @@ public class FileStorageService {
      * @param applicationName - Nome da aplicação para recuperação dos arquivos.
      * @param pageNumber - Número da página da paginação
      * @param recordsPerPage - Número de registros por página.
+     * @param isFilesSentForBackup - indicador de filtro dos arquivos enviados para o backup, armazenamento de longo prazo.
+     * @param isFilesRemoved - indicado de filtro dos arquivos removidos do armazenamento.
      * @return Instancia com a lista de arquivos da aplicação.
      */
-    public ListFileStorageResponse listFilesByApplicationName(String applicationName, int pageNumber, int recordsPerPage) throws ApiBusinessException {
+    public ListFileStorageResponse listFilesByApplicationName(String applicationName, int pageNumber, int recordsPerPage, boolean isFilesSentForBackup, boolean isFilesRemoved) throws ApiBusinessException {
 
         if (applicationName == null || applicationName.isEmpty())
             throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
@@ -250,6 +281,8 @@ public class FileStorageService {
 
         if (recordsPerPage == 0)
             recordsPerPage = 15;
+
+        //TODO Recuperar apenas os arquivos ativos, e filtrar os arquivados (backup) e deletados por parametro...
 
         ListFileStorageResponse result = new ListFileStorageResponse();
         var totalRecords = fileStorageRepository.countByApplicationId(application.getId()).orElse(0L);

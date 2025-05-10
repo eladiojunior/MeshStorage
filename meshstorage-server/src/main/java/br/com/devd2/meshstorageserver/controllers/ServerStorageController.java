@@ -28,41 +28,13 @@ public class ServerStorageController {
         this.serverStorageService = serverStorageService;
     }
 
-    @Operation(summary = "Atualizar ServerStorage", description = "Atualizar um ServerStorage para armazenamento de arquivos físicos.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Atualizado ServerStorage realizada com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ServerStorageResponse.class))}),
-            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
-            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @PostMapping("/update")
-    public ResponseEntity updateServerStorage(
-        @RequestParam @Parameter(description = "Nome do Server")String serverName,
-        @RequestParam @Parameter(description = "Nome do Storage")String storageName,
-        @RequestParam @Parameter(description = "Espaço livre em disco do storage(MB)")long freeSpace,
-        @RequestParam @Parameter(description = "Flag de disponibilidade do storage para utilização")boolean available) {
-
-        try {
-
-            var serverStorage = serverStorageService.updateServerStorageStatus(serverName, storageName, freeSpace, available);
-            var fileResponse = HelperMapper.ConvertToResponse(serverStorage);
-            return ResponseEntity.ok(fileResponse);
-
-        } catch (ApiBusinessException error_business) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
-        } catch (Exception error) {
-            var message = "Erro ao atualizar ServerStorage para armazenamento de arquivos físicos.";
-            log.error(message, error);
-            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
-        }
-
-    }
-
     @Operation(summary = "Melhor ServerStorage", description = "Obter o melhor Server Storage para armazenamento de arquivos físicos.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Obtem melhor ServerStorage com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ServerStorageResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/best")
-    public ResponseEntity getBestServerStorage() {
+    public ResponseEntity<?> getBestServerStorage() {
 
         try {
 
@@ -86,8 +58,9 @@ public class ServerStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/list")
-    public ResponseEntity getListServerStorage(
-            @RequestParam @Parameter(description = "Flag de disponibilidade do storage para utilização")boolean available) {
+    public ResponseEntity<?> getListServerStorage(
+            @RequestParam(name = "available", defaultValue = "true")
+                @Parameter(description = "Flag de disponibilidade do storage para utilização") boolean available) {
         try {
             var listServerStorage = serverStorageService.getListServerStorage(available);
             var response = HelperMapper.ConvertToResponseListServerStorage(listServerStorage);

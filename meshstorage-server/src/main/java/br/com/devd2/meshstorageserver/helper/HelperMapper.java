@@ -79,7 +79,7 @@ public class HelperMapper {
         response.setAllowDuplicateFile(application.isAllowDuplicateFile());
         response.setCompressFileContent(application.isCompressFileContent());
         response.setApplyOcrFileContent(application.isApplyOcrFileContent());
-        response.setDateTimeApplication(application.getDateTimeApplication());
+        response.setDateTimeApplication(application.getDateTimeRegisteredApplication());
         return response;
     }
 

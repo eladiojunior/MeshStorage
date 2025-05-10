@@ -15,7 +15,7 @@ public class ApplicationRequest {
 
     @NotNull(message = "Tamanho (em MegaByte) máximo dos aquivos deve ser informado.")
     @Min(value = 1, message = "Tamanho (em MegaByte) máximo dos aquivos deve ser MAIOR que 0 (zero).")
-    @Min(value = 20, message = "Tamanho (em MegaByte) máximo dos aquivos deve ser MENOR que 20 (vinte).")
+    @Max(value = 20, message = "Tamanho (em MegaByte) máximo dos aquivos deve ser MENOR ou igual a 20MB.")
     private Long maximumFileSizeMB;
 
     /**

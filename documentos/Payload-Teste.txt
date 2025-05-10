@@ -2,6 +2,7 @@
   "applicationName": "AWEB",
   "applicationDescription": "Plataforma de Adesão de Plano",
   "allowedFileTypes": [
+    "application/pdf",
     "text/csv",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "image/gif",

@@ -51,7 +51,7 @@ public class ApplicationService {
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
         application.setCompressFileContent(request.isCompressFileContent());
-        application.setDateTimeApplication(LocalDateTime.now());
+        application.setDateTimeRegisteredApplication(LocalDateTime.now());
 
         return applicationRepository.save(application);
 

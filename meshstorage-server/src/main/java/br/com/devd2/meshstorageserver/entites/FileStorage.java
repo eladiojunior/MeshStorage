@@ -12,23 +12,104 @@ public class FileStorage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * Identificador do arquivo em banco como chave: UUID.randomUUID().toString()
+     */
     private String idFile; //Chave de identificação externa do arquivo.
+
+    /**
+     * Identificador do Storage para recuperação do arquivo.
+     */
     private String idClientStorage; //Identificador do Client Storage que está armazenado.
+    /**
+     * Nome da estrutura de armazenamento do arquivo no Storage
+     */
     private String applicationStorageFolder; //Estrutura de pasta da aplicação, início do armazenamento.
 
+    /**
+     * Nome lógico do arquivo, exatamente como a aplicação recebe do usuário.
+     */
     private String fileLogicName;
+
+    /**
+     * O nome físico do arquivo será utilizando no Storage para separar em pastas para controle.
+     * -----
+     * Exemplo: 20250813_8ebbea50-434a-4dbb-8456-aebd461e0ecc.png
+     * {20250813} = Será utilizado para o nome da pasta no Storage;
+     * {8ebbea50-434a-4dbb-8456-aebd461e0ecc} = UUID.randomUUID().toString().toUpperCase();
+     * {.png} = Extensão do arquivo, recuperado do nome lógico e aplicado o toLowerCase();
+     * Formando:
+     * {20250813_8ebbea50-434a-4dbb-8456-aebd461e0ecc.png} = Nome do arquivo fisico para armazenamento;
+     */
     private String fileFisicalName;
+
+    /**
+     * Tipo do arquivo (content Type), exemplo: application/pdf
+     */
     private String fileType;
+    /**
+     * Tamnho em bytes do arquivo.
+     */
     private int fileLength;
+
+    /**
+     * Dados (bytes) do arquivo quando recuperado do armazenamento.
+     * Essa informação não será mantida em banco de dados.
+     */
     @Transient
     private byte[] fileContent;
-    private boolean compressFileContent; //Arquivo armazenado em ZIP compressão;
+
+    /**
+     * Indicador que o arquivo passou por uma compressão em ZIP antes do armazenamento;
+     */
+    private boolean compressFileContent;
+
+    /**
+     * Caso seja aplicado o ORC no arquivo será as informações do resultado do OCR
+     * para indexação do conteúdo do arquivo.
+     */
     private String textOcrFileContent;
+
+    /**
+     * Hash do conteúdo do arquivo, bytes, para comparação de duplicidade.
+     */
     private String hashFileContent;
-    private boolean hasFileSentForPurge; //Sinaliza que o arquivo foi enviado para expurgo.
-    private LocalDateTime dateTimeFileStorage;
+
+    /**
+     * Data e hora do registro do arquivo no armazenamento.
+     */
+    private LocalDateTime dateTimeRegisteredFileStorage;
+
+    /**
+     * Data e hora da remoção do arquivo para do armazenamento.
+     */
+    private LocalDateTime dateTimeRemovedFileStorage;
+
+    /**
+     * Indicador que o arquivo foi enviado para backup, retirado do acesso online
+     * e disponibilizado em uma outra mídia de armazenamento de longo prazo.
+     */
+    private boolean fileSentForBackup;
+
+    /**
+     * Data e hora do envio do arquivo para o backup, armazenamento não online.
+     */
+    private LocalDateTime dateTimeBackupFileStorage;
+
+    /**
+     * Código da situação do arquivo:
+     * SENT_TO_STORAGE      = 1 - Arquivo foi enviado para armazenamento
+     * STORED_SUCCESSFULLY  = 2 - Arquivo armazenado com sucesso
+     * SENT_TO_ARCHIVED     = 3 - Arquivo movido para armazenamento de longo prazo
+     * DELETED_SUCCESSFULLY = 4 - Arquivo removido com sucesso
+     * STORAGE_FAILED       = 9 - Falha no processamento do arquivo
+     */
     private Integer fileStatusCode;
 
+    /**
+     * Relacionamento com uma aplicação para controle.
+     */
     @ManyToOne
     @JoinColumn(name = "applicationId")
     private Application application;
