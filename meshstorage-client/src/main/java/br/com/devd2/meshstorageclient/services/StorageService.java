@@ -2,13 +2,11 @@ package br.com.devd2.meshstorageclient.services;
 
 import br.com.devd2.meshstorage.helper.FileBase64Util;
 import br.com.devd2.meshstorage.helper.JsonUtil;
-import br.com.devd2.meshstorage.models.FileStorageClient;
-import br.com.devd2.meshstorage.models.FileStorageClientDownload;
-import br.com.devd2.meshstorage.models.FileStorageClientStatus;
-import br.com.devd2.meshstorage.models.StorageClient;
+import br.com.devd2.meshstorage.models.*;
 import br.com.devd2.meshstorageclient.components.StorageClientEndpoint;
 import br.com.devd2.meshstorageclient.config.StorageConfig;
 import br.com.devd2.meshstorageclient.helper.UtilClient;
+import jakarta.websocket.RemoteEndpoint;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -96,12 +94,13 @@ public class StorageService {
      * @param idFile - Identificador do arquivo.
      * @param fileName - Nome do arquivo para recuperar no Storage.
      */
-    public void downloadFileStorage(String idFile, String applicationName, String fileName) {
+    public FileStorageClientDownload downloadFileStorage(String idFile, String applicationName, String fileName) {
         String pathFileStorage = "";
 
         FileStorageClientDownload fileStorageClientDownload = new FileStorageClientDownload();
         fileStorageClientDownload.setIdFile(idFile);
         fileStorageClientDownload.setFileName(fileName);
+        fileStorageClientDownload.setApplicationName(applicationName);
 
         try {
 
@@ -114,6 +113,7 @@ public class StorageService {
             }
             else
             {//Recuperar o arquivo do disco e enviar em base64 para o servidor.
+                System.out.println("==> File download: " + fileName);
                 fileStorageClientDownload.setDataBase64(FileBase64Util.fileToBase64(fileDownload.getAbsolutePath()));
                 fileStorageClientDownload.setError(false);
                 fileStorageClientDownload.setMessageError(null);
@@ -123,7 +123,7 @@ public class StorageService {
             fileStorageClientDownload.setMessageError(err.getMessage());
         }
 
-        notifyServerDownloadFileStorage(fileStorageClientDownload);
+        return fileStorageClientDownload;
 
     }
 
@@ -131,12 +131,39 @@ public class StorageService {
      * Responsável por notitificar o ServerStorage que o download do arquivo.
      * @param fileStorageClientDownload - Informações do arquivo processado.
      */
-    private void notifyServerDownloadFileStorage(FileStorageClientDownload fileStorageClientDownload) {
-
+    public void notifyServerDownloadFileStorage(FileStorageClientDownload fileStorageClientDownload) {
         StorageClientEndpoint session = StorageConfig.get().getSession();
         if (session != null && session.isConnected()) {
-            String jsonClientDownload = JsonUtil.toJson(fileStorageClientDownload);
-            session.sendMessage("/server/download-file-storage", jsonClientDownload);
+
+            if (fileStorageClientDownload.isError()) {
+                fileStorageClientDownload.setDataBase64(""); //Limpar dados arquivo...
+                String jsonClientDownload = JsonUtil.toJson(fileStorageClientDownload);
+                session.sendMessage("/server/download-file-storage", jsonClientDownload);
+                return;
+            }
+
+            //Enviar a mensagem de forma fragmentada...
+            String dataBase64 = fileStorageClientDownload.getDataBase64();
+            int CHUNK = 15 * 1024;
+            int part = 0;
+
+            for (int off = 0; off < dataBase64.length(); off += CHUNK) {
+
+                boolean last = off + CHUNK >= dataBase64.length();
+                FileStoragePartClientDownload cloneFileStorageClientDownload = new FileStoragePartClientDownload();
+                cloneFileStorageClientDownload.setIdFile(fileStorageClientDownload.getIdFile());
+                cloneFileStorageClientDownload.setFileName(fileStorageClientDownload.getFileName());
+                cloneFileStorageClientDownload.setApplicationName(fileStorageClientDownload.getApplicationName());
+                String part_dataBase64 = dataBase64.substring(off, Math.min(dataBase64.length(), off + CHUNK));
+                cloneFileStorageClientDownload.setDataBase64(part_dataBase64);
+                cloneFileStorageClientDownload.setPartFile(part+=1);
+                cloneFileStorageClientDownload.setLastFile(last);
+
+                String jsonClientDownload = JsonUtil.toJson(cloneFileStorageClientDownload);
+                session.sendMessage("/server/download-part-file-storage", jsonClientDownload);
+
+            }
+
         }
 
     }

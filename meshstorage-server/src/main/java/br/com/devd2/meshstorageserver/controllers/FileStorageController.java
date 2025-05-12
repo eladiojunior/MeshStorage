@@ -109,7 +109,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "200", description = "Lista de arquivos recuperados da aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @GetMapping("/listar")
+    @GetMapping("/list")
     public ResponseEntity<?> list (@RequestParam("applicationName")
                                        @Parameter(description = "Nome da aplicação responsável pelos arquivos") String applicationName,
                                    @RequestParam(name = "pageNumber", defaultValue = "1")
@@ -126,12 +126,28 @@ public class FileStorageController {
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {
-            var message = "Erro ao remover um arquivo no Server Storage.";
+            var message = "Erro ao listar os arquivos de uma aplicação de forma paginada no Server Storage.";
             log.error(message, error);
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }
 
+    }
 
+    @Operation(summary = "Lista de status dos arquivos do ServerStorage", description = "Lista os codigos/descrições dos status arquivos do ServerSorage.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de status dos arquivos", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/listStatusCode")
+    public ResponseEntity<?> list_statusCode () {
+        try {
+            var list = fileStorageService.listStatusCodeFiles();
+            return ResponseEntity.ok(list);
+        } catch (Exception error) {
+            var message = "Erro ao listar os status dos arquivos no Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
     }
 
 }

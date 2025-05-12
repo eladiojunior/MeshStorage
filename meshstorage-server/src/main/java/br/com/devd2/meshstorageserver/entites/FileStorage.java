@@ -87,23 +87,13 @@ public class FileStorage {
     private LocalDateTime dateTimeRemovedFileStorage;
 
     /**
-     * Indicador que o arquivo foi enviado para backup, retirado do acesso online
-     * e disponibilizado em uma outra mídia de armazenamento de longo prazo.
-     */
-    private boolean fileSentForBackup;
-
-    /**
      * Data e hora do envio do arquivo para o backup, armazenamento não online.
      */
     private LocalDateTime dateTimeBackupFileStorage;
 
     /**
      * Código da situação do arquivo:
-     * SENT_TO_STORAGE      = 1 - Arquivo foi enviado para armazenamento
-     * STORED_SUCCESSFULLY  = 2 - Arquivo armazenado com sucesso
-     * SENT_TO_ARCHIVED     = 3 - Arquivo movido para armazenamento de longo prazo
-     * DELETED_SUCCESSFULLY = 4 - Arquivo removido com sucesso
-     * STORAGE_FAILED       = 9 - Falha no processamento do arquivo
+     * {@link br.com.devd2.meshstorage.enums.FileStorageStatusEnum}
      */
     private Integer fileStatusCode;
 

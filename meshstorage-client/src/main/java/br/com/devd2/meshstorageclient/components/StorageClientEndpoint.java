@@ -2,6 +2,7 @@ package br.com.devd2.meshstorageclient.components;
 
 import br.com.devd2.meshstorage.enums.FileStorageStatusEnum;
 import br.com.devd2.meshstorage.models.FileStorageClient;
+import br.com.devd2.meshstorage.models.FileStorageClientDownload;
 import br.com.devd2.meshstorage.models.FileStorageClientStatus;
 import br.com.devd2.meshstorage.models.StorageClient;
 import br.com.devd2.meshstorage.models.messages.FileDeleteMessage;
@@ -89,12 +90,18 @@ public class StorageClientEndpoint {
         session.getAsyncRemote().sendText(message);
     }
 
-    public void sendMessage(String brocke, String messageJson) {
-        String message ="SEND\n" +
-                "destination:"+brocke+"\n" +
-                "content-type:application/json\n\n" +
-                messageJson + "\u0000";
-        session.getAsyncRemote().sendText(message);
+    public void sendMessage(String brocke, String message_json) {
+        try {
+
+            String message = "SEND\n" +
+                    "destination:" + brocke + "\n" +
+                    "content-type:application/json\n\n" +
+                    message_json + "\u0000";
+
+            session.getAsyncRemote().sendText(message);
+        } catch (Exception error) {
+            System.err.println("!Erro ao enviar mensagem => " + error.getMessage());
+        }
     }
 
     public boolean isConnected() {
@@ -188,9 +195,12 @@ public class StorageClientEndpoint {
     private void downloadFileStorage(ObjectMapper mapper, String message) throws Exception {
 
         FileDownloadMessage fileDownloadMessage = mapper.readValue(message, FileDownloadMessage.class);
-        StorageService.get().downloadFileStorage(fileDownloadMessage.getIdFile(),
+        FileStorageClientDownload fileStorageClientDownload =
+                StorageService.get().downloadFileStorage(fileDownloadMessage.getIdFile(),
                 fileDownloadMessage.getApplicationStorageFolder(),
                 fileDownloadMessage.getFileName());
+
+        StorageService.get().notifyServerDownloadFileStorage(fileStorageClientDownload);
 
     }
 

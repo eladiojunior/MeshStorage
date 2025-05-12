@@ -1,5 +1,0 @@
-# Configuracao da aplicação.
-# -----------------------------------------------------
-spring:
-  main:
-    web-application-type: none

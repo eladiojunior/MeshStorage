@@ -34,4 +34,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setSendBufferSizeLimit(limit);  // buffer por sessão
         registry.setSendTimeLimit(30_000);       // 30s para empurrar t_odo o payload
     }
+
 }

@@ -20,7 +20,8 @@ public class WebSocketMessaging {
     private final Map<String, CompletableFuture<FileStorageClientDownload>> pendingsFileDownload = new ConcurrentHashMap<>();
     private final Map<String, CompletableFuture<FileStorageClientStatus>> pendingsFileStatus = new ConcurrentHashMap<>();
 
-    private final Duration timeout = Duration.ofSeconds(5); //segundos...
+    private final Duration timeout_status = Duration.ofSeconds(5); //segundos...
+    private final Duration timeout_download = Duration.ofSeconds(10); //segundos...
     private final SimpMessagingTemplate messagingTemplate;
 
     public WebSocketMessaging(SimpMessagingTemplate messagingTemplate) {
@@ -42,7 +43,7 @@ public class WebSocketMessaging {
         String jsonRequest = JsonUtil.toJson(fileDownloadMessage);
         messagingTemplate.convertAndSend("/client/"+idClientStorage, jsonRequest);
         try {
-            return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return future.get(timeout_download.toMillis(), TimeUnit.MILLISECONDS);
         } finally {
             pendingsFileDownload.remove(fileDownloadMessage.getIdFile());
         }
@@ -55,8 +56,7 @@ public class WebSocketMessaging {
      */
     public void notifyFileDownloadClient(FileStorageClientDownload response) {
         CompletableFuture<FileStorageClientDownload> f = pendingsFileDownload.get(response.getIdFile());
-        if (f != null)
-            f.complete(response);
+        if (f != null) f.complete(response);
     }
 
     /**
@@ -74,7 +74,7 @@ public class WebSocketMessaging {
         String jsonRequest = JsonUtil.toJson(fileRegisterMessage);
         messagingTemplate.convertAndSend("/client/"+idClientStorage, jsonRequest);
         try {
-            return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return future.get(timeout_status.toMillis(), TimeUnit.MILLISECONDS);
         } finally {
             pendingsFileStatus.remove(fileRegisterMessage.getIdFile());
         }
@@ -103,7 +103,7 @@ public class WebSocketMessaging {
         messagingTemplate.convertAndSend("/client/"+idClientStorage, jsonRequest);
         try {
             // espera resposta ou timeout
-            return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            return future.get(timeout_status.toMillis(), TimeUnit.MILLISECONDS);
         } finally {
             pendingsFileStatus.remove(fileDeleteMessage.getIdFile());
         }

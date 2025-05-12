@@ -11,32 +11,48 @@ import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
 import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
+import br.com.devd2.meshstorageserver.entites.FileStorageAccessLog;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
+import br.com.devd2.meshstorageserver.models.UserAccessDataModel;
+import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
+import br.com.devd2.meshstorageserver.repositories.FileStorageAccessLogRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import jakarta.persistence.criteria.Predicate;
+
+@Slf4j
 @Service
 public class FileStorageService {
     private final ApplicationRepository applicationRepository;
     private final FileStorageRepository fileStorageRepository;
+    private final FileStorageAccessLogRepository fileStorageAccessLogRepository;
     private final ServerStorageService serverStorageService;
     private final WebSocketMessaging webSocketMessaging;
 
     public FileStorageService(ApplicationRepository applicationRepository, FileStorageRepository fileStorageRepository,
-                              ServerStorageService serverStorageService, WebSocketMessaging webSocketMessaging) {
+                              ServerStorageService serverStorageService, WebSocketMessaging webSocketMessaging,
+                              FileStorageAccessLogRepository fileStorageAccessLogRepository) {
         this.applicationRepository = applicationRepository;
         this.fileStorageRepository = fileStorageRepository;
+        this.fileStorageAccessLogRepository = fileStorageAccessLogRepository;
         this.serverStorageService = serverStorageService;
         this.webSocketMessaging = webSocketMessaging;
     }
@@ -56,17 +72,17 @@ public class FileStorageService {
         if (fileStorage == null)
             throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
 
-        if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.SENT_TO_ARCHIVED.getCode() &&
-                fileStorage.isFileSentForBackup())
+        if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.ARCHIVED_SUCESSFULLY.getCode() &&
+                fileStorage.getDateTimeBackupFileStorage() != null)
             throw new ApiBusinessException("Arquivo enviado para armazenamento de longo prazo (backup) em [" +
                     fileStorage.getDateTimeBackupFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
-                    "]. Solicitar recuperação do arquivo no backup.");
+                    "]. Solicite a recuperação do arquivo no backup ["+fileStorage.getFileFisicalName()+"].");
 
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode() &&
                 fileStorage.getDateTimeRemovedFileStorage() != null)
             throw new ApiBusinessException("Arquivo removido do armazenamento em [" +
                     fileStorage.getDateTimeRemovedFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
-                    "]. Solicitar recuperação do arquivo no backup.");
+                    "]. Solicite recuperação do arquivo no backup ["+fileStorage.getFileFisicalName()+"].");
 
         //Enviar comando de DOWNLOAD para o Storage...
         var fileStorageMessage = new FileDownloadMessage();
@@ -87,16 +103,49 @@ public class FileStorageService {
             }
             fileStorage.setFileContent(bytesFile);
 
-            //TODO registrar quando (DataHora), por quem (aplicacao/usuario) o arquivo foi acessado e de onde (IP/Geolocalizacao).
+            //Registrar histórico de acesso ao arquivo...
+            RegisterFileAccessHistory(fileStorage);
 
             return fileStorage;
 
         } catch (ApiBusinessException error) {
             throw error;
-        } catch (Exception error) {
+        }
+        catch (InterruptedException | ExecutionException error) {
             throw new ApiBusinessException(error.getMessage());
         }
+        catch (TimeoutException error) {
+            throw new ApiBusinessException("Erro de timeout do Storage ["+fileStorage.getIdClientStorage()+"] no download do arquivo.");
+        }
+        catch (Exception error) {
+            throw new ApiBusinessException("Erro não esperado: " + error.getMessage());
+        }
 
+    }
+
+    /**
+     * Resposável por registrar as informações de acesso ao arquivo no histórico.
+     * Não teve afetar o processamento de recuperação do arquivo, caso ocorra erro deve registrar e
+     * seguir com o processamento.
+     * @param fileStorage - Informações do arquivo acessado.
+     */
+    private void RegisterFileAccessHistory(FileStorage fileStorage) {
+
+        try {
+
+            //TODO Implementar solução de registro de log...
+            FileStorageAccessLog fileStorageAccessLog = new FileStorageAccessLog();
+            fileStorageAccessLog.setFileStorage(fileStorage);
+            fileStorageAccessLog.setUserName("");
+            fileStorageAccessLog.setIpUser("");
+            fileStorageAccessLog.setUserAgent("");
+            fileStorageAccessLog.setDateTimeRegisteredAccess(LocalDateTime.now());
+
+            fileStorageAccessLogRepository.saveAsync(fileStorageAccessLog);
+
+        } catch (Exception error) {
+            log.error("Erro ao registrar acesso ao arquivo.", error);
+        }
     }
 
     /**
@@ -146,7 +195,7 @@ public class FileStorageService {
             {//Verificar duplicicade de HASH
                 var fileStorage = fileStorageRepository.findByApplicationIdAndHashFileContent(
                         application.getId(), hashFileContent).orElse(null);
-                if (fileStorage != null && fileStorage.getFileStatusCode()!=FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode())
+                if (fileStorage != null && fileStorage.getFileStatusCode()==FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode())
                     throw new ApiBusinessException("Arquivo já existe na aplicação e armazenado confirmado, duplicidade não é permitido.");
             }
 
@@ -217,8 +266,8 @@ public class FileStorageService {
         if (fileStorage == null)
             throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
 
-        if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.SENT_TO_ARCHIVED.getCode() &&
-                fileStorage.isFileSentForBackup())
+        if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.ARCHIVED_SUCESSFULLY.getCode() &&
+                fileStorage.getDateTimeBackupFileStorage() != null)
             throw new ApiBusinessException("Arquivo enviado para armazenamento de longo prazo (backup) em [" +
                     fileStorage.getDateTimeBackupFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
                     "]. Não será possível remove-lo.");
@@ -227,7 +276,7 @@ public class FileStorageService {
                 fileStorage.getDateTimeRemovedFileStorage() != null)
             throw new ApiBusinessException("Arquivo removido do armazenamento em [" +
                     fileStorage.getDateTimeRemovedFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
-                    "]. Não será possível remove-lo.");
+                    "]. Não é possível remove-lo novamente.");
 
         //Enviar comando de DELETE para o Storage...
         var fileDeleteMessage = new FileDeleteMessage();
@@ -282,16 +331,44 @@ public class FileStorageService {
         if (recordsPerPage == 0)
             recordsPerPage = 15;
 
-        //TODO Recuperar apenas os arquivos ativos, e filtrar os arquivados (backup) e deletados por parametro...
+        Specification<FileStorage> specification = (root, q, cb) -> {
+            List<Integer> fileStatusCodes = new ArrayList<>();
+            fileStatusCodes.add(FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode());
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("application").get("id"), application.getId()));
+            if (isFilesSentForBackup)
+                fileStatusCodes.add(FileStorageStatusEnum.ARCHIVED_SUCESSFULLY.getCode());
+            if (isFilesRemoved)
+                fileStatusCodes.add(FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode());
+            predicates.add(root.get("fileStatusCode").in(fileStatusCodes));
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
 
         ListFileStorageResponse result = new ListFileStorageResponse();
-        var totalRecords = fileStorageRepository.countByApplicationId(application.getId()).orElse(0L);
+        var totalRecords = fileStorageRepository.count(specification);
         result.setTotalRecords(totalRecords);
         Pageable pageable = PageRequest.of(pageNumber-1, recordsPerPage);
-        var listFileStorage = fileStorageRepository.findByApplicationId(application.getId(), pageable);
+        var listFileStorage = fileStorageRepository.findAll(specification, pageable);
         var listFileResponse = HelperMapper.ConvertToResponseListFileStorage(listFileStorage.stream().toList());
         result.setFiles(listFileResponse);
         return result;
 
     }
+
+    /**
+     * Lista a tabela de domínio dos Status dos arquivos no Server Storage.
+     * @return Lista de status dos arquivos.
+     */
+    public List<FileStatusCodeResponse> listStatusCodeFiles() {
+        List<FileStatusCodeResponse> result = new ArrayList<>();
+        for (var item_enum : FileStorageStatusEnum.values()) {
+            FileStatusCodeResponse item = new FileStatusCodeResponse();
+            item.setCode(item_enum.getCode());
+            item.setNameEnum(item_enum.name());
+            item.setDescription(item_enum.getDescription());
+            result.add(item);
+        }
+        return result;
+    }
+
 }

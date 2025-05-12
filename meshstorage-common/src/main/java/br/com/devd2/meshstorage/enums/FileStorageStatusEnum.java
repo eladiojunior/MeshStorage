@@ -5,8 +5,9 @@ import lombok.Getter;
 public enum FileStorageStatusEnum {
     SENT_TO_STORAGE(1, "Arquivo foi enviado para armazenamento"),
     STORED_SUCCESSFULLY(2, "Arquivo armazenado com sucesso"),
-    SENT_TO_ARCHIVED(3, "Arquivo movido para armazenamento de longo prazo"),
-    DELETED_SUCCESSFULLY(4, "Arquivo removido com sucesso"),
+    SENT_TO_ARCHIVED(3, "Arquivo enviado para backup (armazenamento de longo prazo)"),
+    ARCHIVED_SUCESSFULLY(4, "Arquivo em backup com sucesso"),
+    DELETED_SUCCESSFULLY(5, "Arquivo removido com sucesso"),
     STORAGE_FAILED(9, "Falha no processamento do arquivo");
 
     @Getter
