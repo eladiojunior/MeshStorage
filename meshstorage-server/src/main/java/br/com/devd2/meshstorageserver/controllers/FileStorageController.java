@@ -72,6 +72,7 @@ public class FileStorageController {
             FileStorage file = fileStorageService.getFile(idFile);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileLogicName() + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, file.getFileContentType())
                     .body(file.getFileContent());
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));

@@ -47,7 +47,7 @@ public class HelperMapper {
         response.setIdFile(fileStorage.getIdFile());
         response.setFileLogicName(fileStorage.getFileLogicName());
         response.setFileFisicalName(fileStorage.getFileFisicalName());
-        response.setFileType(fileStorage.getFileType());
+        response.setFileContentType(fileStorage.getFileContentType());
         response.setFileLength(fileStorage.getFileLength());
         response.setHashFileContent(fileStorage.getHashFileContent());
         response.setDateTimeRegisteredFileStorage(fileStorage.getDateTimeRegisteredFileStorage());

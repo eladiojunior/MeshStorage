@@ -14,7 +14,6 @@ import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.entites.FileStorageAccessLog;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
-import br.com.devd2.meshstorageserver.models.UserAccessDataModel;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
@@ -27,6 +26,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -72,17 +72,18 @@ public class FileStorageService {
         if (fileStorage == null)
             throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
 
+        String pathFileStorage =  Path.of(fileStorage.getApplicationStorageFolder(), fileStorage.getFileFisicalName()).toString();
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.ARCHIVED_SUCESSFULLY.getCode() &&
                 fileStorage.getDateTimeBackupFileStorage() != null)
             throw new ApiBusinessException("Arquivo enviado para armazenamento de longo prazo (backup) em [" +
                     fileStorage.getDateTimeBackupFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
-                    "]. Solicite a recuperação do arquivo no backup ["+fileStorage.getFileFisicalName()+"].");
+                    "]. Solicite a recuperação do arquivo no backup ["+ pathFileStorage +"].");
 
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode() &&
                 fileStorage.getDateTimeRemovedFileStorage() != null)
             throw new ApiBusinessException("Arquivo removido do armazenamento em [" +
                     fileStorage.getDateTimeRemovedFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
-                    "]. Solicite recuperação do arquivo no backup ["+fileStorage.getFileFisicalName()+"].");
+                    "]. Solicite recuperação do arquivo no backup ["+ pathFileStorage +"].");
 
         //Enviar comando de DOWNLOAD para o Storage...
         var fileStorageMessage = new FileDownloadMessage();
@@ -101,6 +102,12 @@ public class FileStorageService {
             if (fileStorage.isCompressFileContent()) {
                 bytesFile = FileUtil.descompressZipFileContent(bytesFile);
             }
+
+            var hashFileDownload = FileUtil.hashConteudo(bytesFile);
+            if (!fileStorage.getHashFileContent().equals(hashFileDownload))
+                log.warn("Arquivo [{}] com HASH diferente, esse arquivo pode ter sido manipulado no Storage!",
+                        pathFileStorage);
+
             fileStorage.setFileContent(bytesFile);
 
             //Registrar histórico de acesso ao arquivo...
@@ -220,7 +227,7 @@ public class FileStorageService {
             fileStorageEntity.setFileLength(bytesFile.length);
             fileStorageEntity.setFileContent(bytesFile);
             fileStorageEntity.setCompressFileContent(fileCompressZip);
-            fileStorageEntity.setFileType(file.getContentType());
+            fileStorageEntity.setFileContentType(file.getContentType());
             fileStorageEntity.setTextOcrFileContent(textOcrFileContent);
             fileStorageEntity.setHashFileContent(hashFileContent);
             fileStorageEntity.setDateTimeRegisteredFileStorage(LocalDateTime.now());

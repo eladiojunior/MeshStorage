@@ -29,7 +29,7 @@ public class FileStorageResponse {
     /**
      * Tipo do arquivo (content Type), exemplo: application/pdf
      */
-    private String fileType;
+    private String fileContentType;
 
     /**
      * Tamnho em bytes do arquivo.
