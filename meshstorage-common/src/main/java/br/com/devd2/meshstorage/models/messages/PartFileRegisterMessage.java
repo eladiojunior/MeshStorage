@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FileRegisterMessage extends GenericMessage {
+public class PartFileRegisterMessage extends GenericMessage {
     @JsonProperty("idFile")
     private String idFile;
     @JsonProperty("fileName")
@@ -15,7 +15,11 @@ public class FileRegisterMessage extends GenericMessage {
     private String applicationStorageFolder;
     @JsonProperty("dataBase64")
     private String dataBase64;
-    public FileRegisterMessage() {
-        this.setType("FILE_REGISTER");
+    @JsonProperty("partFile")
+    private int partFile;
+    @JsonProperty("lastPartFile")
+    private boolean lastPartFile;
+    public PartFileRegisterMessage() {
+        this.setType("PART_FILE_REGISTER");
     }
 }

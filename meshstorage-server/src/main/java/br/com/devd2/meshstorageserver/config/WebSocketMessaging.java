@@ -6,6 +6,7 @@ import br.com.devd2.meshstorage.models.FileStorageClientStatus;
 import br.com.devd2.meshstorage.models.messages.FileDeleteMessage;
 import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
+import br.com.devd2.meshstorage.models.messages.PartFileRegisterMessage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperSessionClients;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,7 +22,7 @@ public class WebSocketMessaging {
     private final Map<String, CompletableFuture<FileStorageClientStatus>> pendingsFileStatus = new ConcurrentHashMap<>();
 
     private final Duration timeout_status = Duration.ofSeconds(5); //segundos...
-    private final Duration timeout_download = Duration.ofSeconds(5); //segundos...
+    private final Duration timeout_download = Duration.ofSeconds(10); //segundos...
     private final SimpMessagingTemplate messagingTemplate;
 
     public WebSocketMessaging(SimpMessagingTemplate messagingTemplate) {
@@ -71,8 +72,29 @@ public class WebSocketMessaging {
 
         CompletableFuture<FileStorageClientStatus> future = new CompletableFuture<>();
         pendingsFileStatus.put(fileRegisterMessage.getIdFile(), future);
-        String jsonRequest = JsonUtil.toJson(fileRegisterMessage);
-        messagingTemplate.convertAndSend("/client/"+idClientStorage, jsonRequest);
+
+        //Enviar a mensagem de forma fragmentada...
+        int CHUNK = 30 * 1024;
+        int part = 0;
+        String dataBase64 = fileRegisterMessage.getDataBase64();
+        for (int off = 0; off < dataBase64.length(); off += CHUNK) {
+
+            boolean last = off + CHUNK >= dataBase64.length();
+            PartFileRegisterMessage cloneFileRegisterMessage = new PartFileRegisterMessage();
+            cloneFileRegisterMessage.setIdFile(fileRegisterMessage.getIdFile());
+            cloneFileRegisterMessage.setFileName(fileRegisterMessage.getFileName());
+            cloneFileRegisterMessage.setApplicationStorageFolder(fileRegisterMessage.getApplicationStorageFolder());
+
+            String part_dataBase64 = dataBase64.substring(off, Math.min(dataBase64.length(), off + CHUNK));
+            cloneFileRegisterMessage.setDataBase64(part_dataBase64);
+            cloneFileRegisterMessage.setPartFile(part+=1);
+            cloneFileRegisterMessage.setLastPartFile(last);
+
+            String jsonRequest = JsonUtil.toJson(cloneFileRegisterMessage);
+            messagingTemplate.convertAndSend("/client/"+idClientStorage, jsonRequest);
+
+        }
+
         try {
             return future.get(timeout_status.toMillis(), TimeUnit.MILLISECONDS);
         } finally {

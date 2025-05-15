@@ -40,8 +40,8 @@ public class FileStoragePartClientDownload {
     @JsonProperty("partFile")
     private int partFile; // 1/200
 
-    @JsonProperty("lastFile")
-    private boolean lastFile; //se true... enviou tudo.
+    @JsonProperty("lastPartFile")
+    private boolean lastPartFile; //se true... enviou tudo.
 
     /**
      * Indicador de erro no download.

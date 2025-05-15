@@ -1,13 +1,12 @@
 package br.com.devd2.meshstorageclient.components;
 
 import br.com.devd2.meshstorage.enums.FileStorageStatusEnum;
-import br.com.devd2.meshstorage.models.FileStorageClient;
-import br.com.devd2.meshstorage.models.FileStorageClientDownload;
-import br.com.devd2.meshstorage.models.FileStorageClientStatus;
-import br.com.devd2.meshstorage.models.StorageClient;
+import br.com.devd2.meshstorage.helper.FileBase64Util;
+import br.com.devd2.meshstorage.models.*;
 import br.com.devd2.meshstorage.models.messages.FileDeleteMessage;
 import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
+import br.com.devd2.meshstorage.models.messages.PartFileRegisterMessage;
 import br.com.devd2.meshstorageclient.config.StorageConfig;
 import br.com.devd2.meshstorageclient.helper.UtilClient;
 import br.com.devd2.meshstorageclient.services.StorageService;
@@ -16,8 +15,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.websocket.*;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @ClientEndpoint
 public class StorageClientEndpoint {
+
+    private final Map<String, List<PartFileStorageModel>> partFileStorage = new HashMap<>();
 
     @Getter
     private Session session;
@@ -59,6 +65,9 @@ public class StorageClientEndpoint {
             String type = node.get("type").asText();
 
             switch (type) {
+                case "PART_FILE_REGISTER":
+                    registrePartFileStorage(mapper, message);
+                    break;
                 case "FILE_REGISTER":
                     registreFileStorage(mapper, message);
                     break;
@@ -161,6 +170,36 @@ public class StorageClientEndpoint {
 
     }
 
+    private void registrePartFileStorage(ObjectMapper mapper, String message) throws Exception {
+
+        PartFileRegisterMessage partFileRegisterMessage = mapper.readValue(message, PartFileRegisterMessage.class);
+
+        System.out.println("Part file: " + partFileRegisterMessage.getPartFile() + " -> " + partFileRegisterMessage.isLastPartFile());
+
+        List<PartFileStorageModel> listPartFile;
+        if (partFileStorage.containsKey(partFileRegisterMessage.getIdFile()))
+            listPartFile = partFileStorage.get(partFileRegisterMessage.getIdFile());
+        else {
+            listPartFile = new ArrayList<>();
+            partFileStorage.put(partFileRegisterMessage.getIdFile(), listPartFile);
+        }
+
+        listPartFile.add(new PartFileStorageModel(partFileRegisterMessage.getPartFile(), partFileRegisterMessage.getDataBase64()));
+        if (!partFileRegisterMessage.isLastPartFile())
+            return;
+
+        FileStorageClient fileStorageClient = new FileStorageClient();
+        fileStorageClient.setIdFile(partFileRegisterMessage.getIdFile());
+        fileStorageClient.setApplicationName(partFileRegisterMessage.getApplicationStorageFolder());
+        fileStorageClient.setFileName(partFileRegisterMessage.getFileName());
+        fileStorageClient.setDataBase64(FileBase64Util.unionDataBase64FileStorage(listPartFile));
+        partFileStorage.remove(partFileRegisterMessage.getIdFile());
+
+        //Informar o status para o Server.
+        notifyServerStatusFileStorage(fileStorageClient, partFileRegisterMessage.getIdFile());
+
+    }
+
     private void registreFileStorage(ObjectMapper mapper, String message) throws Exception {
 
         FileRegisterMessage fileRegisterMessage = mapper.readValue(message, FileRegisterMessage.class);
@@ -171,8 +210,19 @@ public class StorageClientEndpoint {
         fileStorageClient.setDataBase64(fileRegisterMessage.getDataBase64());
 
         //Informar o status para o Server.
+        notifyServerStatusFileStorage(fileStorageClient, fileRegisterMessage.getIdFile());
+
+    }
+
+    /**
+     * Enviar notificação para o servidor
+     * @param fileStorageClient - Informações do arquivo armazenado.
+     * @param idFile - Identificador do Arquivo.
+     */
+    private void notifyServerStatusFileStorage(FileStorageClient fileStorageClient, String idFile) {
+
         FileStorageClientStatus fileStorageClientStatus = new FileStorageClientStatus();
-        fileStorageClientStatus.setIdFile(fileRegisterMessage.getIdFile());
+        fileStorageClientStatus.setIdFile(idFile);
 
         boolean isError = false;
         String messageError = null;
@@ -189,7 +239,6 @@ public class StorageClientEndpoint {
         fileStorageClientStatus.setMessageError(messageError);
 
         StorageService.get().notifyServerStatusFileStorage(fileStorageClientStatus);
-
     }
 
     private void downloadFileStorage(ObjectMapper mapper, String message) throws Exception {

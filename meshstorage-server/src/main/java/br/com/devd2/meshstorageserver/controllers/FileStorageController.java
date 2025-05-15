@@ -151,4 +151,21 @@ public class FileStorageController {
         }
     }
 
+    @Operation(summary = "Lista de content types dos arquivos", description = "Lista os codigos/extensão/descrições/content_types dos arquivos do ServerSorage.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de content types dos arquivos", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/listContentTypes")
+    public ResponseEntity<?> list_contentTypes () {
+        try {
+            var list = fileStorageService.listContentTypesFiles();
+            return ResponseEntity.ok(list);
+        } catch (Exception error) {
+            var message = "Erro ao listar os content types dos arquivos no Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+    }
+
 }

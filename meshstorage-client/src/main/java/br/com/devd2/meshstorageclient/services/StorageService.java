@@ -6,7 +6,6 @@ import br.com.devd2.meshstorage.models.*;
 import br.com.devd2.meshstorageclient.components.StorageClientEndpoint;
 import br.com.devd2.meshstorageclient.config.StorageConfig;
 import br.com.devd2.meshstorageclient.helper.UtilClient;
-import jakarta.websocket.RemoteEndpoint;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -157,7 +156,7 @@ public class StorageService {
                 String part_dataBase64 = dataBase64.substring(off, Math.min(dataBase64.length(), off + CHUNK));
                 cloneFileStorageClientDownload.setDataBase64(part_dataBase64);
                 cloneFileStorageClientDownload.setPartFile(part+=1);
-                cloneFileStorageClientDownload.setLastFile(last);
+                cloneFileStorageClientDownload.setLastPartFile(last);
 
                 String jsonClientDownload = JsonUtil.toJson(cloneFileStorageClientDownload);
                 session.sendMessage("/server/download-part-file-storage", jsonClientDownload);

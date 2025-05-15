@@ -1,10 +1,14 @@
 package br.com.devd2.meshstorage.helper;
 
+import br.com.devd2.meshstorage.models.PartFileStorageModel;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.Comparator;
+import java.util.List;
 
 public class FileBase64Util {
 
@@ -37,6 +41,18 @@ public class FileBase64Util {
      */
     public static byte[] base64ToBytes(String base64) {
         return Base64.getDecoder().decode(base64);
+    }
+
+    /**
+     * Responsável por ordenar e unificar as informações do arquivo em Base64.
+     * @param listPartFile - Lista de parts do arquivo recuperado do Server de forma fragmentada.
+     * @return String com as informações do arquivo em Base64.
+     */
+    public static String unionDataBase64FileStorage(List<PartFileStorageModel> listPartFile) {
+        var listOrder = listPartFile.stream().sorted(Comparator.comparingInt(PartFileStorageModel::getNumberPart)).toList();
+        StringBuilder stringBuilder = new StringBuilder();
+        listOrder.stream().map(PartFileStorageModel::getDataBase64).forEach(stringBuilder::append);
+        return stringBuilder.toString();
     }
 
 }

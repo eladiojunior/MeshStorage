@@ -1,5 +1,6 @@
 package br.com.devd2.meshstorageserver.services;
 
+import br.com.devd2.meshstorage.enums.FileContentTypesEnum;
 import br.com.devd2.meshstorage.enums.FileStorageStatusEnum;
 import br.com.devd2.meshstorage.helper.FileBase64Util;
 import br.com.devd2.meshstorage.helper.FileUtil;
@@ -14,6 +15,7 @@ import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.entites.FileStorageAccessLog;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
+import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
@@ -373,6 +375,24 @@ public class FileStorageService {
             item.setCode(item_enum.getCode());
             item.setNameEnum(item_enum.name());
             item.setDescription(item_enum.getDescription());
+            result.add(item);
+        }
+        return result;
+    }
+
+    /**
+     * Lista a tabela de domínio dos ContentType dos arquivos no Server Storage.
+     * @return Lista de ContentTypes dos arquivos.
+     */
+    public List<FileContentTypesResponse> listContentTypesFiles() {
+        List<FileContentTypesResponse> result = new ArrayList<>();
+        for (var item_enum : FileContentTypesEnum.values()) {
+            FileContentTypesResponse item = new FileContentTypesResponse();
+            item.setCode(item_enum.getCode());
+            item.setNameEnum(item_enum.name());
+            item.setExtension(item_enum.getExtension());
+            item.setDescription(item_enum.getDescription());
+            item.setContentType(item_enum.getContentType());
             result.add(item);
         }
         return result;
