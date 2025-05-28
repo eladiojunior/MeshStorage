@@ -35,7 +35,7 @@ public class ApplicationController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @PostMapping("/register")
-    public ResponseEntity registerApplication(@Valid @RequestBody ApplicationRequest request) {
+    public ResponseEntity<?> registerApplication(@Valid @RequestBody ApplicationRequest request) {
         try {
 
             var application = applicationService.registerApplication(request);
@@ -58,7 +58,7 @@ public class ApplicationController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @PostMapping("/update/{id}")
-    public ResponseEntity updateApplication(@PathVariable Long id, @Valid @RequestBody ApplicationRequest request) {
+    public ResponseEntity<?> updateApplication(@PathVariable Long id, @Valid @RequestBody ApplicationRequest request) {
 
         try {
 
@@ -82,7 +82,7 @@ public class ApplicationController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/list")
-    public ResponseEntity getListApplication() {
+    public ResponseEntity<?> getListApplication() {
         try {
             var listApplication = applicationService.getListApplication();
             var response = HelperMapper.ConvertToResponseListApplication(listApplication);
