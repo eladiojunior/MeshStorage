@@ -10,6 +10,7 @@ O MeshStorage consiste em:
 - **MeshStorage Server**: O servidor central que gerencia os file servers, monitora disponibilidade e decide onde armazenar arquivos.
 - **MeshStorage Clinet**: Um cliente (agente) instalado em cada file server, que reporta status ao servidor e recebe comandos de armazenamento.
 - **Comunicação em Tempo Real**: Utiliza WebSockets para interação de baixa latência e REST API para operações administrativas.
+- **MeshStorage Interface**: Apresentação de um dashboard com informações de storages (armazenamento, clients) total de armazenamento disponível e utilizado, aplicações registradas e quantidade de arquivos registrados. 
 
 ## 🎯 Recursos Principais
 
@@ -57,7 +58,7 @@ O servidor inicia na porta `8080`.
 ### 🔹 **Passo 3: Iniciar os Clientes (Agents)**
 Nos file servers, execute:
 ```sh
-$ java -jar meshstorage-client.jar --server.url=http://server-ip:8080
+$ java -jar meshstorage-client.jar -url-websocket-server=ws://localhost:8181/server-storage-websocket -server-name=HOSTNAME -storage-name=STORAGE_X -storage-path=\storage\xpto
 ```
 
 ## 🌐 Endpoints Principais
@@ -69,10 +70,16 @@ $ java -jar meshstorage-client.jar --server.url=http://server-ip:8080
 | `POST`  | `/fileserver/update`          | Atualiza status de um agent   |
 
 ### 🔹 WebSocket (Comunicação em Tempo Real)
-- **Conectar:** `ws://server-ip:8080/fileserver`
+- **Conectar:** `ws://localhost:8181/server-storage-websocket`
 - **Mensagens suportadas:**
-    - `status-update` → Enviado pelos agentes para reportar espaço livre.
-    - `store-file` → Enviado pelo servidor para designar um file server para armazenamento.
+  - ***Servidor***
+    - `FILE_REGISTER` → Enviado pelo servidor as informações do arquivo para armazenamento, transmissão fragmentada do conteúdo do arquivo.
+    - `FILE_DELETE` → Enviado pelo servidor um identificador de arquivo para remoção.
+    - `FILE_DOWNLOAD` → Enviado pelo servidor um identificador de arquivo para download.
+  - ***Cliente (Agente)***
+    - `status-file-storage` → Enviado pelo agente o resultado do envio do arquivo pelo servidor.
+    - `download-file-storage` → Enviado pelo agente as informações do arquivo solicitado, transmissão fragmentada do conteúdo do arquivo.
+    - `status-update-client` → Enviado pelo agente a situação do cliente de armazenamento, além de informações como espaço total e disponível em disco.
 
 ## 📜 Licença
 Este projeto é licenciado sob a **MIT License**.
