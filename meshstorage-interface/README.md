@@ -1,6 +1,6 @@
 ## Projeto de interface
 
-Projeto tem a finalidade de ser a interface da solução de MeshStorage apresentando um Dashboard e funcionalidades de manutenção de aplicações que utilizam os locais de armazenamentos e quais os clientes conectados ao servidor.
+Projeto tem a finalidade de ser a interface da solução de MeshStorage apresentando um Page e funcionalidades de manutenção de aplicações que utilizam os locais de armazenamentos e quais os clientes conectados ao servidor.
 
 ## Em desenvolvimento
 

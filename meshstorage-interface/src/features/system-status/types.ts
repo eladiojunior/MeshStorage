@@ -1,0 +1,1 @@
+// types.ts - conteúdo exemplo

@@ -1,0 +1,1 @@
+// api.ts - conteúdo exemplo
