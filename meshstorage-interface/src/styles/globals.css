@@ -29,7 +29,7 @@ body {
 }
 
 .storage-progress {
-    height: 8px;
+    height: 15px;
     border-radius: 4px;
 }
 
@@ -63,4 +63,7 @@ body {
 .btn-with-icon-and-text span.material-icons {
     vertical-align: middle; /* Alinha verticalmente com o texto */
     margin-right: 5px; /* Espaço entre o ícone e o texto */
+}
+.bg-offline {
+    background-color: #dddbdb !important;
 }

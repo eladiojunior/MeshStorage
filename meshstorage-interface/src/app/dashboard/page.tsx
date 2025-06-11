@@ -12,8 +12,9 @@ export default function DashboardPage() {
 
     //Lista de Storages...
     const clients: StorageClient[] = [
-        {id:1, name: 'Storage_01', ipAddress: '192.167.21.1', storageCapacity: 500, storageUsed: 480, fileCount: 10, status: 'warning', lastConnected: new Date()},
-        {id:2, name: 'Storage_02', ipAddress: '192.167.21.2', storageCapacity: 100, storageUsed: 2, fileCount: 55, status: 'active', lastConnected: new Date()}
+        {id:1, name: 'Storage_01', ipAddress: '192.167.21.1', so: 'Windows Server', storageCapacity: 500, storageUsed: 480, fileCount: 10, status: 'warning', lastConnected: new Date()},
+        {id:2, name: 'Storage_02', ipAddress: '192.167.21.2', so: 'Linux', storageCapacity: 100, storageUsed: 2, fileCount: 55, status: 'active', lastConnected: new Date()},
+        {id:3, name: 'Storage_03', ipAddress: '192.167.21.3', so: 'Linux', storageCapacity: 150, storageUsed: 50, fileCount: 800, status: 'offline', lastConnected: new Date()}
     ];
     const applications: ApplicationStorage[] = [
         {id:1, name: 'APP_01', icon: 'apps', storageUsed: 1, description: 'Aplicação de Teste 01', fileCount: 101, iconColor: '', percentage: 0},
@@ -81,26 +82,29 @@ function StoragesList({clients}: { clients: StorageClient[] }) {
                     {clients.map((client) => {
                         const percentage = Math.round((client.storageUsed / client.storageCapacity) * 100);
                         const isWarning = percentage >= 80;
+                        const isOffline = (client.status === 'offline');
+                        const bgStatus =
+                            (client.status === 'active' ? 'bg-success' : client.status === 'warning' ? 'bg-warning' : client.status === 'offline' ? 'bg-secondary' : 'bg-danger');
+                        const bgProgressBar =
+                            (isOffline ? 'bg-secondary' : isWarning ? 'bg-warning' : 'bg-primary');
                         return (
                             <div key={client.id} className="col-12">
-                                <div className="border rounded p-3">
+                                <div className={`border rounded p-3 ${isOffline ? 'bg-offline' : ''}`}>
                                     <div className="d-flex justify-content-between align-items-center mb-2">
                                         <div>
-                                            <h6 className="mb-1">{client.name}</h6>
-                                            <small className="text-muted">{client.ipAddress}</small>
+                                            <h4 className="mb-1">{client.name}</h4>
+                                            <small className="text-muted">IP: {client.ipAddress} - SO: {client.so}</small>
                                         </div>
-                                        <span className={`badge ${
-                                            client.status === 'active' ? 'bg-success' :
-                                                client.status === 'warning' ? 'bg-warning' : 'bg-danger'}`}>
-                                            {client.status}</span>
+                                        <span className={`badge ${bgStatus}`}>
+                                            {client.status === 'active' ? 'Ativo' : client.status === 'warning' ? 'Atenção' : client.status === 'offline' ? 'Desativado' : 'Erro'}</span>
                                     </div>
                                     <div className="d-flex justify-content-between small text-muted mb-1">
-                                        <span>{client.storageUsed.toFixed(1)} GB usados</span>
+                                        <span>Total {client.storageCapacity.toFixed(1)} GB e {client.storageUsed.toFixed(1)} GB usados</span>
                                         <span>{percentage}%</span>
                                     </div>
                                     <div className="progress storage-progress">
                                         <div
-                                            className={`progress-bar ${isWarning ? 'bg-warning' : 'bg-primary'}`}
+                                            className={`progress-bar ${bgProgressBar}`}
                                             style={{width: `${percentage}%`}}>
                                         </div>
                                     </div>

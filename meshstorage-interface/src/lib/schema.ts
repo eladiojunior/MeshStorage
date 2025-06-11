@@ -31,6 +31,7 @@ export const clients = {
     id: 0,
     name: '',
     ipAddress: '0.0.0.0',
+    so: '',
     status: 'offline', // "active", "warning", "error", "offline"
     storageUsed: 0, // in GB
     storageCapacity: 0, // in GB

@@ -1,1 +1,0 @@
-// useSystemStatus.ts - conteúdo exemplo
