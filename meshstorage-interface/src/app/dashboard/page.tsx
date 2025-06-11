@@ -1,41 +1,164 @@
 'use client'
 import InfoCard from "@/components/InfoCard";
-import StorageCard from "@/components/StorageCard";
-import ApplicationCard from "@/components/ApplicationCard";
-//import { HardDrive, Users, Files, Activity, Plus, Upload, Trash2 } from 'lucide-react';
+import {StorageClient, ApplicationStorage} from "@/lib/schema";
 
 export default function DashboardPage() {
-  return (
-      <div className="flex h-screen overflow-hidden bg-gray-50">
-        <div className="flex-1 overflow-y-auto md:ml-64 ml-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <InfoCard icon="storage" title="Total Storage" value="256.4/500 GB" subtitle="" />
-            <InfoCard icon="group" title="Connected Clients" value="12" subtitle="Storages ativos" />
-            <InfoCard icon="description" title="Total Files" value="24.578" />
-            <InfoCard icon="monitor_heart" title="System Health" value="Saudável" />
-          </div>
-          <div className="row mt-4">
-            <div className="col-lg-6 mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h5 className="mb-0">Storages Conectados</h5>
-                <small className="text-muted">3 total</small>
-              </div>
-              <StorageCard name="Client-A" ip="192.168.1.101" used="45.2 GB" usage={65} status="active" />
-              <StorageCard name="Client-B" ip="192.168.1.102" used="28.7 GB" usage={41} status="active" />
-              <StorageCard name="Client-C" ip="192.168.1.103" used="62.1 GB" usage={89} status="warning" />
+
+    // Calcula métricas
+    const totalStorage = '256/500 GB';
+    const connectedClients = '1';
+    const totalFiles = '1';
+    const systemHealth = 'healthy';
+
+    //Lista de Storages...
+    const clients: StorageClient[] = [
+        {id:1, name: 'Storage_01', ipAddress: '192.167.21.1', storageCapacity: 500, storageUsed: 480, fileCount: 10, status: 'warning', lastConnected: new Date()},
+        {id:2, name: 'Storage_02', ipAddress: '192.167.21.2', storageCapacity: 100, storageUsed: 2, fileCount: 55, status: 'active', lastConnected: new Date()}
+    ];
+    const applications: ApplicationStorage[] = [
+        {id:1, name: 'APP_01', icon: 'apps', storageUsed: 1, description: 'Aplicação de Teste 01', fileCount: 101, iconColor: '', percentage: 0},
+        {id:2, name: 'APP_02', icon: 'apps', storageUsed: 1, description: 'Aplicação de Teste 02', fileCount: 102, iconColor: '', percentage: 0}
+    ];
+
+    return (
+        <div>
+            <div className="row g-4 mb-4">
+                <div className="col-xl-3 col-md-6">
+                    <InfoCard
+                        title="Total Storages"
+                        value={totalStorage}
+                        icon="dashboard"
+                        status="primary"
+                    />
+                </div>
+                <div className="col-xl-3 col-md-6">
+                    <InfoCard
+                        title="Storages Conectados"
+                        value={connectedClients}
+                        icon="storage"
+                        status="success"
+                    />
+                </div>
+                <div className="col-xl-3 col-md-6">
+                    <InfoCard
+                        title="Total Arquivos"
+                        value={totalFiles}
+                        icon="description"
+                        status="primary"
+                    />
+                </div>
+                <div className="col-xl-3 col-md-6">
+                    <InfoCard
+                        title="System Health"
+                        value={systemHealth === 'healthy' ? 'Saudável' : systemHealth === 'warning' ? 'Atenção' : 'Erro'}
+                        icon="monitor_heart"
+                        status={systemHealth === 'healthy' ? 'success' : systemHealth === 'warning' ? 'warning' : 'danger'}
+                    />
+                </div>
             </div>
-            <div className="col-lg-6 mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h5 className="mb-0">Aplicações</h5>
-                <button className="btn btn-primary btn-sm">+ Nova Aplicação</button>
-              </div>
-              <ApplicationCard name="Development IDE" icon="code" files={16520} color="secondary" />
-              <ApplicationCard name="Media Library" icon="image" files={5245} color="primary" />
-              <ApplicationCard name="Document Manager" icon="description" files={2813} color="success" />
-              <ApplicationCard name="Backup System" icon="cloud" files={45} color="danger" />
+            <div className="row g-4">
+                <div className="col-lg-6">
+                    <StoragesList clients={clients}/>
+                </div>
+                <div className="col-lg-6">
+                    <ApplicationManager applications={applications}/>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-  );
+    );
+}
+
+// Lista de Storages
+function StoragesList({clients}: { clients: StorageClient[] }) {
+    return (
+        <div className="card">
+            <div className="card-header d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">Storages Conectados</h5>
+                <span className="badge bg-secondary" style={{fontSize: '1.2em'}}>{clients.length}</span>
+            </div>
+            <div className="card-body">
+                <div className="row g-3">
+                    {clients.map((client) => {
+                        const percentage = Math.round((client.storageUsed / client.storageCapacity) * 100);
+                        const isWarning = percentage >= 80;
+                        return (
+                            <div key={client.id} className="col-12">
+                                <div className="border rounded p-3">
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <h6 className="mb-1">{client.name}</h6>
+                                            <small className="text-muted">{client.ipAddress}</small>
+                                        </div>
+                                        <span className={`badge ${
+                                            client.status === 'active' ? 'bg-success' :
+                                                client.status === 'warning' ? 'bg-warning' : 'bg-danger'}`}>
+                                            {client.status}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between small text-muted mb-1">
+                                        <span>{client.storageUsed.toFixed(1)} GB usados</span>
+                                        <span>{percentage}%</span>
+                                    </div>
+                                    <div className="progress storage-progress">
+                                        <div
+                                            className={`progress-bar ${isWarning ? 'bg-warning' : 'bg-primary'}`}
+                                            style={{width: `${percentage}%`}}>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Lista de Applications
+function ApplicationManager({applications}: { applications: ApplicationStorage[] }) {
+    return (
+        <div className="card">
+            <div className="card-header d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">Aplicações</h5>
+                <button
+                    onClick={() => console.log('Nova aplicação.')}
+                    className="btn btn-primary btn-sm btn-with-icon-and-text">
+                        <span className="material-icons">add</span>
+                        Nova Aplicação
+                </button>
+            </div>
+            <div className="card-body">
+                <div className="row g-3">
+                    {applications.map((app) => (
+                        <div key={app.id} className="col-12">
+                            <div className="app-item border rounded p-3">
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div className="d-flex align-items-center">
+                                        <div className="me-3">
+                                            <div className="rounded p-2 bg-primary bg-opacity-10 text-primary div-with-icon">
+                                                <span className="material-icons">{app.icon}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 className="mb-1">{app.name}</h6>
+                                            <small
+                                                className="text-muted">{app.fileCount.toLocaleString()} arquivos</small>
+                                        </div>
+                                    </div>
+                                    <div className="d-flex">
+                                        <button className="btn btn-sm btn-outline-primary me-2 btn-with-icon" title={'Localizar arquivo da aplicação.'}>
+                                            <span className="material-icons">search</span>
+                                        </button>
+                                        <button className="btn btn-sm btn-outline-danger btn-with-icon" title={'Desativar aplicação.'}>
+                                            <span className="material-icons">delete</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 }

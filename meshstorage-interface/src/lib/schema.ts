@@ -24,7 +24,7 @@ export const applications = {
     percentage: 0, // Percentage of total storage
     fileCount: 0,
 };
-export type Application = typeof applications;
+export type ApplicationStorage = typeof applications;
 
 // Client schema and types
 export const clients = {
@@ -37,32 +37,4 @@ export const clients = {
     fileCount: 0,
     lastConnected: new Date(),
 };
-export type Client = typeof clients;
-
-// System Alert schema and types
-export const systemAlerts = {
-    id: 0,
-    type: 'info', // "warning", "error", "success", "info"
-    title: 'Mensagem',
-    message: '',
-    timestamp: new Date(),
-    read: false,
-};
-export type SystemAlert = typeof systemAlerts;
-
-// Storage History schema and types
-export const storageHistory = {
-    id: 0,
-    timestamp: new Date(),
-    usedStorage: 0, // in GB
-};
-export type StorageHistory = typeof storageHistory;
-
-// File Type Distribution schema and types
-export const fileTypeDistribution = {
-    id: 0,
-    fileType: '',
-    percentage: 0,
-    color: '',
-};
-export type FileTypeDistribution = typeof fileTypeDistribution;
+export type StorageClient = typeof clients;

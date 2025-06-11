@@ -1,7 +1,7 @@
 import type {Metadata} from "next";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/globals.css';
-import {Header} from "@/components/dashboard/Header";
+import {Header} from "@/components/Header";
 
 export const metadata: Metadata = {
     title: "MeshStorage",
@@ -21,7 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </head>
             <body>
                 <Header title={"MeshStorage"}/>
-                <main className="container">{children}</main>
+                <main className="container mt-3">{children}</main>
             </body>
         </html>
     );
