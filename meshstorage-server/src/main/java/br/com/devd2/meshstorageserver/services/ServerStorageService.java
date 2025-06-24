@@ -4,6 +4,7 @@ import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperServer;
 import br.com.devd2.meshstorageserver.models.ServerStorageModel;
+import br.com.devd2.meshstorageserver.models.response.StatusMeshStorageModel;
 import br.com.devd2.meshstorageserver.repositories.ServerStorageRepository;
 import org.springframework.stereotype.Service;
 
@@ -164,7 +165,7 @@ public class ServerStorageService {
     }
 
     /**
-     * LIsta de Server Storages registrados para utilização, seja os disponíveis ou não.
+     * Lista de Server Storages registrados para utilização, seja os disponíveis ou não.
      * @return Lista de Server Storages encontrados.
      */
     public List<ServerStorage> getListServerStorage(boolean hasAvailable) throws ApiBusinessException {

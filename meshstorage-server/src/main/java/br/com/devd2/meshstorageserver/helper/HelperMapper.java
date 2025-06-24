@@ -3,9 +3,7 @@ package br.com.devd2.meshstorageserver.helper;
 import br.com.devd2.meshstorageserver.entites.Application;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
-import br.com.devd2.meshstorageserver.models.response.ApplicationResponse;
-import br.com.devd2.meshstorageserver.models.response.FileStorageResponse;
-import br.com.devd2.meshstorageserver.models.response.ServerStorageResponse;
+import br.com.devd2.meshstorageserver.models.response.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -104,5 +102,20 @@ public class HelperMapper {
      */
     public static List<FileStorageResponse> ConvertToResponseListFileStorage(List<FileStorage> list) {
         return list.stream().map(HelperMapper::ConvertToResponse).collect(Collectors.toList());
+    }
+
+    /**
+     * Converte uma Model em Response (StatusMeshStorageResponse) para retornar na API;
+     * @param model - Informações do status.
+     * @return Objeto de Response carregad.
+     */
+    public static StatusMeshStorageResponse ConvertToResponseStatusMeshStorage(StatusMeshStorageModel model) {
+        if (model == null)
+            return null;
+        StatusMeshStorageResponse response = new StatusMeshStorageResponse();
+        response.setSystemHealth(model.getSystemHealth());
+        response.setMessageStatus(model.getMessageStatus());
+        response.setDateTimeAvailable(model.getDateTimeAvailable());
+        return response;
     }
 }

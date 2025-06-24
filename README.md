@@ -53,12 +53,12 @@ $ cd MeshStorage
 ```sh
 $ mvn spring-boot:run
 ```
-O servidor inicia na porta `8080`.
+O servidor inicia na porta `3001`.
 
 ### 🔹 **Passo 3: Iniciar os Clientes (Agents)**
 Nos file servers, execute:
 ```sh
-$ java -jar meshstorage-client.jar -url-websocket-server=ws://localhost:8181/server-storage-websocket -server-name=HOSTNAME -storage-name=STORAGE_X -storage-path=\storage\xpto
+$ java -jar meshstorage-client.jar -url-websocket-server=ws://localhost:3001/server-storage-websocket -server-name=HOSTNAME -storage-name=STORAGE_X -storage-path=\storage\xpto
 ```
 
 ## 🌐 Endpoints Principais
@@ -70,7 +70,7 @@ $ java -jar meshstorage-client.jar -url-websocket-server=ws://localhost:8181/ser
 | `POST`  | `/fileserver/update`          | Atualiza status de um agent   |
 
 ### 🔹 WebSocket (Comunicação em Tempo Real)
-- **Conectar:** `ws://localhost:8181/server-storage-websocket`
+- **Conectar:** `ws://localhost:3001/server-storage-websocket`
 - **Mensagens suportadas:**
   - ***Servidor***
     - `FILE_REGISTER` → Enviado pelo servidor as informações do arquivo para armazenamento, transmissão fragmentada do conteúdo do arquivo.

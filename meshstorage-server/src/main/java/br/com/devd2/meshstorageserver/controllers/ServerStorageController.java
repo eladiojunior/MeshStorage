@@ -4,6 +4,7 @@ import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.response.ErrorResponse;
 import br.com.devd2.meshstorageserver.models.response.ServerStorageResponse;
+import br.com.devd2.meshstorageserver.models.response.StatusMeshStorageResponse;
 import br.com.devd2.meshstorageserver.services.ServerStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
