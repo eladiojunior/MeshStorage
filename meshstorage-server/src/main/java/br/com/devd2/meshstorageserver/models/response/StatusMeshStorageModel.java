@@ -8,5 +8,9 @@ import java.time.LocalDateTime;
 public class StatusMeshStorageModel {
     private String systemHealth;
     private String messageStatus;
+    private long totalSpaceStorages; //MB
+    private long totalFreeStorages;  //MB
+    private long totalClientsConnected;
+    private long totalFilesStorages;
     private LocalDateTime dateTimeAvailable;
 }

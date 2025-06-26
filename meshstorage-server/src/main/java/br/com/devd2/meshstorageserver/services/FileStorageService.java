@@ -43,16 +43,16 @@ import jakarta.persistence.criteria.Predicate;
 @Slf4j
 @Service
 public class FileStorageService {
-    private final ApplicationRepository applicationRepository;
     private final FileStorageRepository fileStorageRepository;
     private final FileStorageAccessLogRepository fileStorageAccessLogRepository;
     private final ServerStorageService serverStorageService;
+    private final ApplicationService applicationService;
     private final WebSocketMessaging webSocketMessaging;
 
-    public FileStorageService(ApplicationRepository applicationRepository, FileStorageRepository fileStorageRepository,
+    public FileStorageService(ApplicationService applicationService, FileStorageRepository fileStorageRepository,
                               ServerStorageService serverStorageService, WebSocketMessaging webSocketMessaging,
                               FileStorageAccessLogRepository fileStorageAccessLogRepository) {
-        this.applicationRepository = applicationRepository;
+        this.applicationService = applicationService;
         this.fileStorageRepository = fileStorageRepository;
         this.fileStorageAccessLogRepository = fileStorageAccessLogRepository;
         this.serverStorageService = serverStorageService;
@@ -169,7 +169,7 @@ public class FileStorageService {
         if (applicationName == null || applicationName.isEmpty())
             throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
 
-        var application = applicationRepository.findByApplicationName(applicationName).orElse(null);
+        var application = applicationService.getApplicationByName(applicationName);
         if (application == null)
             throw new ApiBusinessException("Aplicação não identificada pelo seu nome ("+applicationName+"), obrigatório.");
 
@@ -252,6 +252,12 @@ public class FileStorageService {
             //Gravar status...
             fileStorageRepository.save(fileStorageEntity);
 
+            //Registrar mais um arquivo requistrado no Server Storage e Aplicação...
+            if (fileStorageClientStatus.getFileStatusCode() == FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode()) {
+                serverStorageService.updateServerStorageTotalFile(bestStorage.getId(), true);
+                applicationService.updateApplicationTotalFile(application.getId(), true);
+            }
+
             return fileStorageEntity;
 
         } catch (ApiBusinessException error) {
@@ -306,6 +312,15 @@ public class FileStorageService {
             //Gravar exclusão logica...
             fileStorageRepository.save(fileStorage);
 
+            //Atualiza a quantidade de arquivo no Server Storage e Aplicação...
+            if (fileStorageClientStatus.getFileStatusCode() == FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode()) {
+                var serverStorage = serverStorageService.findByIdClient(fileStorage.getIdClientStorage());
+                if (serverStorage != null)
+                    serverStorageService.updateServerStorageTotalFile(serverStorage.getId(), false);
+                if (fileStorage.getApplication() != null)
+                    applicationService.updateApplicationTotalFile(fileStorage.getApplication().getId(), false);
+            }
+
             return fileStorage;
 
         } catch (ApiBusinessException error) {
@@ -330,7 +345,7 @@ public class FileStorageService {
         if (applicationName == null || applicationName.isEmpty())
             throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
 
-        var application = applicationRepository.findByApplicationName(applicationName).orElse(null);
+        var application = applicationService.getApplicationByName(applicationName);
         if (application == null)
             throw new ApiBusinessException("Aplicação não identificada pelo seu nome ("+applicationName+"), obrigatório.");
 

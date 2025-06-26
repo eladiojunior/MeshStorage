@@ -29,7 +29,7 @@ public class SystemController {
         this.meshStorageService = meshStorageService;
     }
 
-    @Operation(summary = "Status do MeshStorage", description = "Verifica o status (saúde) do MeshStorage como um todo.")
+    @Operation(summary = "Status do MeshStorage", description = "Verifica o status (saúde) e informações quantitativas do MeshStorage como um todo.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Status do ServerStorage com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = StatusMeshStorageResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),

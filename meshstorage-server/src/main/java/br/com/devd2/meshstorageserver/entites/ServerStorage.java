@@ -20,6 +20,7 @@ public class ServerStorage {
     private String ipServer;
     private Long totalSpace;  // em MB
     private Long freeSpace;   // em MB
+    private Long totalFiles;  // Quantidade
     private boolean available;
     private LocalDateTime dateTimeAvailable;
     private LocalDateTime dateTimeServerStorage;

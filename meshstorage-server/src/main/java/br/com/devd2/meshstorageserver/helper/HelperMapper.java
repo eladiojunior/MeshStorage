@@ -82,6 +82,7 @@ public class HelperMapper {
         response.setAllowDuplicateFile(application.isAllowDuplicateFile());
         response.setCompressFileContent(application.isCompressFileContent());
         response.setApplyOcrFileContent(application.isApplyOcrFileContent());
+        response.setTotalFiles(application.getTotalFiles());
         response.setDateTimeApplication(application.getDateTimeRegisteredApplication());
         return response;
     }
@@ -115,6 +116,10 @@ public class HelperMapper {
         StatusMeshStorageResponse response = new StatusMeshStorageResponse();
         response.setSystemHealth(model.getSystemHealth());
         response.setMessageStatus(model.getMessageStatus());
+        response.setTotalSpaceStorages(model.getTotalSpaceStorages());
+        response.setTotalFreeStorages(model.getTotalFreeStorages());
+        response.setTotalClientsConnected(model.getTotalClientsConnected());
+        response.setTotalFilesStorages(model.getTotalFilesStorages());
         response.setDateTimeAvailable(model.getDateTimeAvailable());
         return response;
     }

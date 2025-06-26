@@ -1,6 +1,7 @@
 package br.com.devd2.meshstorageserver.services;
 
 import br.com.devd2.meshstorageserver.entites.Application;
+import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperFileType;
 import br.com.devd2.meshstorageserver.models.request.ApplicationRequest;
@@ -51,6 +52,7 @@ public class ApplicationService {
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
         application.setCompressFileContent(request.isCompressFileContent());
+        application.setTotalFiles(0L);
         application.setDateTimeRegisteredApplication(LocalDateTime.now());
 
         return applicationRepository.save(application);
@@ -123,4 +125,43 @@ public class ApplicationService {
         return applicationRepository.findAll();
     }
 
+
+    /**
+     * Atualizar a quantidade de arquivo registrado na Aplicação, upload.
+     * @param idAplicacao - Identificador da Aplicação para atualizar a quantidade;
+     * @param hasAdicionar - flag para que indica se será para adicionar (true) ou subtrair (false) da quantidade.
+     * @throws ApiBusinessException - Erro de negócio
+     */
+    public void updateApplicationTotalFile(Long idAplicacao, boolean hasAdicionar) throws ApiBusinessException {
+
+        if (idAplicacao == null || idAplicacao == 0)
+            throw new ApiBusinessException("Identificador da Aplicação não pode ser nulo ou zero.");
+
+        //Verificar Server Storage existente para atualização.
+        Application application = applicationRepository.findById(idAplicacao).orElse(null);
+        if (application == null)
+            throw new ApiBusinessException("Aplicação não identificada para atualização da quantidade de arquivos.");
+
+        long totalFiles = application.getTotalFiles() == null ? 0 : application.getTotalFiles();
+        totalFiles = hasAdicionar ? totalFiles + 1 : totalFiles - 1;
+        if (totalFiles < 0) totalFiles = 0; //Evitar informação negativa;
+        application.setTotalFiles(totalFiles);
+
+        applicationRepository.save(application);
+
+    }
+
+    /**
+     * Recupera uma aplicação pelo seu nome.
+     * @param applicationName - Nome da aplicação a ser recuperada.
+     * @return Objeto Application carregado ou nulo se não encontrar.
+     */
+    public Application getApplicationByName(String applicationName) throws ApiBusinessException {
+
+        if (applicationName == null || applicationName.isEmpty())
+            throw new ApiBusinessException("Nome da Aplicação não pode ser nulo ou vazia.");
+
+        return applicationRepository.findByApplicationName(applicationName).orElse(null);
+
+    }
 }

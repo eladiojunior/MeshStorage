@@ -21,6 +21,7 @@ public class Application {
     private boolean compressFileContent; //Realizar a compressão dos arquivos antes de armazenar;
     private boolean applyOcrFileContent; //Aplicar OCR em arquivos de Imagem/PDF para indexação de conteúdo e HASH;
     private boolean allowDuplicateFile; //Verificar se permite duplicidade de conteúdo ou hash em bytes do arquivo;
+    private Long totalFiles;  // Quantidade total de arquivos armazenados na aplicação.
     private LocalDateTime dateTimeRegisteredApplication; //Data e hora de registro da aplicalção.
     private LocalDateTime dateTimeRemovedApplication; //Data e hora da remoção da aplicação (logicamente).
 }
