@@ -3,7 +3,9 @@ package br.com.devd2.meshstorageserver.services;
 import br.com.devd2.meshstorageserver.entites.Application;
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
+import br.com.devd2.meshstorageserver.helper.HelperDateTime;
 import br.com.devd2.meshstorageserver.helper.HelperFileType;
+import br.com.devd2.meshstorageserver.models.enums.ApplicationStatusEnum;
 import br.com.devd2.meshstorageserver.models.request.ApplicationRequest;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
 import org.springframework.stereotype.Service;
@@ -137,7 +139,7 @@ public class ApplicationService {
         if (idAplicacao == null || idAplicacao == 0)
             throw new ApiBusinessException("Identificador da Aplicação não pode ser nulo ou zero.");
 
-        //Verificar Server Storage existente para atualização.
+        //Verificar Application existente para atualização.
         Application application = applicationRepository.findById(idAplicacao).orElse(null);
         if (application == null)
             throw new ApiBusinessException("Aplicação não identificada para atualização da quantidade de arquivos.");
@@ -164,4 +166,29 @@ public class ApplicationService {
         return applicationRepository.findByApplicationName(applicationName).orElse(null);
 
     }
+
+    /**
+     * Remove uma aplicação da estrutura de armazenamento, uma remoção lógica.
+     * @param idAplicacao - Identificação da aplicação para remoção ou desativação.
+     */
+    public void removeApplication(Long idAplicacao) throws ApiBusinessException {
+
+        if (idAplicacao == null || idAplicacao == 0)
+            throw new ApiBusinessException("Identificador da Aplicação não pode ser nulo ou zero.");
+
+        //Verificar Application existente para remoção.
+        Application application = applicationRepository.findById(idAplicacao).orElse(null);
+        if (application == null)
+            throw new ApiBusinessException("Aplicação não identificada para remoção.");
+        if (application.getApplicationStatusCode() == ApplicationStatusEnum.REMOVED.getCode())
+            throw new ApiBusinessException(String.format("Aplicação já foi removida (logicamente) em [%1s].",
+                    HelperDateTime.format(application.getDateTimeRemovedApplication(), "dd/MM/yyyy HH:mm:ss")));
+
+        application.setApplicationStatusCode(ApplicationStatusEnum.REMOVED.getCode());
+        application.setDateTimeRemovedApplication(LocalDateTime.now());
+
+        applicationRepository.save(application);
+
+    }
+
 }

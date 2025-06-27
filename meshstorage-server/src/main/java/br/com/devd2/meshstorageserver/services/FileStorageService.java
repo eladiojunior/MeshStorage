@@ -14,6 +14,7 @@ import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.entites.FileStorageAccessLog;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
+import br.com.devd2.meshstorageserver.helper.HelperDateTime;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
@@ -284,13 +285,13 @@ public class FileStorageService {
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.ARCHIVED_SUCESSFULLY.getCode() &&
                 fileStorage.getDateTimeBackupFileStorage() != null)
             throw new ApiBusinessException("Arquivo enviado para armazenamento de longo prazo (backup) em [" +
-                    fileStorage.getDateTimeBackupFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
+                    HelperDateTime.format(fileStorage.getDateTimeBackupFileStorage(), "dd/MM/yyyy HH:mm:ss") +
                     "]. Não será possível remove-lo.");
 
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode() &&
                 fileStorage.getDateTimeRemovedFileStorage() != null)
             throw new ApiBusinessException("Arquivo removido do armazenamento em [" +
-                    fileStorage.getDateTimeRemovedFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
+                    HelperDateTime.format(fileStorage.getDateTimeRemovedFileStorage(), "dd/MM/yyyy HH:mm:ss") +
                     "]. Não é possível remove-lo novamente.");
 
         //Enviar comando de DELETE para o Storage...

@@ -8,9 +8,9 @@ uso de espaço e garantir alta disponibilidade.
 
 O MeshStorage consiste em:
 - **MeshStorage Server**: O servidor central que gerencia os file servers, monitora disponibilidade e decide onde armazenar arquivos.
-- **MeshStorage Clinet**: Um cliente (agente) instalado em cada file server, que reporta status ao servidor e recebe comandos de armazenamento.
+- **MeshStorage Client**: Um cliente (agente) instalado em cada file server, que reporta status ao servidor e recebe comandos de armazenamento.
+- **MeshStorage Interface**: Apresentação de um dashboard com informações de storages (armazenamento, clients) total de armazenamento disponível e utilizado, aplicações registradas e quantidade de arquivos registrados.
 - **Comunicação em Tempo Real**: Utiliza WebSockets para interação de baixa latência e REST API para operações administrativas.
-- **MeshStorage Interface**: Apresentação de um dashboard com informações de storages (armazenamento, clients) total de armazenamento disponível e utilizado, aplicações registradas e quantidade de arquivos registrados. 
 
 ## 🎯 Recursos Principais
 
@@ -49,7 +49,7 @@ $ git clone https://github.com/eladiojunior/MeshStorage.git
 $ cd MeshStorage
 ```
 
-### 🔹 **Passo 2: Iniciar o Servidor**
+### 🔹 **Passo 2: Iniciar o Servidor (backend)**
 ```sh
 $ mvn spring-boot:run
 ```
@@ -60,14 +60,29 @@ Nos file servers, execute:
 ```sh
 $ java -jar meshstorage-client.jar -url-websocket-server=ws://localhost:3001/server-storage-websocket -server-name=HOSTNAME -storage-name=STORAGE_X -storage-path=\storage\xpto
 ```
+### 🔹 **Passo 4: Iniciar o Dashboard (frontend)**
+```sh
+$ mvn spring-boot:run
+```
 
 ## 🌐 Endpoints Principais
-### 🔹 REST API (Administração)
-| Método  | Endpoint                      | Descrição                     |
-|---------|--------------------------------|--------------------------------|
-| `POST`  | `/fileserver/register`        | Registra um novo file server  |
-| `GET`   | `/fileserver/status`          | Lista todos os servidores     |
-| `POST`  | `/fileserver/update`          | Atualiza status de um agent   |
+### 🔹 REST API 
+#### Swagger: http://localhost:3001/swagger-ui/index.html
+
+| Método    | Endpoint                     | Descrição                                                                                 |
+|-----------|------------------------------|-------------------------------------------------------------------------------------------|
+| `GET`     | `api/system/status`          | Verifica o status (saúde) e informações quantitativas do MeshStorage como um todo.        |
+| `POST`    | `api/app/register`           | Registrar uma aplicação que irá utilizar o servidor de armazenamento de arquivos físicos. |
+| `PUT`     | `api/app/update/{id}`        | Atualizar uma aplicação, pelo ID, para armazenamento de arquivos físicos.                 |
+| `GET`     | `api/app/list`               | Lista todas as aplicações para armazenamento de arquivos físicos.                         |
+| `DELETE`  | `api/app/remove/{id}`        | Remover (logicamente) uma aplicação do processo de armazemanto de arquivos físicos.       |
+| `POST`    | `api/file/upload`            | Registrar um arquivo no ServerStorage.                                                    |
+| `GET`     | `api/file/list`              | Lista os arquivos de uma aplicação (nome) de forma paginada.                              |
+| `GET`     | `api/file/listStatusCode`    | Lista os codigos/descrições dos status arquivos do ServerSorage.                          |
+| `GET`     | `api/file/download/{idFile}` | Baixa um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).        |
+| `DELETE`  | `api/file/delete/{idFile}`   | Remover um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).      |
+| `GET`     | `api/server/list`            | Lista todos os Server Storages para armazenamento de arquivos físicos.                    |
+| `GET`     | `api/server/best`            | Obter o melhor Server Storage para armazenamento de arquivos físicos.                     |
 
 ### 🔹 WebSocket (Comunicação em Tempo Real)
 - **Conectar:** `ws://localhost:3001/server-storage-websocket`

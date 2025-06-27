@@ -89,7 +89,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "200", description = "Arquivo removido com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseEntity.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @GetMapping("/delete/{idFile}")
+    @DeleteMapping("/delete/{idFile}")
     public ResponseEntity<?> delete (@PathVariable String idFile) {
         try {
             var fileStorage = fileStorageService.deleteFile(idFile);

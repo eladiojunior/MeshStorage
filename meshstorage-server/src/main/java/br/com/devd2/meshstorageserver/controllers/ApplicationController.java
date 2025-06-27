@@ -5,6 +5,7 @@ import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.request.ApplicationRequest;
 import br.com.devd2.meshstorageserver.models.response.ApplicationResponse;
 import br.com.devd2.meshstorageserver.models.response.ErrorResponse;
+import br.com.devd2.meshstorageserver.models.response.SuccessResponse;
 import br.com.devd2.meshstorageserver.services.ApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -57,7 +58,7 @@ public class ApplicationController {
             @ApiResponse(responseCode = "200", description = "Atualizada aplicação com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApplicationResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @PostMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<?> updateApplication(@PathVariable Long id, @Valid @RequestBody ApplicationRequest request) {
 
         try {
@@ -89,6 +90,29 @@ public class ApplicationController {
             return ResponseEntity.ok(response);
         } catch (Exception error) {
             var message = "Erro ao listar as aplicações para armazenamento de arquivos físicos.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+
+    }
+
+    @Operation(summary = "Remover Aplicação", description = "Remover (logicamente) uma aplicação do processo de armazemanto de arquivos físicos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Removida/desativada de aplicação com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SuccessResponse.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @DeleteMapping("/remove/{id}")
+    public ResponseEntity<?> removeApplication(@PathVariable Long id) {
+
+        try {
+
+            applicationService.removeApplication(id);
+            return ResponseEntity.ok(new SuccessResponse("Aplicação removida com sucesso."));
+
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao atualizar aplicação para armazenamento de arquivos físicos.";
             log.error(message, error);
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }

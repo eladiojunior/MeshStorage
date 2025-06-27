@@ -3,6 +3,7 @@ package br.com.devd2.meshstorageserver.helper;
 import br.com.devd2.meshstorageserver.entites.Application;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
+import br.com.devd2.meshstorageserver.models.StatusMeshStorageModel;
 import br.com.devd2.meshstorageserver.models.response.*;
 
 import java.util.List;

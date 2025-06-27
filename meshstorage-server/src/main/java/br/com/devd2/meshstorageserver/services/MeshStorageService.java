@@ -3,7 +3,7 @@ package br.com.devd2.meshstorageserver.services;
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.models.enums.SystemStatusEnum;
-import br.com.devd2.meshstorageserver.models.response.StatusMeshStorageModel;
+import br.com.devd2.meshstorageserver.models.StatusMeshStorageModel;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
