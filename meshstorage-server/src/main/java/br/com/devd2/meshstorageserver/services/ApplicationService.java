@@ -56,6 +56,7 @@ public class ApplicationService {
         application.setCompressFileContent(request.isCompressFileContent());
         application.setTotalFiles(0L);
         application.setDateTimeRegisteredApplication(LocalDateTime.now());
+        application.setApplicationStatusCode(ApplicationStatusEnum.ACTIVE.getCode());
 
         return applicationRepository.save(application);
 
