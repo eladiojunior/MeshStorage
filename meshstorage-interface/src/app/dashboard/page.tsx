@@ -1,65 +1,20 @@
-'use client'
 import InfoCard from "@/components/InfoCard";
-import {StorageClient, ApplicationStorage} from "@/lib/schema";
+import { meshStorageAPI } from '@/server/api/api-client';
+import {SystemStatus, Storage, Application} from "@/server/api/api-types";
 
-export default function DashboardPage() {
-
-    // Calcula métricas
-    const totalStorage = '256/500 GB';
-    const connectedClients = '1';
-    const totalFiles = '1';
-    const systemHealth = 'healthy';
-
-    //Lista de Storages...
-    const clients: StorageClient[] = [
-        {id:1, name: 'Storage_01', ipAddress: '192.167.21.1', so: 'Windows Server', storageCapacity: 500, storageUsed: 480, fileCount: 10, status: 'warning', lastConnected: new Date()},
-        {id:2, name: 'Storage_02', ipAddress: '192.167.21.2', so: 'Linux', storageCapacity: 100, storageUsed: 2, fileCount: 55, status: 'active', lastConnected: new Date()},
-        {id:3, name: 'Storage_03', ipAddress: '192.167.21.3', so: 'Linux', storageCapacity: 150, storageUsed: 50, fileCount: 800, status: 'offline', lastConnected: new Date()}
-    ];
-    const applications: ApplicationStorage[] = [
-        {id:1, name: 'APP_01', icon: 'apps', storageUsed: 1, description: 'Aplicação de Teste 01', fileCount: 101, iconColor: '', percentage: 0},
-        {id:2, name: 'APP_02', icon: 'apps', storageUsed: 1, description: 'Aplicação de Teste 02', fileCount: 102, iconColor: '', percentage: 0}
-    ];
+export default async function DashboardPage() {
+    const systemStatus = await meshStorageAPI.getSystemStatus();
+    const storages = await meshStorageAPI.getStorages();
+    const applications = await meshStorageAPI.getApplications();
 
     return (
         <div>
             <div className="row g-4 mb-4">
-                <div className="col-xl-3 col-md-6">
-                    <InfoCard
-                        title="Total Storages"
-                        value={totalStorage}
-                        icon="dashboard"
-                        status="primary"
-                    />
-                </div>
-                <div className="col-xl-3 col-md-6">
-                    <InfoCard
-                        title="Storages Conectados"
-                        value={connectedClients}
-                        icon="storage"
-                        status="success"
-                    />
-                </div>
-                <div className="col-xl-3 col-md-6">
-                    <InfoCard
-                        title="Total Arquivos"
-                        value={totalFiles}
-                        icon="description"
-                        status="primary"
-                    />
-                </div>
-                <div className="col-xl-3 col-md-6">
-                    <InfoCard
-                        title="System Health"
-                        value={systemHealth === 'healthy' ? 'Saudável' : systemHealth === 'warning' ? 'Atenção' : 'Erro'}
-                        icon="monitor_heart"
-                        status={systemHealth === 'healthy' ? 'success' : systemHealth === 'warning' ? 'warning' : 'danger'}
-                    />
-                </div>
+                <SystemStatusList status={systemStatus}/>
             </div>
             <div className="row g-4">
                 <div className="col-lg-6">
-                    <StoragesList clients={clients}/>
+                    <StoragesList clients={storages}/>
                 </div>
                 <div className="col-lg-6">
                     <ApplicationManager applications={applications}/>
@@ -69,8 +24,46 @@ export default function DashboardPage() {
     );
 }
 
-// Lista de Storages
-function StoragesList({clients}: { clients: StorageClient[] }) {
+function SystemStatusList({status}: { status: SystemStatus }) {
+    return (<>
+            <div className="col-xl-3 col-md-6">
+                <InfoCard
+                    title="Total Storages"
+                    value={status.totalStorage}
+                    icon="dashboard"
+                    status="primary"
+                />
+            </div>
+            <div className="col-xl-3 col-md-6">
+                <InfoCard
+                    title="Storages Conectados"
+                    value={status.connectedClients}
+                    icon="storage"
+                    status="success"
+                />
+            </div>
+            <div className="col-xl-3 col-md-6">
+                <InfoCard
+                    title="Total Arquivos"
+                    value={status.totalFiles}
+                    icon="description"
+                    status="primary"
+                />
+            </div>
+            <div className="col-xl-3 col-md-6">
+                <InfoCard
+                    title="System Health"
+                    value={status.health === 'healthy' ? 'Saudável' : status.health === 'warning' ? 'Atenção' : 'Erro'}
+                    icon="monitor_heart"
+                    status={status.health === 'healthy' ? 'success' : status.health === 'warning' ? 'warning' : 'danger'}
+                />
+            </div>
+        </>
+    );
+
+}
+
+function StoragesList({clients}: { clients: Storage[] }) {
     return (
         <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
@@ -93,7 +86,7 @@ function StoragesList({clients}: { clients: StorageClient[] }) {
                                     <div className="d-flex justify-content-between align-items-center mb-2">
                                         <div>
                                             <h4 className="mb-1">{client.name}</h4>
-                                            <small className="text-muted">IP: {client.ipAddress} - SO: {client.so}</small>
+                                            <small className="text-muted">IP: {client.ipAddress} - SO: {client.osName}</small>
                                         </div>
                                         <span className={`badge ${bgStatus}`}>
                                             {client.status === 'active' ? 'Ativo' : client.status === 'warning' ? 'Atenção' : client.status === 'offline' ? 'Desativado' : 'Erro'}</span>
@@ -119,17 +112,12 @@ function StoragesList({clients}: { clients: StorageClient[] }) {
 }
 
 // Lista de Applications
-function ApplicationManager({applications}: { applications: ApplicationStorage[] }) {
+function ApplicationManager({applications}: { applications: Application[] }) {
     return (
         <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
                 <h5 className="card-title mb-0">Aplicações</h5>
-                <button
-                    onClick={() => console.log('Nova aplicação.')}
-                    className="btn btn-primary btn-sm btn-with-icon-and-text">
-                        <span className="material-icons">add</span>
-                        Nova Aplicação
-                </button>
+                <span className="badge bg-secondary" style={{fontSize: '1.2em'}}>{applications.length}</span>
             </div>
             <div className="card-body">
                 <div className="row g-3">
@@ -139,7 +127,8 @@ function ApplicationManager({applications}: { applications: ApplicationStorage[]
                                 <div className="d-flex align-items-center justify-content-between">
                                     <div className="d-flex align-items-center">
                                         <div className="me-3">
-                                            <div className="rounded p-2 bg-primary bg-opacity-10 text-primary div-with-icon">
+                                            <div
+                                                className="rounded p-2 bg-primary bg-opacity-10 text-primary div-with-icon">
                                                 <span className="material-icons">{app.icon}</span>
                                             </div>
                                         </div>
@@ -150,10 +139,12 @@ function ApplicationManager({applications}: { applications: ApplicationStorage[]
                                         </div>
                                     </div>
                                     <div className="d-flex">
-                                        <button className="btn btn-sm btn-outline-primary me-2 btn-with-icon" title={'Localizar arquivo da aplicação.'}>
+                                        <button className="btn btn-sm btn-outline-primary me-2 btn-with-icon"
+                                                title={'Localizar arquivo da aplicação.'}>
                                             <span className="material-icons">search</span>
                                         </button>
-                                        <button className="btn btn-sm btn-outline-danger btn-with-icon" title={'Desativar aplicação.'}>
+                                        <button className="btn btn-sm btn-outline-danger btn-with-icon"
+                                                title={'Desativar aplicação.'}>
                                             <span className="material-icons">delete</span>
                                         </button>
                                     </div>

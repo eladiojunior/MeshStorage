@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/system")
+@RequestMapping("/api/v1/system")
 @Tag(name = "MeshStorage", description = "Operações do MeshStorage com um todo.")
 public class SystemController {
     private final MeshStorageService meshStorageService;

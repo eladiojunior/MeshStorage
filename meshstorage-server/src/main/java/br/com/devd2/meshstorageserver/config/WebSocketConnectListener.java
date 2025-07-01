@@ -2,20 +2,16 @@ package br.com.devd2.meshstorageserver.config;
 
 import br.com.devd2.meshstorageserver.helper.HelperSessionClients;
 import br.com.devd2.meshstorageserver.models.ServerStorageModel;
-import br.com.devd2.meshstorageserver.models.request.ServerStorageRequest;
 import br.com.devd2.meshstorageserver.services.ServerStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class WebSocketConnectListener implements
@@ -74,6 +70,7 @@ public class WebSocketConnectListener implements
 
             //Não existe, novo client... registrar!
             String ipServer = connectHeaders.getFirstNativeHeader("ip-server");
+            String osServer = connectHeaders.getFirstNativeHeader("os-server");
             String stringTotalSpace = connectHeaders.getFirstNativeHeader("storage-total-space");
             var totalSpace =  stringTotalSpace == null ? 0 : Long.parseLong(stringTotalSpace);
             String stringFreeSpace = connectHeaders.getFirstNativeHeader("storage-free-space");
@@ -83,6 +80,7 @@ public class WebSocketConnectListener implements
             model.setIdClient(idClient);
             model.setServeName(serverName);
             model.setIpServer(ipServer);
+            model.setOsServer(osServer);
             model.setStorageName(storageName);
             model.setTotalSpace(totalSpace);
             model.setFreeSpace(freeSpace);

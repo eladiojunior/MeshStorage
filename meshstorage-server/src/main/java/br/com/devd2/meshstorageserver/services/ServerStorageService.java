@@ -95,6 +95,7 @@ public class ServerStorageService {
         server.setIdClient(model.getIdClient());
         server.setServerName(model.getServeName());
         server.setIpServer(model.getIpServer());
+        server.setOsServer(model.getOsServer());
         server.setStorageName(model.getStorageName());
         server.setTotalSpace(model.getTotalSpace());
         server.setFreeSpace(model.getTotalSpace());

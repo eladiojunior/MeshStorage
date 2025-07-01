@@ -25,7 +25,7 @@ import java.util.Arrays;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/file")
+@RequestMapping("/api/v1/file")
 @Tag(name = "FileStorage", description = "Operações de armazenamento de arquivos.")
 public class FileStorageController {
     private final FileStorageService fileStorageService;

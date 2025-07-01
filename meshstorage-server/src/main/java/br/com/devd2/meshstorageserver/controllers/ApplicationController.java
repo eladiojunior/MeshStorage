@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/app")
+@RequestMapping("/api/v1/application")
 @Tag(name = "Application", description = "Operações de gestão das aplicações que utilizam os servidores de armazenamento.")
 public class ApplicationController {
     private final ApplicationService applicationService;

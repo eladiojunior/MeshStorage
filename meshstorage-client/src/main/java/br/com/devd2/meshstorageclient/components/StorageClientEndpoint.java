@@ -128,6 +128,7 @@ public class StorageClientEndpoint {
                 "accept-version:1.2\n" +
                 "server-name:"+client.getServerName()+"\n" +
                 "ip-server:"+client.getIpServer()+"\n" +
+                "os-server:"+client.getOsName()+"\n" +
                 "storage-name:"+client.getStorageName()+"\n" +
                 "storage-total-space:"+client.getTotalSpaceMB()+"\n" +
                 "storage-free-space:"+client.getFreeSpaceMB()+"\n" +

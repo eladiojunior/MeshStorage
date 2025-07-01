@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/server")
+@RequestMapping("/api/v1/storage")
 @Tag(name = "ServerStorage", description = "Operações de gestão dos servidores de armazenamento e configurações.")
 public class ServerStorageController {
     private final ServerStorageService serverStorageService;

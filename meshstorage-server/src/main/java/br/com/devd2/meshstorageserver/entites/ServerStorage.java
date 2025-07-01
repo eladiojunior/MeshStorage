@@ -18,6 +18,7 @@ public class ServerStorage {
     private String serverName;
     private String storageName;
     private String ipServer;
+    private String osServer;
     private Long totalSpace;  // em MB
     private Long freeSpace;   // em MB
     private Long totalFiles;  // Quantidade

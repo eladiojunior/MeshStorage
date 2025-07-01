@@ -22,9 +22,12 @@ public class HelperMapper {
             return null;
         }
         ServerStorageResponse response = new ServerStorageResponse();
+        response.setId(serverStorage.getId());
         response.setIdClient(serverStorage.getIdClient());
         response.setServerName(serverStorage.getServerName());
         response.setStorageName(serverStorage.getStorageName());
+        response.setIpServer(serverStorage.getIpServer());
+        response.setOsServer(serverStorage.getOsServer());
         response.setFreeSpace(serverStorage.getFreeSpace());
         response.setTotalSpace(serverStorage.getTotalSpace());
         response.setAvailable(serverStorage.isAvailable());
