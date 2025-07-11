@@ -21,7 +21,13 @@ public class ApplicationRequest {
     /**
      * Realizar a compressão dos arquivos antes de armazenar;
      */
-    private boolean compressFileContent = false;
+    private boolean compressedFileContentToZip = false;
+
+    /**
+     * Realizar a compressão de arquivos de imagens (PNG, JPGE, GIF ou BMP) para o formato WebP;
+     * Fonte: <a href="https://developers.google.com/speed/webp?hl=pt-br">webp</a>
+     */
+    private boolean convertImageFileToWebp = true;
 
     /**
      * Aplicar OCR em arquivos de Imagem/PDF para indexação de conteúdo e HASH;

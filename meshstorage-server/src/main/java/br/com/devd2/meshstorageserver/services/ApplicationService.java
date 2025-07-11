@@ -1,7 +1,6 @@
 package br.com.devd2.meshstorageserver.services;
 
 import br.com.devd2.meshstorageserver.entites.Application;
-import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperDateTime;
 import br.com.devd2.meshstorageserver.helper.HelperFileType;
@@ -53,7 +52,7 @@ public class ApplicationService {
         application.setMaximumFileSizeMB(request.getMaximumFileSizeMB());
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
-        application.setCompressFileContent(request.isCompressFileContent());
+        application.setCompressedFileContentToZip(request.isCompressedFileContentToZip());
         application.setTotalFiles(0L);
         application.setDateTimeRegisteredApplication(LocalDateTime.now());
         application.setApplicationStatusCode(ApplicationStatusEnum.ACTIVE.getCode());
@@ -92,7 +91,7 @@ public class ApplicationService {
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
         application.setMaximumFileSizeMB(request.getMaximumFileSizeMB());
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
-        application.setCompressFileContent(request.isCompressFileContent());
+        application.setCompressedFileContentToZip(request.isCompressedFileContentToZip());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
 
         return applicationRepository.save(application);

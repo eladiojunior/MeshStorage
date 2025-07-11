@@ -19,7 +19,6 @@ import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
-import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageAccessLogRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -102,7 +101,7 @@ public class FileStorageService {
 
             //Carregar os dados do arquivo.
             byte[] bytesFile = FileBase64Util.base64ToBytes(fileStorageClientDownload.getDataBase64());
-            if (fileStorage.isCompressFileContent()) {
+            if (fileStorage.isCompressedFileContent()) {
                 bytesFile = FileUtil.descompressZipFileContent(bytesFile);
             }
 
@@ -209,13 +208,35 @@ public class FileStorageService {
                     throw new ApiBusinessException("Arquivo já existe na aplicação e armazenado confirmado, duplicidade não é permitido.");
             }
 
-            boolean fileCompressZip = false;
+            boolean fileCompressedContent = false;
+            int lengthBytes = bytesFile.length;
+            int lengthBytesCompressed = 0;
             String nomeFisicoArquivo = FileUtil.generatePisicalName(Objects.requireNonNull(file.getOriginalFilename()));
-            if (application.isCompressFileContent() && !FileUtil.hasFileNameCompress(nomeFisicoArquivo))
+            String fileCompressionInformation = "";
+            if (application.isCompressedFileContentToZip() && FileUtil.hasFileTypeNameCompressedZip(file.getContentType()))
             {
-                bytesFile = FileUtil.compressZipFileContent(nomeFisicoArquivo, bytesFile);
-                nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, ".zip");
-                fileCompressZip = true;
+                try {
+                    bytesFile = FileUtil.compressZipFileContent(nomeFisicoArquivo, bytesFile);
+                    lengthBytesCompressed = bytesFile.length;
+                    nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, ".zip");
+                    fileCompressionInformation = file.getContentType() + " >> " + "application/zip";
+                    fileCompressedContent = true;
+                } catch (Exception error) {
+                    log.error("Erro ao realizar compressão do arquivo.", error);
+                }
+            }
+
+            if (application.isConvertImageFileToWebp() && FileUtil.hasFileTypeCompressedWebP(file.getContentType()))
+            {
+                try {
+                    bytesFile = FileUtil.convertImagemToWebp(bytesFile, 0.85f);
+                    lengthBytesCompressed = bytesFile.length;
+                    nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, ".webp");
+                    fileCompressionInformation = file.getContentType() + " >> " + "image/webp";
+                    fileCompressedContent = true;
+                } catch (Exception error) {
+                    log.error("Erro ao realizar conversão da imagem para WebP.", error);
+                }
             }
 
             var idClientStorage = bestStorage.getIdClient();
@@ -227,9 +248,11 @@ public class FileStorageService {
             fileStorageEntity.setApplicationStorageFolder(application.getApplicationName());
             fileStorageEntity.setFileLogicName(file.getOriginalFilename());
             fileStorageEntity.setFileFisicalName(nomeFisicoArquivo);
-            fileStorageEntity.setFileLength(bytesFile.length);
+            fileStorageEntity.setFileLength(lengthBytes);
             fileStorageEntity.setFileContent(bytesFile);
-            fileStorageEntity.setCompressFileContent(fileCompressZip);
+            fileStorageEntity.setCompressedFileLength(lengthBytesCompressed);
+            fileStorageEntity.setCompressedFileContent(fileCompressedContent);
+            fileStorageEntity.setFileCompressionInformation(fileCompressionInformation);
             fileStorageEntity.setFileContentType(file.getContentType());
             fileStorageEntity.setTextOcrFileContent(textOcrFileContent);
             fileStorageEntity.setHashFileContent(hashFileContent);

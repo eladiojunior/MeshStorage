@@ -48,6 +48,7 @@ public class FileStorage {
      * Tipo do arquivo (content Type), exemplo: application/pdf
      */
     private String fileContentType;
+
     /**
      * Tamnho em bytes do arquivo.
      */
@@ -63,7 +64,17 @@ public class FileStorage {
     /**
      * Indicador que o arquivo passou por uma compressão em ZIP antes do armazenamento;
      */
-    private boolean compressFileContent;
+    private boolean compressedFileContent;
+
+    /**
+     * Tamnho em bytes do arquivo apos a compressão (ZIP ou WEBP).
+     */
+    private int compressedFileLength;
+
+    /**
+     * Resultado da compressão do arquivo Content Type >> (ZIP ou WEBP);
+     */
+    private String fileCompressionInformation;
 
     /**
      * Caso seja aplicado o ORC no arquivo será as informações do resultado do OCR

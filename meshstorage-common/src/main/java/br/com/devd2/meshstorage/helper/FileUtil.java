@@ -1,15 +1,21 @@
 package br.com.devd2.meshstorage.helper;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -128,25 +134,153 @@ public class FileUtil {
         return baseName + ext;
     }
 
-    /** Extensões que indicam arquivo já comprimido ou “não‑compressível”. */
+    /**
+     * Extensões que indicam arquivo já comprimido ou “não‑compressível”.
+     **/
     private static final Set<String> COMPRESSED_EXT = Set.of(
             "zip","gz","bz2","xz","7z","rar","tar",
             "png","jpg","jpeg","gif","webp","avif",
             "mp4","mkv","mov","pdf","ogg","mp3",
             "jpeg2000","woff","woff2"
     );
-
     /**
      * Verifica se o arquivo já está comprimido, simplesmente pelas extensões.
      * @param originalName - Nome do arquivo para verificar se é um ZIP;
      * @return true = se a extensão for COMPRESSED, caso contrário = false
      */
-    public static boolean hasFileNameCompress(String originalName) {
-
+    public static boolean hasFileNameCompressedZip(String originalName) {
         int dot = originalName.lastIndexOf('.');
         String ext = (dot >= 0) ? originalName.substring(dot + 1) : "";
         ext = ext.toLowerCase();
         return COMPRESSED_EXT.contains(ext);
+    }
+
+    /**
+     * Tipos aceitos para conversão. Tudo em minúsculas para comparação \"case-insensitive\".
+     **/
+    private static final Set<String> CONVERTIBLE_IMAGE_TYPES = Set.of(
+            "image/png", "image/jpeg", "image/jpg", "image/pjpeg",
+            "image/gif", "image/bmp", "image/x-windows-bmp", "image/tiff"
+    );
+
+    /**
+     * Verifica se o <i>Content-Type</i> recebido representa
+     * uma imagem que podemos converter para WEBP.
+     *
+     * @param contentType ex.: <code>"image/png"</code>
+     * @return {@code true} se for convertível, {@code false} caso contrário
+     */
+    public static boolean hasFileTypeCompressedWebP(String contentType) {
+        if (contentType == null) return false;
+        String ct = contentType.toLowerCase(Locale.ROOT).trim();
+
+        // Ignora imagens que já estão em WebP ou SVG (vetorial)
+        if (ct.startsWith("image/webp") || ct.startsWith("image/svg"))
+            return false;
+        // Remove charset se vier "image/png; charset=binary"
+        int semi = ct.indexOf(';');
+        if (semi > 0) {
+            ct = ct.substring(0, semi).trim();
+        }
+        return CONVERTIBLE_IMAGE_TYPES.contains(ct);
+    }
+
+    /**
+     * Binários já comprimidos ou que pouco se beneficiam de ZIP.
+     **/
+    private static final Set<String> ALREADY_COMPRESSED = Set.of(
+        // Imagens
+        "image/jpeg", "image/jpg", "image/png", "image/webp",
+        "image/gif",  "image/bmp", "image/heic",
+        // Mídia
+        "audio/", "video/",
+        // Arquivos de compressão/contêiner
+        "application/zip", "application/x-zip-compressed", "application/gzip",
+        "application/x-7z-compressed", "application/x-rar-compressed", "application/x-bzip2",
+        "application/x-xz", "application/x-tar",
+        // Office Open XML já é ZIP internamente
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",      // .docx
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",            // .xlsx
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        // PDF costuma conter compressão interna
+        "application/pdf"
+    );
+
+    /**
+     * Tipos que quase sempre se beneficiam de ZIP mesmo já sendo textuais.
+     **/
+    private static final Set<String> EXPLICIT_COMPRESSIBLE = Set.of(
+        "application/json", "application/xml", "application/x-json",
+        "application/javascript", "application/x-javascript", "application/sql",
+        "application/graphql", "text/csv"
+    );
+
+    /**
+     * Verifica se o <i>Content-Type</i> recebido representa
+     * tipo de arquivo que vale a pena comprimir.
+     *
+     * @param contentType ex.: {@code "image/png"} ou {@code "application/json; charset=utf-8"}
+     * @return {@code true} se vale comprimir em ZIP.
+     */
+    public static boolean hasFileTypeNameCompressedZip(String contentType) {
+        if (contentType == null) return true;               // desconhecido → tenta.
+        String ct = contentType.toLowerCase(Locale.ROOT).trim();
+        // remove charset etc.
+        int semi = ct.indexOf(';');
+        if (semi > 0) ct = ct.substring(0, semi).trim();
+        /* Imagem/áudio/vídeo ou outros já comprimidos: pula */
+        if (isAlreadyCompressed(ct)) return false;
+        /* Qualquer coisa text/* (html, css, csv, svg...) costuma reduzir 60-80 % */
+        if (ct.startsWith("text/")) return true;
+        /* JSON, XML, etc. */
+        if (EXPLICIT_COMPRESSIBLE.contains(ct)) return true;
+        /* Caso não reconheça, ainda vale tentar: pior cenário = ganho nulo */
+        return true;
+    }
+
+    private static boolean isAlreadyCompressed(String ct) {
+        if (ALREADY_COMPRESSED.contains(ct))
+            return true;
+        return ct.startsWith("image/") || ct.startsWith("audio/") || ct.startsWith("video/");
+    }
+
+    /**
+     * Converte uma imagem [PNG/JPG/etc] em formato WebP para compressão e redução de espaço.
+     * @param bytesImage - Bytes da imagem a ser convertida em WebP.
+     * @param quality 0.0 – 1.0 (1 = sem perda, 0.80 +- boa para fotos)
+     * @return Imagem convertida em WebP.
+     */
+    public static byte[] convertImagemToWebp(byte[] bytesImage, float quality) throws IOException {
+
+        BufferedImage img;
+        try (InputStream in = new ByteArrayInputStream(bytesImage)) {
+            img = ImageIO.read(in);
+        }
+        if (img == null) {
+            throw new IOException("Formato de imagem desconhecido ou corrompido.");
+        }
+
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByMIMEType("image/webp");
+        if (!writers.hasNext())
+            throw new IllegalStateException("WEBP ImageIO writer não encontrado — "
+                    + "adicione a dependência webp-imageio ou luciad-webp.");
+        ImageWriter writer = writers.next();
+
+        ImageWriteParam param = writer.getDefaultWriteParam();
+        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        param.setCompressionType(param.getCompressionTypes()[0]); // "Lossy"
+        param.setCompressionQuality(quality);                     // 0 – 1
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
+
+            writer.setOutput(ios);
+            writer.write(null, new IIOImage(img, null, null), param);
+            writer.dispose();
+
+            return baos.toByteArray();
+        }
 
     }
+
 }

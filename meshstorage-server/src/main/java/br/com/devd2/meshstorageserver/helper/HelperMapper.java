@@ -84,7 +84,7 @@ public class HelperMapper {
         response.setMaximumFileSize(application.getMaximumFileSizeMB());
         response.setAllowedFileTypes(application.getAllowedFileTypes().split(";"));
         response.setAllowDuplicateFile(application.isAllowDuplicateFile());
-        response.setCompressFileContent(application.isCompressFileContent());
+        response.setCompressFileContent(application.isCompressedFileContentToZip());
         response.setApplyOcrFileContent(application.isApplyOcrFileContent());
         response.setTotalFiles(application.getTotalFiles());
         response.setDateTimeApplication(application.getDateTimeRegisteredApplication());
