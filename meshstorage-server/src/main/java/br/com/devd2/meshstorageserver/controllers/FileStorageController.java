@@ -168,4 +168,21 @@ public class FileStorageController {
         }
     }
 
+    @Operation(summary = "Lista de arquivos do ServerStorage", description = "Lista os arquivos de uma aplicação (nome) de forma paginada.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de arquivos recuperados da aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping(value="/qrcode/{idFile}", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<?> qr_code(@PathVariable String idFile) {
+        try {
+            var qrcode = fileStorageService.generateQrCode(idFile);
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrcode);
+        } catch (Exception error) {
+            var message = "Erro ao gerar QR Code (imagem) de acesso ao arquivo no Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+    }
+
 }

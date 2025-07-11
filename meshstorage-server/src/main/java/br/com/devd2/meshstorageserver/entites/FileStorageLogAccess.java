@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-public class FileStorageAccessLog {
+public class FileStorageLogAccess {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

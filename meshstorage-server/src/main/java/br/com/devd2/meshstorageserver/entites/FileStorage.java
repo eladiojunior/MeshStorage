@@ -1,5 +1,6 @@
 package br.com.devd2.meshstorageserver.entites;
 
+import br.com.devd2.meshstorage.enums.ExtractionTextByOcrStatusEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -77,15 +78,25 @@ public class FileStorage {
     private String fileCompressionInformation;
 
     /**
-     * Caso seja aplicado o ORC no arquivo será as informações do resultado do OCR
-     * para indexação do conteúdo do arquivo.
+     * Hash dos bytes do arquivo.
      */
-    private String textOcrFileContent;
+    private String hashFileBytes;
 
     /**
-     * Hash do conteúdo do arquivo, bytes, para comparação de duplicidade.
+     * Hash do conteúdo do arquivo extraido por OCR, se configurado.
      */
-    private String hashFileContent;
+    private String hashFileContentByOcr;
+
+    /**
+     * Caso seja aplicação esteja com a extração do OCR dos arquivos ativo, será setado como 'true';
+     */
+    private boolean extractionTextByOrcFormFile;
+
+    /**
+     * Status do processo de extração de texto do arquivos, via OCR.
+     * {@link ExtractionTextByOcrStatusEnum}
+     */
+    private Integer extractionTextByOrcFormFileStatus = ExtractionTextByOcrStatusEnum.IN_PROCESSING.getCode();
 
     /**
      * Data e hora do registro do arquivo no armazenamento.

@@ -53,6 +53,7 @@ public class ApplicationService {
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
         application.setCompressedFileContentToZip(request.isCompressedFileContentToZip());
+        application.setConvertImageFileToWebp(request.isConvertImageFileToWebp());
         application.setTotalFiles(0L);
         application.setDateTimeRegisteredApplication(LocalDateTime.now());
         application.setApplicationStatusCode(ApplicationStatusEnum.ACTIVE.getCode());
@@ -92,6 +93,7 @@ public class ApplicationService {
         application.setMaximumFileSizeMB(request.getMaximumFileSizeMB());
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
         application.setCompressedFileContentToZip(request.isCompressedFileContentToZip());
+        application.setConvertImageFileToWebp(request.isConvertImageFileToWebp());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
 
         return applicationRepository.save(application);

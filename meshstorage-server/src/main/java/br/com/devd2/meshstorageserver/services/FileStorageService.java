@@ -1,5 +1,6 @@
 package br.com.devd2.meshstorageserver.services;
 
+import br.com.devd2.meshstorage.enums.ExtractionTextByOcrStatusEnum;
 import br.com.devd2.meshstorage.enums.FileContentTypesEnum;
 import br.com.devd2.meshstorage.enums.FileStorageStatusEnum;
 import br.com.devd2.meshstorage.helper.FileBase64Util;
@@ -12,14 +13,14 @@ import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
 import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
-import br.com.devd2.meshstorageserver.entites.FileStorageAccessLog;
+import br.com.devd2.meshstorageserver.entites.FileStorageLogAccess;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperDateTime;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
-import br.com.devd2.meshstorageserver.repositories.FileStorageAccessLogRepository;
+import br.com.devd2.meshstorageserver.repositories.FileStorageLogAccessRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -44,14 +45,14 @@ import jakarta.persistence.criteria.Predicate;
 @Service
 public class FileStorageService {
     private final FileStorageRepository fileStorageRepository;
-    private final FileStorageAccessLogRepository fileStorageAccessLogRepository;
+    private final FileStorageLogAccessRepository fileStorageAccessLogRepository;
     private final ServerStorageService serverStorageService;
     private final ApplicationService applicationService;
     private final WebSocketMessaging webSocketMessaging;
 
     public FileStorageService(ApplicationService applicationService, FileStorageRepository fileStorageRepository,
                               ServerStorageService serverStorageService, WebSocketMessaging webSocketMessaging,
-                              FileStorageAccessLogRepository fileStorageAccessLogRepository) {
+                              FileStorageLogAccessRepository fileStorageAccessLogRepository) {
         this.applicationService = applicationService;
         this.fileStorageRepository = fileStorageRepository;
         this.fileStorageAccessLogRepository = fileStorageAccessLogRepository;
@@ -106,7 +107,7 @@ public class FileStorageService {
             }
 
             var hashFileDownload = FileUtil.hashConteudo(bytesFile);
-            if (!fileStorage.getHashFileContent().equals(hashFileDownload))
+            if (!fileStorage.getHashFileBytes().equals(hashFileDownload))
                 log.warn("Arquivo [{}] com HASH diferente, esse arquivo pode ter sido manipulado no Storage!",
                         pathFileStorage);
 
@@ -143,7 +144,7 @@ public class FileStorageService {
         try {
 
             //TODO Implementar solução de registro de log...
-            FileStorageAccessLog fileStorageAccessLog = new FileStorageAccessLog();
+            FileStorageLogAccess fileStorageAccessLog = new FileStorageLogAccess();
             fileStorageAccessLog.setFileStorage(fileStorage);
             fileStorageAccessLog.setUserName("");
             fileStorageAccessLog.setIpUser("");
@@ -181,29 +182,22 @@ public class FileStorageService {
 
         try {
 
-            var hashFileContent = "";
+            var hashFileBytes = "";
             var bytesFile = file.getBytes();
             var sizeFileMB = FileUtil.sizeInMB(bytesFile.length);
             if (sizeFileMB > application.getMaximumFileSizeMB())
                 throw new ApiBusinessException("Arquivo com tamnho de ["+sizeFileMB+"MB], maior que o permitido para aplicação (Max="+application.getMaximumFileSizeMB()+"MB).");
 
-            //Verificar qual o ClientStorage será utilizado...
-            var bestStorage = serverStorageService.getBestServerStorage();
+            //Criar nome FISICO do arquivo.
+            String nomeFisicoArquivo = FileUtil.generatePisicalName(Objects.requireNonNull(file.getOriginalFilename()));
 
-            var textOcrFileContent = "";
-            if (application.isApplyOcrFileContent() && OcrUtil.isAllowedTypeForOcr(file.getContentType())) {
-                textOcrFileContent = OcrUtil.extractTextFormFile(file.getInputStream());
-                hashFileContent = FileUtil.hashContent(textOcrFileContent);
-            }
-            if (hashFileContent == null || hashFileContent.isEmpty())
-            {//Aplicar HASH nos bytes do arquivo, não no conteúdo.
-                hashFileContent = FileUtil.hashConteudo(bytesFile);
-            }
+            //Aplicar HASH nos bytes do arquivo, não no conteúdo.
+            hashFileBytes = FileUtil.hashConteudo(bytesFile);
 
             if (application.isAllowDuplicateFile())
             {//Verificar duplicicade de HASH
                 var fileStorage = fileStorageRepository.findByApplicationIdAndHashFileContent(
-                        application.getId(), hashFileContent).orElse(null);
+                        application.getId(), hashFileBytes).orElse(null);
                 if (fileStorage != null && fileStorage.getFileStatusCode()==FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode())
                     throw new ApiBusinessException("Arquivo já existe na aplicação e armazenado confirmado, duplicidade não é permitido.");
             }
@@ -211,10 +205,19 @@ public class FileStorageService {
             boolean fileCompressedContent = false;
             int lengthBytes = bytesFile.length;
             int lengthBytesCompressed = 0;
-            String nomeFisicoArquivo = FileUtil.generatePisicalName(Objects.requireNonNull(file.getOriginalFilename()));
             String fileCompressionInformation = "";
+
+            //Verificar se está configurado para executar a extração de OCR do arquivo.
+            boolean hasExtractionTextByOrcFormFile = application.isApplyOcrFileContent() &&
+                    OcrUtil.isAllowedTypeForOcr(file.getContentType());
+
+            //Guardar os bytes original do arquivo para pocessamento do OCR.
+            var bytesFileOcr = new byte[]{};
+            if (hasExtractionTextByOrcFormFile)
+                bytesFileOcr = bytesFile.clone();
+
             if (application.isCompressedFileContentToZip() && FileUtil.hasFileTypeNameCompressedZip(file.getContentType()))
-            {
+            {//Compactar arquivo antes de armazenar
                 try {
                     bytesFile = FileUtil.compressZipFileContent(nomeFisicoArquivo, bytesFile);
                     lengthBytesCompressed = bytesFile.length;
@@ -227,7 +230,7 @@ public class FileStorageService {
             }
 
             if (application.isConvertImageFileToWebp() && FileUtil.hasFileTypeCompressedWebP(file.getContentType()))
-            {
+            {//Converter imagem em um formato mais leve.
                 try {
                     bytesFile = FileUtil.convertImagemToWebp(bytesFile, 0.85f);
                     lengthBytesCompressed = bytesFile.length;
@@ -239,6 +242,8 @@ public class FileStorageService {
                 }
             }
 
+            //Verificar qual o ClientStorage será utilizado...
+            var bestStorage = serverStorageService.getBestServerStorage();
             var idClientStorage = bestStorage.getIdClient();
 
             var fileStorageEntity = new FileStorage();
@@ -254,8 +259,10 @@ public class FileStorageService {
             fileStorageEntity.setCompressedFileContent(fileCompressedContent);
             fileStorageEntity.setFileCompressionInformation(fileCompressionInformation);
             fileStorageEntity.setFileContentType(file.getContentType());
-            fileStorageEntity.setTextOcrFileContent(textOcrFileContent);
-            fileStorageEntity.setHashFileContent(hashFileContent);
+            fileStorageEntity.setHashFileBytes(hashFileBytes);
+            fileStorageEntity.setExtractionTextByOrcFormFile(hasExtractionTextByOrcFormFile);
+            if (hasExtractionTextByOrcFormFile)
+                fileStorageEntity.setExtractionTextByOrcFormFileStatus(ExtractionTextByOcrStatusEnum.IN_PROCESSING.getCode());
             fileStorageEntity.setDateTimeRegisteredFileStorage(LocalDateTime.now());
             fileStorageEntity.setFileStatusCode(FileStorageStatusEnum.SENT_TO_STORAGE.getCode());
 
@@ -278,8 +285,16 @@ public class FileStorageService {
 
             //Registrar mais um arquivo requistrado no Server Storage e Aplicação...
             if (fileStorageClientStatus.getFileStatusCode() == FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode()) {
+
+                //Atualizar totalizador...
                 serverStorageService.updateServerStorageTotalFile(bestStorage.getId(), true);
                 applicationService.updateApplicationTotalFile(application.getId(), true);
+
+                if (hasExtractionTextByOrcFormFile)
+                {//Colocar na fila para processamento do OCR do arquivo...
+                    OcrUtil.sendExtractionTextFormFile(fileStorageEntity.getId(), hashFileBytes, bytesFileOcr);
+                }
+
             }
 
             return fileStorageEntity;
@@ -437,4 +452,9 @@ public class FileStorageService {
         return result;
     }
 
+    public byte[] generateQrCode(String idFile) {
+        //String link = String.format("https://app.meshstorage.com/api/files/%s?token=%s", idFile, dto.publicToken());
+        byte[] qrCode = null; //qrService.createQrImage(link, dto.fileName(), dto.sizeBytes(), dto.uploadedAt());
+        return qrCode;
+    }
 }
