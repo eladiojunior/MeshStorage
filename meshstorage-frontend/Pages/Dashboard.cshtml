@@ -1,0 +1,46 @@
+﻿@page
+@using meshstorage_frontend.Models.ViewModels
+@model meshstorage_frontend.Pages.Dashboard
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<div>
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            @{
+                Html.RenderPartial("Shared/_InfoCard", 
+                    new InfoCardViewModel("Total Storages", Model.TotalStorage, "dashboard", 
+                        Model.Status, "Total geral de armazenamento."));
+            }
+        </div>
+        <div class="col-xl-3 col-md-6">
+            @{
+                Html.RenderPartial("Shared/_InfoCard", 
+                    new InfoCardViewModel("Storages Conectados", Model.ConnectedClients.ToString(), "storage", 
+                        Model.Status, "Quantidade de Storages conectados na solução."));
+            }
+        </div>
+        <div class="col-xl-3 col-md-6">
+            @{
+                Html.RenderPartial("Shared/_InfoCard", 
+                    new InfoCardViewModel("Total Arquivos", Model.TotalFiles.ToString(), "description", 
+                        Model.Status, "Total de arquivos registrados somando todos os Storages."));
+            }
+        </div>
+        <div class="col-xl-3 col-md-6">
+            @{
+                Html.RenderPartial("Shared/_InfoCard", 
+                    new InfoCardViewModel("Saúde so Sistema", Model.Health, "monitor_heart", 
+                        Model.Status, Model.MessageStatus));
+            }
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="div-lista-storages">Carregando lista de storages...</div>
+        </div>
+        <div class="col-lg-6">
+            <div class="div-lista-aplicacoes">Carregando lista de aplicações...</div>
+        </div>
+    </div>
+</div>

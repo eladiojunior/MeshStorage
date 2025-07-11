@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\meshstorage-frontend.props" />
+</Project>

@@ -1,6 +1,6 @@
 {
-  "applicationName": "AWEB",
-  "applicationDescription": "Plataforma de Adesão de Plano",
+  "applicationName": "GASC",
+  "applicationDescription": "Gerenciador de Acessos aos Sistemas da CASSI",
   "allowedFileTypes": [
     "text/plain",
     "application/pdf",
@@ -11,7 +11,7 @@
     "image/jpeg",
     "image/png"
   ],
-  "maximumFileSizeMB": 5,
+  "maximumFileSizeMB": 10,
   "compressFileContent": true,
   "applyOcrFileContent": false,
   "allowDuplicateFile": true
