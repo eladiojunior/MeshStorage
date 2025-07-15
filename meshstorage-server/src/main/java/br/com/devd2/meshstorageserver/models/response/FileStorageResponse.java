@@ -1,5 +1,6 @@
 package br.com.devd2.meshstorageserver.models.response;
 
+import br.com.devd2.meshstorage.enums.ExtractionTextByOcrStatusEnum;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -37,9 +38,40 @@ public class FileStorageResponse {
     private long fileLength;
 
     /**
-     * Hash do conteúdo do arquivo, bytes, para comparação de duplicidade.
+     * Hash dos bytes do arquivo.
      */
-    private String hashFileContent;
+    private String hashFileBytes;
+
+    /**
+     * Hash do conteúdo do arquivo extraido por OCR, se configurado.
+     */
+    private String hashFileContentByOcr;
+
+    /**
+     * Caso seja aplicação esteja com a extração do OCR dos arquivos ativo, será setado como 'true';
+     */
+    private boolean extractionTextByOrcFormFile;
+
+    /**
+     * Status do processo de extração de texto do arquivos, via OCR.
+     * {@link ExtractionTextByOcrStatusEnum}
+     */
+    private Integer extractionTextByOrcFormFileStatus = ExtractionTextByOcrStatusEnum.IN_PROCESSING.getCode();
+
+    /**
+     * Indicador que o arquivo passou por uma compressão em ZIP antes do armazenamento;
+     */
+    private boolean compressedFileContent;
+
+    /**
+     * Tamnho em bytes do arquivo apos a compressão (ZIP ou WEBP).
+     */
+    private int compressedFileLength;
+
+    /**
+     * Resultado da compressão do arquivo Content Type >> (ZIP ou WEBP);
+     */
+    private String fileCompressionInformation;
 
     /**
      * Data e hora do registro do arquivo no armazenamento.

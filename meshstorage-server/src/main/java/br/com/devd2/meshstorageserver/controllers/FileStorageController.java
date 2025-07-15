@@ -71,7 +71,7 @@ public class FileStorageController {
         try {
             FileStorage file = fileStorageService.getFile(idFile);
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileLogicName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileFisicalName() + "\"")
                     .header(HttpHeaders.CONTENT_TYPE, file.getFileContentType())
                     .body(file.getFileContent());
         } catch (ApiBusinessException error_business) {
@@ -177,7 +177,7 @@ public class FileStorageController {
     public ResponseEntity<?> qr_code(@PathVariable String idFile) {
         try {
             var qrcode = fileStorageService.generateQrCode(idFile);
-            return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrcode);
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrcode.getImageQrCodeAcessFile());
         } catch (Exception error) {
             var message = "Erro ao gerar QR Code (imagem) de acesso ao arquivo no Server Storage.";
             log.error(message, error);

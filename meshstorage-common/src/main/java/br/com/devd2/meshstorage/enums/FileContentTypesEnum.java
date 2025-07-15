@@ -85,7 +85,12 @@ public enum FileContentTypesEnum {
     AUDIO_3GP(80, ".3gp", "3GPP audio/video container", "audio/3gpp"),
     VIDEO_3G2(81, ".3g2", "3GPP2 audio/video container", "video/3gpp2"),
     AUDIO_3G2(82, ".3g2", "3GPP2 audio/video container", "audio/3gpp2"),
-    ZIP7(83, ".7z", "7-zip archive", "application/x-7z-compressed");
+    ZIP7(83, ".7z", "7-zip archive", "application/x-7z-compressed"),
+    JSONX(84, ".json", "JSON-X format", "application/x-json"),
+    JS_APPLICATION(85, ".js", "JavaScript", "application/javascript"),
+    JSX_APPLICATION(86, ".js", "JavaScript", "application/x-javascript"),
+    SQL_APPLICATION(87, ".sql", "SQL", "application/sql"),
+    GRAPHQL_APPLICATION(88, ".json", "GraphQL", "application/graphql");
 
     @Getter
     private final int code;

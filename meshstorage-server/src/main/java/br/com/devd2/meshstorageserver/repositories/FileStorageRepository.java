@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface FileStorageRepository extends JpaRepository<FileStorage, Long>, JpaSpecificationExecutor<FileStorage> {
-    Optional<FileStorage> findByApplicationIdAndHashFileContent(Long applicationId, String hashFileContent);
+    Optional<FileStorage> findByApplicationIdAndHashFileBytes(Long applicationId, String hashFileBytes);
     Optional<FileStorage> findByIdFile(String idFile);
     Optional<Long> countByApplicationId(Long idApplication);
     Page<FileStorage> findByApplicationId(Long applicationId, Pageable pageable);

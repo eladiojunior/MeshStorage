@@ -1,16 +1,16 @@
 package br.com.devd2.meshstorage.helper;
 
+import br.com.devd2.meshstorage.enums.FileContentTypesEnum;
+import com.luciad.imageio.webp.WebPWriteParam;
+
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
-import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -210,9 +210,10 @@ public class FileUtil {
      * Tipos que quase sempre se beneficiam de ZIP mesmo já sendo textuais.
      **/
     private static final Set<String> EXPLICIT_COMPRESSIBLE = Set.of(
-        "application/json", "application/xml", "application/x-json",
-        "application/javascript", "application/x-javascript", "application/sql",
-        "application/graphql", "text/csv"
+        FileContentTypesEnum.JSON.getContentType(), FileContentTypesEnum.XML_APPLICATION.getContentType(),
+        FileContentTypesEnum.JSONX.getContentType(), FileContentTypesEnum.JS_APPLICATION.getContentType(),
+        FileContentTypesEnum.JSX_APPLICATION.getContentType(), FileContentTypesEnum.SQL_APPLICATION.getContentType(),
+        FileContentTypesEnum.GRAPHQL_APPLICATION.getContentType(), FileContentTypesEnum.CSV.getContentType()
     );
 
     /**
@@ -246,39 +247,40 @@ public class FileUtil {
 
     /**
      * Converte uma imagem [PNG/JPG/etc] em formato WebP para compressão e redução de espaço.
-     * @param bytesImage - Bytes da imagem a ser convertida em WebP.
+     * @param original - Bytes da imagem a ser convertida em WebP.
      * @param quality 0.0 – 1.0 (1 = sem perda, 0.80 +- boa para fotos)
      * @return Imagem convertida em WebP.
      */
-    public static byte[] convertImagemToWebp(byte[] bytesImage, float quality) throws IOException {
+    public static byte[] convertImagemToWebp(byte[] original, float quality) throws IOException {
 
-        BufferedImage img;
-        try (InputStream in = new ByteArrayInputStream(bytesImage)) {
-            img = ImageIO.read(in);
+        /* 0) Garante que os plugins de ImageIO sejam visíveis */
+        ImageIO.scanForPlugins();
+
+        /* 1) Decodifica */
+        BufferedImage input;
+        try (ByteArrayInputStream in = new ByteArrayInputStream(original)) {
+            input = ImageIO.read(in);
         }
-        if (img == null) {
-            throw new IOException("Formato de imagem desconhecido ou corrompido.");
-        }
+        if (input == null) throw new IOException("Imagem inválida ou formato não suportado.");
 
-        Iterator<ImageWriter> writers = ImageIO.getImageWritersByMIMEType("image/webp");
-        if (!writers.hasNext())
-            throw new IllegalStateException("WEBP ImageIO writer não encontrado — "
-                    + "adicione a dependência webp-imageio ou luciad-webp.");
-        ImageWriter writer = writers.next();
+        /* 2) Obtém um writer real de WEBP */
+        ImageWriter writer = ImageIO.getImageWritersByMIMEType(FileContentTypesEnum.WEBP.getContentType()).next();
 
-        ImageWriteParam param = writer.getDefaultWriteParam();
-        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionType(param.getCompressionTypes()[0]); // "Lossy"
-        param.setCompressionQuality(quality);                     // 0 – 1
+        /* 3) Usa o WebPWriteParam específico */
+        WebPWriteParam param = new WebPWriteParam(writer.getLocale());
+        param.setCompressionMode(WebPWriteParam.MODE_EXPLICIT);
+        param.setCompressionType("Lossy");          // ou "Lossless"
+        param.setCompressionQuality(quality);       // 0–1
 
+        /* 4) Escreve em memória */
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
-
+            ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
             writer.setOutput(ios);
-            writer.write(null, new IIOImage(img, null, null), param);
+            writer.write(null, new IIOImage(input, null, null), param);
+            ios.flush();          // força descarregar no BAOS
+            return baos.toByteArray(); // agora tem dados
+        } finally {
             writer.dispose();
-
-            return baos.toByteArray();
         }
 
     }

@@ -16,6 +16,9 @@ server:
 # Configuração do tamanho máximo em MB=Megabytes do upload de arquivos
 limit-mb: ${LIMIT_MAX_UPLOADFILE_MB}
 
+# Configuração da URL de acesso ao arquivo utilizando um QR Code ou Link com o token
+acesso-file-url: ${ACESSO_ARQUIVO_URL}
+
 spring:
   datasource:
     url: jdbc:h2:mem:meshstorage-db

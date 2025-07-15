@@ -27,6 +27,7 @@ public class OcrFileExtraction {
     /**
      * Lista de campos (chave, valor) da extração do conteúdo texto, após processamento OCR.
      */
+    @OneToMany
     private List<OcrFileExtractionFields> contentFieldsOcr;
 
     /**

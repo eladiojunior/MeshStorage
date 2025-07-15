@@ -20,9 +20,11 @@ import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
+import br.com.devd2.meshstorageserver.models.response.QrCodeFileResponse;
 import br.com.devd2.meshstorageserver.repositories.FileStorageLogAccessRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -49,15 +51,20 @@ public class FileStorageService {
     private final ServerStorageService serverStorageService;
     private final ApplicationService applicationService;
     private final WebSocketMessaging webSocketMessaging;
+    private final QrCodeService qrCodeService;
+
+    @Value("${acesso-file-url:\"\"}")
+    private String url_file_acess;
 
     public FileStorageService(ApplicationService applicationService, FileStorageRepository fileStorageRepository,
                               ServerStorageService serverStorageService, WebSocketMessaging webSocketMessaging,
-                              FileStorageLogAccessRepository fileStorageAccessLogRepository) {
+                              FileStorageLogAccessRepository fileStorageAccessLogRepository, QrCodeService qrCodeService) {
         this.applicationService = applicationService;
         this.fileStorageRepository = fileStorageRepository;
         this.fileStorageAccessLogRepository = fileStorageAccessLogRepository;
         this.serverStorageService = serverStorageService;
         this.webSocketMessaging = webSocketMessaging;
+        this.qrCodeService = qrCodeService;
     }
 
     /**
@@ -196,7 +203,7 @@ public class FileStorageService {
 
             if (application.isAllowDuplicateFile())
             {//Verificar duplicicade de HASH
-                var fileStorage = fileStorageRepository.findByApplicationIdAndHashFileContent(
+                var fileStorage = fileStorageRepository.findByApplicationIdAndHashFileBytes(
                         application.getId(), hashFileBytes).orElse(null);
                 if (fileStorage != null && fileStorage.getFileStatusCode()==FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode())
                     throw new ApiBusinessException("Arquivo já existe na aplicação e armazenado confirmado, duplicidade não é permitido.");
@@ -206,23 +213,24 @@ public class FileStorageService {
             int lengthBytes = bytesFile.length;
             int lengthBytesCompressed = 0;
             String fileCompressionInformation = "";
+            String contentTypeFile = file.getContentType();
 
             //Verificar se está configurado para executar a extração de OCR do arquivo.
             boolean hasExtractionTextByOrcFormFile = application.isApplyOcrFileContent() &&
-                    OcrUtil.isAllowedTypeForOcr(file.getContentType());
+                    OcrUtil.isAllowedTypeForOcr(contentTypeFile);
 
             //Guardar os bytes original do arquivo para pocessamento do OCR.
             var bytesFileOcr = new byte[]{};
             if (hasExtractionTextByOrcFormFile)
                 bytesFileOcr = bytesFile.clone();
 
-            if (application.isCompressedFileContentToZip() && FileUtil.hasFileTypeNameCompressedZip(file.getContentType()))
+            if (application.isCompressedFileContentToZip() && FileUtil.hasFileTypeNameCompressedZip(contentTypeFile))
             {//Compactar arquivo antes de armazenar
                 try {
                     bytesFile = FileUtil.compressZipFileContent(nomeFisicoArquivo, bytesFile);
                     lengthBytesCompressed = bytesFile.length;
-                    nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, ".zip");
-                    fileCompressionInformation = file.getContentType() + " >> " + "application/zip";
+                    nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, FileContentTypesEnum.ZIP.getExtension());
+                    fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.ZIP.getContentType();
                     fileCompressedContent = true;
                 } catch (Exception error) {
                     log.error("Erro ao realizar compressão do arquivo.", error);
@@ -232,11 +240,15 @@ public class FileStorageService {
             if (application.isConvertImageFileToWebp() && FileUtil.hasFileTypeCompressedWebP(file.getContentType()))
             {//Converter imagem em um formato mais leve.
                 try {
-                    bytesFile = FileUtil.convertImagemToWebp(bytesFile, 0.85f);
-                    lengthBytesCompressed = bytesFile.length;
-                    nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, ".webp");
-                    fileCompressionInformation = file.getContentType() + " >> " + "image/webp";
-                    fileCompressedContent = true;
+                    byte[] bytesFileWebp = FileUtil.convertImagemToWebp(bytesFile, 0.85f);
+                    if (bytesFileWebp.length != 0) {
+                        lengthBytesCompressed = bytesFileWebp.length;
+                        nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, FileContentTypesEnum.WEBP.getExtension());
+                        fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.WEBP.getContentType();
+                        fileCompressedContent = true;
+                        contentTypeFile = FileContentTypesEnum.WEBP.getContentType();
+                        bytesFile = bytesFileWebp.clone();
+                    }
                 } catch (Exception error) {
                     log.error("Erro ao realizar conversão da imagem para WebP.", error);
                 }
@@ -258,7 +270,7 @@ public class FileStorageService {
             fileStorageEntity.setCompressedFileLength(lengthBytesCompressed);
             fileStorageEntity.setCompressedFileContent(fileCompressedContent);
             fileStorageEntity.setFileCompressionInformation(fileCompressionInformation);
-            fileStorageEntity.setFileContentType(file.getContentType());
+            fileStorageEntity.setFileContentType(contentTypeFile);
             fileStorageEntity.setHashFileBytes(hashFileBytes);
             fileStorageEntity.setExtractionTextByOrcFormFile(hasExtractionTextByOrcFormFile);
             if (hasExtractionTextByOrcFormFile)
@@ -452,9 +464,28 @@ public class FileStorageService {
         return result;
     }
 
-    public byte[] generateQrCode(String idFile) {
-        //String link = String.format("https://app.meshstorage.com/api/files/%s?token=%s", idFile, dto.publicToken());
-        byte[] qrCode = null; //qrService.createQrImage(link, dto.fileName(), dto.sizeBytes(), dto.uploadedAt());
-        return qrCode;
+    /**
+     * Gerar um QR Code de uma arquivo específico para acesso do arquivo diretamente.
+     * @param idFile - Identificador do arquivo.
+     * @return Bytes da imagem do QR Code
+     */
+    public QrCodeFileResponse generateQrCode(String idFile) throws Exception {
+
+        var file = getFile(idFile);
+        if (file == null)
+            throw new ApiBusinessException("Arquivo com o ID invalido ou não existente.");
+
+        QrCodeFileResponse response = new QrCodeFileResponse();
+        String tokenPublic = "TESTE"; //TODO aqui precisa ser gerado um token de acesso externo armazenado em banco.
+        String link = String.format(url_file_acess, idFile, tokenPublic);
+        byte[] imagemQrCode = qrCodeService.createQrImage(link, file.getFileFisicalName(), file.getFileLength(), file.getDateTimeRegisteredFileStorage());
+
+        response.setIdFile(idFile);
+        response.setLinkAcessFile(link);
+        response.setImageQrCodeAcessFile(imagemQrCode);
+        response.setDateTimeRegisteredFileStorage(LocalDateTime.now());
+        return response;
+
     }
+
 }

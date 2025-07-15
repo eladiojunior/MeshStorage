@@ -21,11 +21,4 @@ public class OcrFileExtractionFields {
      */
     private String valueField;
 
-    /**
-     * Relacionamento com a extracao OCR.
-     */
-    @ManyToOne
-    @JoinColumn(name = "ocrFileExtractionId")
-    private OcrFileExtraction ocrFileExtraction;
-
 }

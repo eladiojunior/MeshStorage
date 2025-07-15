@@ -51,7 +51,13 @@ public class HelperMapper {
         response.setFileFisicalName(fileStorage.getFileFisicalName());
         response.setFileContentType(fileStorage.getFileContentType());
         response.setFileLength(fileStorage.getFileLength());
-        response.setHashFileContent(fileStorage.getHashFileContent());
+        response.setHashFileBytes(fileStorage.getHashFileBytes());
+        response.setExtractionTextByOrcFormFile(fileStorage.isExtractionTextByOrcFormFile());
+        response.setExtractionTextByOrcFormFileStatus(fileStorage.getExtractionTextByOrcFormFileStatus());
+        response.setHashFileContentByOcr(fileStorage.getHashFileContentByOcr());
+        response.setCompressedFileContent(fileStorage.isCompressedFileContent());
+        response.setCompressedFileLength(fileStorage.getCompressedFileLength());
+        response.setFileCompressionInformation(fileStorage.getFileCompressionInformation());
         response.setDateTimeRegisteredFileStorage(fileStorage.getDateTimeRegisteredFileStorage());
         response.setDateTimeRemovedFileStorage(fileStorage.getDateTimeRemovedFileStorage());
         response.setDateTimeBackupFileStorage(fileStorage.getDateTimeBackupFileStorage());

@@ -30,5 +30,11 @@
             <artifactId>gson</artifactId>
             <version>2.12.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.sejda.imageio</groupId>
+            <artifactId>webp-imageio</artifactId>
+            <version>0.1.6</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

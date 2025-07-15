@@ -96,7 +96,7 @@ public class FileStorage {
      * Status do processo de extração de texto do arquivos, via OCR.
      * {@link ExtractionTextByOcrStatusEnum}
      */
-    private Integer extractionTextByOrcFormFileStatus = ExtractionTextByOcrStatusEnum.IN_PROCESSING.getCode();
+    private Integer extractionTextByOrcFormFileStatus = ExtractionTextByOcrStatusEnum.NOT_EXTRACTIO.getCode();
 
     /**
      * Data e hora do registro do arquivo no armazenamento.
