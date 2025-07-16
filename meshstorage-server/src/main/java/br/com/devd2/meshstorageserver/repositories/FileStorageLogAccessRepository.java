@@ -13,4 +13,5 @@ public interface FileStorageLogAccessRepository extends JpaRepository<FileStorag
         save(entity);
     }
 
+    int countByUserName(String userName);
 }

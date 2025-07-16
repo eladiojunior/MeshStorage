@@ -5,6 +5,7 @@ import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.response.ErrorResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStorageResponse;
+import br.com.devd2.meshstorageserver.models.response.QrCodeFileResponse;
 import br.com.devd2.meshstorageserver.services.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -168,21 +169,51 @@ public class FileStorageController {
         }
     }
 
-    @Operation(summary = "Lista de arquivos do ServerStorage", description = "Lista os arquivos de uma aplicação (nome) de forma paginada.")
+    @Operation(summary = "Obtem informações de acesso ao arquivo do ServerStorage", description = "Obtem informações de link e imagem QR Code para acesso direto ao arquivo do ServerStorage.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de arquivos recuperados da aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
+            @ApiResponse(responseCode = "200", description = "Dados de acesso ao arquivo do ServerStorage", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = QrCodeFileResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @GetMapping(value="/qrcode/{idFile}", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<?> qr_code(@PathVariable String idFile) {
+    @GetMapping("/qrcode/{idFile}")
+    public ResponseEntity<?> qr_code(@PathVariable String idFile,
+                                     @RequestParam(name="tokenExpirationTime", defaultValue="30")
+                                        @Parameter(description = "Tempo de expiração do token de acesso (em minutos), se 0 nunca expira.") long tokenExpirationTime,
+                                     @RequestParam(name="maximumAccessestoken", defaultValue="5")
+                                         @Parameter(description = "Quantidade máxima de acesso ao arquivo por token, se 0 sem limite.") int maximumAccessestoken) {
         try {
-            var qrcode = fileStorageService.generateQrCode(idFile);
+            var qrcode = fileStorageService.generateQrCode(idFile, tokenExpirationTime, maximumAccessestoken);
             return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrcode.getImageQrCodeAcessFile());
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {
             var message = "Erro ao gerar QR Code (imagem) de acesso ao arquivo no Server Storage.";
             log.error(message, error);
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }
+    }
+
+    @Operation(summary = "Acesso, via token, arquivo do ServerStorage", description = "Baixa arquivo por link (QR Code) com verificação de token de acesso.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Bytes do arquivo recuperado com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/link")
+    public ResponseEntity<?> download_link(@RequestParam("token")
+                                           @Parameter(description = "Token (chave acesso) ao arquivo para download") String token) {
+        try {
+            FileStorage file = fileStorageService.getFileByToken(token);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileFisicalName() + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, file.getFileContentType())
+                    .body(file.getFileContent());
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao baixar um arquivo no Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+
     }
 
 }

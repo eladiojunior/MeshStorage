@@ -2,7 +2,7 @@ package br.com.devd2.meshstorageserver.services;
 
 import br.com.devd2.meshstorageserver.entites.Application;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
-import br.com.devd2.meshstorageserver.helper.HelperDateTime;
+import br.com.devd2.meshstorageserver.helper.HelperFormat;
 import br.com.devd2.meshstorageserver.helper.HelperFileType;
 import br.com.devd2.meshstorageserver.models.enums.ApplicationStatusEnum;
 import br.com.devd2.meshstorageserver.models.request.ApplicationRequest;
@@ -184,7 +184,7 @@ public class ApplicationService {
             throw new ApiBusinessException("Aplicação não identificada para remoção.");
         if (application.getApplicationStatusCode() == ApplicationStatusEnum.REMOVED.getCode())
             throw new ApiBusinessException(String.format("Aplicação já foi removida (logicamente) em [%1s].",
-                    HelperDateTime.format(application.getDateTimeRemovedApplication(), "dd/MM/yyyy HH:mm:ss")));
+                    HelperFormat.formatDateTime(application.getDateTimeRemovedApplication(), "dd/MM/yyyy HH:mm:ss")));
 
         application.setApplicationStatusCode(ApplicationStatusEnum.REMOVED.getCode());
         application.setDateTimeRemovedApplication(LocalDateTime.now());

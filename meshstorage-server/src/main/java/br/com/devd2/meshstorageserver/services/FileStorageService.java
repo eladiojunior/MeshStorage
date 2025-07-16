@@ -13,14 +13,17 @@ import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
 import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
+import br.com.devd2.meshstorageserver.entites.FileStorageAccessToken;
 import br.com.devd2.meshstorageserver.entites.FileStorageLogAccess;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
-import br.com.devd2.meshstorageserver.helper.HelperDateTime;
+import br.com.devd2.meshstorageserver.helper.HelperFormat;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
+import br.com.devd2.meshstorageserver.models.UserAccessModel;
 import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
 import br.com.devd2.meshstorageserver.models.response.QrCodeFileResponse;
+import br.com.devd2.meshstorageserver.repositories.FileStorageAccessTokenRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageLogAccessRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +50,8 @@ import jakarta.persistence.criteria.Predicate;
 @Service
 public class FileStorageService {
     private final FileStorageRepository fileStorageRepository;
-    private final FileStorageLogAccessRepository fileStorageAccessLogRepository;
+    private final FileStorageLogAccessRepository fileStorageLogAccessRepository;
+    private final FileStorageAccessTokenRepository fileStorageAccessTokenRepository;
     private final ServerStorageService serverStorageService;
     private final ApplicationService applicationService;
     private final WebSocketMessaging webSocketMessaging;
@@ -56,24 +60,30 @@ public class FileStorageService {
     @Value("${acesso-file-url:\"\"}")
     private String url_file_acess;
 
+    @Value("${quality-compressed-webp:0.85f}")
+    private float quality_compressed_webp;
+
     public FileStorageService(ApplicationService applicationService, FileStorageRepository fileStorageRepository,
                               ServerStorageService serverStorageService, WebSocketMessaging webSocketMessaging,
-                              FileStorageLogAccessRepository fileStorageAccessLogRepository, QrCodeService qrCodeService) {
+                              FileStorageLogAccessRepository fileStorageLogAccessRepository, QrCodeService qrCodeService,
+                              FileStorageAccessTokenRepository fileStorageAccessTokenRepository) {
         this.applicationService = applicationService;
         this.fileStorageRepository = fileStorageRepository;
-        this.fileStorageAccessLogRepository = fileStorageAccessLogRepository;
+        this.fileStorageLogAccessRepository = fileStorageLogAccessRepository;
         this.serverStorageService = serverStorageService;
         this.webSocketMessaging = webSocketMessaging;
         this.qrCodeService = qrCodeService;
+        this.fileStorageAccessTokenRepository = fileStorageAccessTokenRepository;
     }
 
     /**
      * Recupera um arquivo pelo seu Identificador externo.
      * @param idFile - Identificador para recuperação do arquivo no Storage.
+     * @param user - Informações do usuário (opcional)
      * @return Arquivo recuperado ou nulo se não existir.
      * @throws ApiBusinessException - Erro de negócio.
      */
-    public FileStorage getFile(String idFile)throws ApiBusinessException {
+    public FileStorage getFile(String idFile, UserAccessModel user) throws ApiBusinessException {
 
         if (idFile == null || idFile.isEmpty())
             throw new ApiBusinessException("Id File (chave do arquivo) não pode ser nulo ou vazio.");
@@ -121,7 +131,7 @@ public class FileStorageService {
             fileStorage.setFileContent(bytesFile);
 
             //Registrar histórico de acesso ao arquivo...
-            RegisterFileAccessHistory(fileStorage);
+            RegisterFileAccessHistory(fileStorage, user);
 
             return fileStorage;
 
@@ -145,20 +155,23 @@ public class FileStorageService {
      * Não teve afetar o processamento de recuperação do arquivo, caso ocorra erro deve registrar e
      * seguir com o processamento.
      * @param fileStorage - Informações do arquivo acessado.
+     * @param user - Informações do usuário que está acessando o arquivo.
      */
-    private void RegisterFileAccessHistory(FileStorage fileStorage) {
+    private void RegisterFileAccessHistory(FileStorage fileStorage, UserAccessModel user) {
 
         try {
 
-            //TODO Implementar solução de registro de log...
             FileStorageLogAccess fileStorageAccessLog = new FileStorageLogAccess();
             fileStorageAccessLog.setFileStorage(fileStorage);
-            fileStorageAccessLog.setUserName("");
-            fileStorageAccessLog.setIpUser("");
-            fileStorageAccessLog.setUserAgent("");
+            if (user != null) {
+                fileStorageAccessLog.setUserName(user.getUserName());
+                fileStorageAccessLog.setIpUser(user.getIpUser());
+                fileStorageAccessLog.setUserAgent(user.getUserAgent());
+                fileStorageAccessLog.setAccessChanel(user.getAccessChanel());
+            }
             fileStorageAccessLog.setDateTimeRegisteredAccess(LocalDateTime.now());
 
-            fileStorageAccessLogRepository.saveAsync(fileStorageAccessLog);
+            fileStorageLogAccessRepository.saveAsync(fileStorageAccessLog);
 
         } catch (Exception error) {
             log.error("Erro ao registrar acesso ao arquivo.", error);
@@ -230,7 +243,9 @@ public class FileStorageService {
                     bytesFile = FileUtil.compressZipFileContent(nomeFisicoArquivo, bytesFile);
                     lengthBytesCompressed = bytesFile.length;
                     nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, FileContentTypesEnum.ZIP.getExtension());
-                    fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.ZIP.getContentType();
+                    double percentual_compressed = 100.0 - ((double) lengthBytesCompressed / lengthBytes * 100);
+                    fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.ZIP.getContentType() +
+                            " [compressão de: " + HelperFormat.formatPercent(percentual_compressed) + "]";
                     fileCompressedContent = true;
                 } catch (Exception error) {
                     log.error("Erro ao realizar compressão do arquivo.", error);
@@ -240,11 +255,13 @@ public class FileStorageService {
             if (application.isConvertImageFileToWebp() && FileUtil.hasFileTypeCompressedWebP(file.getContentType()))
             {//Converter imagem em um formato mais leve.
                 try {
-                    byte[] bytesFileWebp = FileUtil.convertImagemToWebp(bytesFile, 0.85f);
-                    if (bytesFileWebp.length != 0) {
+                    byte[] bytesFileWebp = FileUtil.convertImagemToWebp(bytesFile, quality_compressed_webp);
+                    if (bytesFileWebp.length != 0 && bytesFileWebp.length < lengthBytes) {
                         lengthBytesCompressed = bytesFileWebp.length;
                         nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, FileContentTypesEnum.WEBP.getExtension());
-                        fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.WEBP.getContentType();
+                        double percentual_compressed = 100.0 - ((double) bytesFileWebp.length / lengthBytes * 100);
+                        fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.WEBP.getContentType() +
+                                " [quality: " + quality_compressed_webp + ", compressão de: " + HelperFormat.formatPercent(percentual_compressed) + "]";
                         fileCompressedContent = true;
                         contentTypeFile = FileContentTypesEnum.WEBP.getContentType();
                         bytesFile = bytesFileWebp.clone();
@@ -335,13 +352,13 @@ public class FileStorageService {
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.ARCHIVED_SUCESSFULLY.getCode() &&
                 fileStorage.getDateTimeBackupFileStorage() != null)
             throw new ApiBusinessException("Arquivo enviado para armazenamento de longo prazo (backup) em [" +
-                    HelperDateTime.format(fileStorage.getDateTimeBackupFileStorage(), "dd/MM/yyyy HH:mm:ss") +
+                    HelperFormat.formatDateTime(fileStorage.getDateTimeBackupFileStorage(), "dd/MM/yyyy HH:mm:ss") +
                     "]. Não será possível remove-lo.");
 
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode() &&
                 fileStorage.getDateTimeRemovedFileStorage() != null)
             throw new ApiBusinessException("Arquivo removido do armazenamento em [" +
-                    HelperDateTime.format(fileStorage.getDateTimeRemovedFileStorage(), "dd/MM/yyyy HH:mm:ss") +
+                    HelperFormat.formatDateTime(fileStorage.getDateTimeRemovedFileStorage(), "dd/MM/yyyy HH:mm:ss") +
                     "]. Não é possível remove-lo novamente.");
 
         //Enviar comando de DELETE para o Storage...
@@ -467,18 +484,23 @@ public class FileStorageService {
     /**
      * Gerar um QR Code de uma arquivo específico para acesso do arquivo diretamente.
      * @param idFile - Identificador do arquivo.
+     * @param tokenExpirationTime - Tempo de expiração do token de acesso, em minutos, se 0 (zero) nunca expira.
+     * @param maximumAccessestoken - Quantidade de acesso máxima ao arquivo com o token, se 0 (zero) não tem limite.
      * @return Bytes da imagem do QR Code
      */
-    public QrCodeFileResponse generateQrCode(String idFile) throws Exception {
+    public QrCodeFileResponse generateQrCode(String idFile, long tokenExpirationTime, int maximumAccessestoken) throws Exception {
 
-        var file = getFile(idFile);
+        var file = fileStorageRepository.findByIdFile(idFile).orElse(null);
         if (file == null)
             throw new ApiBusinessException("Arquivo com o ID invalido ou não existente.");
 
+        if (url_file_acess == null || url_file_acess.isEmpty())
+            throw new ApiBusinessException("URL de acesso ao arquivo do repositório diretamente.");
+
         QrCodeFileResponse response = new QrCodeFileResponse();
-        String tokenPublic = "TESTE"; //TODO aqui precisa ser gerado um token de acesso externo armazenado em banco.
+        String tokenPublic = generateTokenAccess(file, tokenExpirationTime, maximumAccessestoken);
         String link = String.format(url_file_acess, idFile, tokenPublic);
-        byte[] imagemQrCode = qrCodeService.createQrImage(link, file.getFileFisicalName(), file.getFileLength(), file.getDateTimeRegisteredFileStorage());
+        byte[] imagemQrCode = qrCodeService.createQrImage(link, file.getFileFisicalName());
 
         response.setIdFile(idFile);
         response.setLinkAcessFile(link);
@@ -488,4 +510,72 @@ public class FileStorageService {
 
     }
 
+    /**
+     * Gerar um token de acesso de uma arquivo específico para acesso ao arquivo de forma pública e diretamente.
+     * @param fileStorage - Instancia do arquivo.
+     * @param tokenExpirationTime - Tempo de expiração do token de acesso, em minutos, se 0 (zero) nunca expira.
+     * @param maximumAccessestoken - Quantidade de acesso máxima ao arquivo com o token, se 0 (zero) não tem limite.
+     * @return Token de acesso regado.
+     **/
+    private String generateTokenAccess(FileStorage fileStorage, long tokenExpirationTime, int maximumAccessestoken) {
+
+        String accessToken = UUID.randomUUID().toString();
+
+        FileStorageAccessToken tokenAccess = new FileStorageAccessToken();
+        tokenAccess.setIdFile(fileStorage.getIdFile());
+        tokenAccess.setFileStorage(fileStorage);
+        tokenAccess.setAccessToken(accessToken);
+        tokenAccess.setTokenExpirationTime(tokenExpirationTime);
+        tokenAccess.setMaximumAccessesToken(maximumAccessestoken);
+        tokenAccess.setDateTimeRegistered(LocalDateTime.now());
+
+        fileStorageAccessTokenRepository.saveAsync(tokenAccess);
+
+        return accessToken;
+    }
+
+    /**
+     * Recupera um arquivo da estrutura de armazenamento pelo ID apos a verificação do token de acesso.
+     * @param token - Token de acesso ao arquivo.
+     * @param user - Informações do usuário (opcional)
+     * @return Arquivo recuperado ou nulo se não existir.
+     * @throws ApiBusinessException - Erro de negócio.
+     */
+    public FileStorage getFileByToken(String token, UserAccessModel user) throws ApiBusinessException {
+
+        if (token == null ||  token.isEmpty())
+            throw new ApiBusinessException("Token de acesso inválido ou não informado.");
+
+        FileStorageAccessToken accessToken = fileStorageAccessTokenRepository.findByAccessToken(token).orElse(null);;
+        if (accessToken == null)
+            throw new ApiBusinessException("Token de acesso inválido ou não existente.");
+
+        if (accessToken.getTokenExpirationTime() != 0)
+        {//Verificar se o token está expirado...
+
+            LocalDateTime dateTimeExpiration = accessToken.getDateTimeRegistered()
+                    .plusMinutes(accessToken.getMaximumAccessesToken());
+
+            if (dateTimeExpiration.isAfter(LocalDateTime.now()))
+                throw new ApiBusinessException(String.format("Token de acesso expirado em [%s].",
+                        HelperFormat.formatDateTime(dateTimeExpiration, "dd/MM/yyyy HH:mm:ss")));
+
+        }
+
+        if (accessToken.getMaximumAccessesToken() != 0)
+        {//Verificar se o token já chegou a quantidade máxima de acessos.
+
+            int numberAccessestoken = fileStorageLogAccessRepository.countByUserName(accessToken.getAccessToken());
+            if (numberAccessestoken >= accessToken.getMaximumAccessesToken())
+                throw new ApiBusinessException(
+                        String.format("Token de acesso com limite de acesso máximo [%s].", numberAccessestoken));
+        }
+
+        if (user == null)
+            user = new UserAccessModel();
+        user.setUserName(accessToken.getAccessToken());
+
+        return getFile(accessToken.getIdFile(), user);
+
+    }
 }

@@ -15,6 +15,7 @@ public class FileStorageLogAccess {
 
     /**
      * Nome do usuário que está acessando o arquivo.
+     * Caso seja um acesso de token será o chave do token;
      */
     private String userName;
 
@@ -32,6 +33,11 @@ public class FileStorageLogAccess {
      * Data e hora do registro de acesso ao arquivo no armazenamento.
      */
     private LocalDateTime dateTimeRegisteredAccess;
+
+    /**
+     * Canal de acesso do usuário, Site, Mobile, Chat.
+     */
+    private String accessChanel;
 
     /**
      * Relacionamento com um arquivo do armazenamento.

@@ -11,25 +11,19 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.time.format.DateTimeFormatter;
 
 @Service
 public class QrCodeService {
     private static final int QR_SIZE    = 320;
-    private static final int PADDING_Y  = 20;   // espaço para legenda abaixo
-    private static final Font FONT      = new Font("SansSerif", Font.PLAIN, 14);
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final int PADDING_Y  = 10;   // espaço para legenda abaixo
+    private static final Font FONT      = new Font("SansSerif", Font.PLAIN, 8);
 
     /**
      * @param link         URL completo para o download (com token, etc.)
      * @param fileName     "foto.webp"
-     * @param sizeInBytes  tamanho para exibição
-     * @param uploadedAt   data de upload (LocalDateTime ou null)
      */
     public byte[] createQrImage(String link,
-                                String fileName,
-                                long   sizeInBytes,
-                                java.time.LocalDateTime uploadedAt) throws Exception {
+                                String fileName) throws Exception {
 
         /* 1) Gera QR (BitMatrix) */
         var hints = java.util.Map.of(
@@ -54,13 +48,6 @@ public class QrCodeService {
         g.setFont(FONT);
         int y = QR_SIZE + PADDING_Y;
         g.drawString(fileName, 10, y);
-
-        String sizeHuman = humanSize(sizeInBytes);
-        g.drawString(sizeHuman, 10, y + PADDING_Y);
-
-        if (uploadedAt != null) {
-            g.drawString(DATE_FMT.format(uploadedAt), 10, y + PADDING_Y * 2);
-        }
         g.dispose();
 
         /* 4) Converte para PNG in-memory */
@@ -68,12 +55,6 @@ public class QrCodeService {
             ImageIO.write(canvas, "png", baos);
             return baos.toByteArray();
         }
-    }
-
-    private static String humanSize(long bytes) {
-        if (bytes < 1024) return bytes + " B";
-        int exp = (int) (Math.log(bytes) / Math.log(1024));
-        return String.format("%.1f %cB", bytes / Math.pow(1024, exp), "KMGTPE".charAt(exp - 1));
     }
 
 }

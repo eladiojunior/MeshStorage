@@ -198,10 +198,6 @@ public class FileUtil {
         "application/zip", "application/x-zip-compressed", "application/gzip",
         "application/x-7z-compressed", "application/x-rar-compressed", "application/x-bzip2",
         "application/x-xz", "application/x-tar",
-        // Office Open XML já é ZIP internamente
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",      // .docx
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",            // .xlsx
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         // PDF costuma conter compressão interna
         "application/pdf"
     );
