@@ -92,6 +92,15 @@ $ mvn spring-boot:run
 | `GET`     | `api/server/list`            | Lista todos os Server Storages para armazenamento de arquivos físicos.                    |
 | `GET`     | `api/server/best`            | Obter o melhor Server Storage para armazenamento de arquivos físicos.                     |
 
+#### Cabeçalhos de auditoria
+
+| Header             | Obrig? | Exemplo         | Observação                                   |
+|--------------------|--------|-----------------|----------------------------------------------|
+| X‑User‑Name        | não¹   | `eladio.junior` | Preenchido automaticamente no Gateway caso JWT possua `sub`. |
+| X‑Access‑Channel   | não    | `Mobile`        | `{Site, Mobile, Chat}` – ajuda na segmentação de relatórios. |
+
+¹ Se o usuário é autenticado via JWT/Spring Security, o filtro extrai o `Principal` quando o header vem vazio.
+
 ### 🔹 WebSocket (Comunicação em Tempo Real)
 - **Conectar:** `ws://localhost:3001/server-storage-websocket`
 - **Mensagens suportadas:**

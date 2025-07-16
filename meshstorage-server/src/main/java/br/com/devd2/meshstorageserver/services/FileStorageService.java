@@ -79,11 +79,10 @@ public class FileStorageService {
     /**
      * Recupera um arquivo pelo seu Identificador externo.
      * @param idFile - Identificador para recuperação do arquivo no Storage.
-     * @param user - Informações do usuário (opcional)
      * @return Arquivo recuperado ou nulo se não existir.
      * @throws ApiBusinessException - Erro de negócio.
      */
-    public FileStorage getFile(String idFile, UserAccessModel user) throws ApiBusinessException {
+    public FileStorage getFile(String idFile) throws ApiBusinessException {
 
         if (idFile == null || idFile.isEmpty())
             throw new ApiBusinessException("Id File (chave do arquivo) não pode ser nulo ou vazio.");
@@ -130,9 +129,6 @@ public class FileStorageService {
 
             fileStorage.setFileContent(bytesFile);
 
-            //Registrar histórico de acesso ao arquivo...
-            RegisterFileAccessHistory(fileStorage, user);
-
             return fileStorage;
 
         } catch (ApiBusinessException error) {
@@ -148,34 +144,6 @@ public class FileStorageService {
             throw new ApiBusinessException("Erro não esperado: " + error.getMessage());
         }
 
-    }
-
-    /**
-     * Resposável por registrar as informações de acesso ao arquivo no histórico.
-     * Não teve afetar o processamento de recuperação do arquivo, caso ocorra erro deve registrar e
-     * seguir com o processamento.
-     * @param fileStorage - Informações do arquivo acessado.
-     * @param user - Informações do usuário que está acessando o arquivo.
-     */
-    private void RegisterFileAccessHistory(FileStorage fileStorage, UserAccessModel user) {
-
-        try {
-
-            FileStorageLogAccess fileStorageAccessLog = new FileStorageLogAccess();
-            fileStorageAccessLog.setFileStorage(fileStorage);
-            if (user != null) {
-                fileStorageAccessLog.setUserName(user.getUserName());
-                fileStorageAccessLog.setIpUser(user.getIpUser());
-                fileStorageAccessLog.setUserAgent(user.getUserAgent());
-                fileStorageAccessLog.setAccessChanel(user.getAccessChanel());
-            }
-            fileStorageAccessLog.setDateTimeRegisteredAccess(LocalDateTime.now());
-
-            fileStorageLogAccessRepository.saveAsync(fileStorageAccessLog);
-
-        } catch (Exception error) {
-            log.error("Erro ao registrar acesso ao arquivo.", error);
-        }
     }
 
     /**
@@ -537,11 +505,10 @@ public class FileStorageService {
     /**
      * Recupera um arquivo da estrutura de armazenamento pelo ID apos a verificação do token de acesso.
      * @param token - Token de acesso ao arquivo.
-     * @param user - Informações do usuário (opcional)
      * @return Arquivo recuperado ou nulo se não existir.
      * @throws ApiBusinessException - Erro de negócio.
      */
-    public FileStorage getFileByToken(String token, UserAccessModel user) throws ApiBusinessException {
+    public FileStorage getFileByToken(String token) throws ApiBusinessException {
 
         if (token == null ||  token.isEmpty())
             throw new ApiBusinessException("Token de acesso inválido ou não informado.");
@@ -571,11 +538,7 @@ public class FileStorageService {
                         String.format("Token de acesso com limite de acesso máximo [%s].", numberAccessestoken));
         }
 
-        if (user == null)
-            user = new UserAccessModel();
-        user.setUserName(accessToken.getAccessToken());
-
-        return getFile(accessToken.getIdFile(), user);
+        return getFile(accessToken.getIdFile());
 
     }
 }

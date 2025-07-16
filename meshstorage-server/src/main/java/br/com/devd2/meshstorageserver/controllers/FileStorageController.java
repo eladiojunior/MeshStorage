@@ -5,6 +5,7 @@ import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.response.ErrorResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStorageResponse;
+import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
 import br.com.devd2.meshstorageserver.models.response.QrCodeFileResponse;
 import br.com.devd2.meshstorageserver.services.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -108,7 +109,7 @@ public class FileStorageController {
 
     @Operation(summary = "Lista de arquivos do ServerStorage", description = "Lista os arquivos de uma aplicação (nome) de forma paginada.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de arquivos recuperados da aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
+            @ApiResponse(responseCode = "200", description = "Lista de arquivos recuperados da aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ListFileStorageResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/list")
@@ -176,9 +177,9 @@ public class FileStorageController {
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/qrcode/{idFile}")
     public ResponseEntity<?> qr_code(@PathVariable String idFile,
-                                     @RequestParam(name="tokenExpirationTime", defaultValue="30")
-                                        @Parameter(description = "Tempo de expiração do token de acesso (em minutos), se 0 nunca expira.") long tokenExpirationTime,
-                                     @RequestParam(name="maximumAccessestoken", defaultValue="5")
+                                     @RequestParam(name="tokenExpirationTime", defaultValue="0")
+                                        @Parameter(description = "Tempo de expiração do token de acesso (em minutos), se 0 nunca expira.") Long tokenExpirationTime,
+                                     @RequestParam(name="maximumAccessestoken", defaultValue="0")
                                          @Parameter(description = "Quantidade máxima de acesso ao arquivo por token, se 0 sem limite.") int maximumAccessestoken) {
         try {
             var qrcode = fileStorageService.generateQrCode(idFile, tokenExpirationTime, maximumAccessestoken);
@@ -197,8 +198,8 @@ public class FileStorageController {
             @ApiResponse(responseCode = "200", description = "Bytes do arquivo recuperado com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @GetMapping("/link")
-    public ResponseEntity<?> download_link(@RequestParam("token")
+    @GetMapping("/link/{token}")
+    public ResponseEntity<?> download_link(@PathVariable("token")
                                            @Parameter(description = "Token (chave acesso) ao arquivo para download") String token) {
         try {
             FileStorage file = fileStorageService.getFileByToken(token);

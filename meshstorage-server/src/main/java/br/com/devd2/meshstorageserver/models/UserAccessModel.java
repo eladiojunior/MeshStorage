@@ -4,6 +4,14 @@ import lombok.Data;
 
 @Data
 public class UserAccessModel {
+
+    public UserAccessModel(String userName, String ipUser, String userAgent, String accessChanel) {
+        this.userName = userName;
+        this.ipUser = ipUser;
+        this.userAgent = userAgent;
+        this.accessChanel = accessChanel;
+    }
+
     /**
      * Nome do usuário que está acessando.
      */
