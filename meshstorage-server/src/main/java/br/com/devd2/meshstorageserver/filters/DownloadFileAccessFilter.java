@@ -41,7 +41,9 @@ public class DownloadFileAccessFilter extends OncePerRequestFilter {
 
         if (response.getStatus() == 200) {
 
+
             FileStorage fileStorage = null;
+            String userName = null;
             if (request.getRequestURI().startsWith("/api/v1/file/download/")) {
                 String idFile = request.getRequestURI().replace("/api/v1/file/download/", "").trim();
                 fileStorage = fileStorageRepository.findByIdFile(idFile).orElse(null);
@@ -51,14 +53,18 @@ public class DownloadFileAccessFilter extends OncePerRequestFilter {
                         .findByAccessToken(token).orElse(null);
                 if (accessToken != null)
                     fileStorage = fileStorageRepository.findByIdFile(accessToken.getIdFile()).orElse(null);
+                //No caso de accesso via Token, registrar o usuário como sendo o Token.
+                userName = token;
             }
 
             if (fileStorage == null)
                 return;
 
-            String userName = Optional.ofNullable(request.getHeader("X-User-Name"))
-                    .orElseGet(() -> request.getUserPrincipal() != null
-                            ? request.getUserPrincipal().getName() : "anonymous");
+            if (userName == null || userName.isEmpty()) {
+                userName = Optional.ofNullable(request.getHeader("X-User-Name"))
+                        .orElseGet(() -> request.getUserPrincipal() != null
+                                ? request.getUserPrincipal().getName() : "anonymous");
+            }
             String ip = extractClientIp(request);
             String channel = Optional.ofNullable(request.getHeader("X-Access-Channel")).orElse("unknown");
             String userAgent = request.getHeader("User-Agent");

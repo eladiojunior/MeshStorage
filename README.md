@@ -92,7 +92,7 @@ $ mvn spring-boot:run
 | `GET`     | `api/server/list`            | Lista todos os Server Storages para armazenamento de arquivos físicos.                    |
 | `GET`     | `api/server/best`            | Obter o melhor Server Storage para armazenamento de arquivos físicos.                     |
 
-#### Cabeçalhos de auditoria
+#### Cabeçalhos de identificação de usuário
 
 | Header             | Obrig? | Exemplo         | Observação                                   |
 |--------------------|--------|-----------------|----------------------------------------------|

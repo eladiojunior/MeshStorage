@@ -183,7 +183,7 @@ public class FileStorageController {
                                          @Parameter(description = "Quantidade máxima de acesso ao arquivo por token, se 0 sem limite.") int maximumAccessestoken) {
         try {
             var qrcode = fileStorageService.generateQrCode(idFile, tokenExpirationTime, maximumAccessestoken);
-            return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrcode.getImageQrCodeAcessFile());
+            return ResponseEntity.ok(qrcode);
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {

@@ -467,7 +467,7 @@ public class FileStorageService {
 
         QrCodeFileResponse response = new QrCodeFileResponse();
         String tokenPublic = generateTokenAccess(file, tokenExpirationTime, maximumAccessestoken);
-        String link = String.format(url_file_acess, idFile, tokenPublic);
+        String link = String.format(url_file_acess, tokenPublic);
         byte[] imagemQrCode = qrCodeService.createQrImage(link, file.getFileFisicalName());
 
         response.setIdFile(idFile);

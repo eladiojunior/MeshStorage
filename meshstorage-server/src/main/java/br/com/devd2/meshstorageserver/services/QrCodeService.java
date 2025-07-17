@@ -16,7 +16,7 @@ import java.io.ByteArrayOutputStream;
 public class QrCodeService {
     private static final int QR_SIZE    = 320;
     private static final int PADDING_Y  = 10;   // espaço para legenda abaixo
-    private static final Font FONT      = new Font("SansSerif", Font.PLAIN, 8);
+    private static final Font FONT      = new Font("SansSerif", Font.PLAIN, 10);
 
     /**
      * @param link         URL completo para o download (com token, etc.)
