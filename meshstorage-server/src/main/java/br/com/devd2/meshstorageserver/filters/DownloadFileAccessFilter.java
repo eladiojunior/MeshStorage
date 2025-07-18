@@ -1,8 +1,8 @@
 package br.com.devd2.meshstorageserver.filters;
 
 import br.com.devd2.meshstorageserver.entites.FileStorage;
-import br.com.devd2.meshstorageserver.entites.FileStorageAccessToken;
-import br.com.devd2.meshstorageserver.entites.FileStorageLogAccess;
+import br.com.devd2.meshstorageserver.entites.FileAccessToken;
+import br.com.devd2.meshstorageserver.entites.FileLogAccess;
 import br.com.devd2.meshstorageserver.models.UserAccessModel;
 import br.com.devd2.meshstorageserver.repositories.FileStorageAccessTokenRepository;
 import br.com.devd2.meshstorageserver.repositories.FileStorageLogAccessRepository;
@@ -49,7 +49,7 @@ public class DownloadFileAccessFilter extends OncePerRequestFilter {
                 fileStorage = fileStorageRepository.findByIdFile(idFile).orElse(null);
             } else if (request.getRequestURI().startsWith("/api/v1/file/link/")) {
                 String token = request.getRequestURI().replace("/api/v1/file/link/", "").trim();
-                FileStorageAccessToken accessToken = fileStorageAccessTokenRepository
+                FileAccessToken accessToken = fileStorageAccessTokenRepository
                         .findByAccessToken(token).orElse(null);
                 if (accessToken != null)
                     fileStorage = fileStorageRepository.findByIdFile(accessToken.getIdFile()).orElse(null);
@@ -95,7 +95,7 @@ public class DownloadFileAccessFilter extends OncePerRequestFilter {
 
         try {
 
-            FileStorageLogAccess fileStorageAccessLog = new FileStorageLogAccess();
+            FileLogAccess fileStorageAccessLog = new FileLogAccess();
             fileStorageAccessLog.setFileStorage(fileStorage);
             if (user != null) {
                 fileStorageAccessLog.setUserName(user.getUserName());

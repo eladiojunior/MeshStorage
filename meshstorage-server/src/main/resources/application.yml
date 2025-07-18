@@ -3,16 +3,6 @@
 server:
   port: ${SERVER_PORT}
 
-#spring:
-  # Variaveis de conexão com os bancos de dados
-  # -----------------------------------------------------
-  # MongoDB - Armazenar histórico de acessos
-#  data:
-#    mongodb:
-#      uri: mongodb://${DB_MONGO_SERVER}:${DB_MONGO_PORT}/${DB_MONGO_DBNAME}
-#      username: ${DB_MONGO_USERNAME}
-#      password: ${DB_MONGO_PASSWORD}
-
 # Configuração do tamanho máximo em MB=Megabytes do upload de arquivos
 limit-mb: ${LIMIT_MAX_UPLOADFILE_MB}
 
@@ -24,14 +14,17 @@ quality-compressed-webp: ${QUALITY_COMPRESSED_WEBP}
 
 spring:
   datasource:
-    url: jdbc:h2:mem:meshstorage-db
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${DB_URL_JDBC}
+    driver-class-name: ${DB_DRIVER_CLASS_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update  # update, create, create-drop
-    show-sql: false
+      ddl-auto: none  # update, create, create-drop, none
+    properties:
+      hibernate:
+        dialect: ${DB_JPA_DIALECT}
+    show-sql: ${DB_JPA_SHOW_SQL}   # true = imprime SQL no console
 
   servlet:
     multipart:

@@ -13,12 +13,10 @@ import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
 import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
-import br.com.devd2.meshstorageserver.entites.FileStorageAccessToken;
-import br.com.devd2.meshstorageserver.entites.FileStorageLogAccess;
+import br.com.devd2.meshstorageserver.entites.FileAccessToken;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperFormat;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
-import br.com.devd2.meshstorageserver.models.UserAccessModel;
 import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
@@ -112,7 +110,7 @@ public class FileStorageService {
         try {
 
             FileStorageClientDownload fileStorageClientDownload =
-                    webSocketMessaging.startFileDownloadClient(fileStorage.getIdClientStorage(), fileStorageMessage);
+                    webSocketMessaging.startFileDownloadClient(fileStorage.getIdServerStorageClient(), fileStorageMessage);
             if (fileStorageClientDownload.isError())
                 throw new ApiBusinessException(fileStorageClientDownload.getMessageError());
 
@@ -138,7 +136,7 @@ public class FileStorageService {
             throw new ApiBusinessException(error.getMessage());
         }
         catch (TimeoutException error) {
-            throw new ApiBusinessException("Erro de timeout do Storage ["+fileStorage.getIdClientStorage()+"] no download do arquivo.");
+            throw new ApiBusinessException("Erro de timeout do Storage ["+fileStorage.getIdServerStorageClient()+"] no download do arquivo.");
         }
         catch (Exception error) {
             throw new ApiBusinessException("Erro não esperado: " + error.getMessage());
@@ -241,12 +239,12 @@ public class FileStorageService {
 
             //Verificar qual o ClientStorage será utilizado...
             var bestStorage = serverStorageService.getBestServerStorage();
-            var idClientStorage = bestStorage.getIdClient();
+            var idClientStorage = bestStorage.getIdServerStorageClient();
 
             var fileStorageEntity = new FileStorage();
             fileStorageEntity.setApplication(application);
             fileStorageEntity.setIdFile(UUID.randomUUID().toString());
-            fileStorageEntity.setIdClientStorage(idClientStorage);
+            fileStorageEntity.setIdServerStorageClient(idClientStorage);
             fileStorageEntity.setApplicationStorageFolder(application.getApplicationName());
             fileStorageEntity.setFileLogicName(file.getOriginalFilename());
             fileStorageEntity.setFileFisicalName(nomeFisicoArquivo);
@@ -254,7 +252,7 @@ public class FileStorageService {
             fileStorageEntity.setFileContent(bytesFile);
             fileStorageEntity.setCompressedFileLength(lengthBytesCompressed);
             fileStorageEntity.setCompressedFileContent(fileCompressedContent);
-            fileStorageEntity.setFileCompressionInformation(fileCompressionInformation);
+            fileStorageEntity.setCompressionFileInformation(fileCompressionInformation);
             fileStorageEntity.setFileContentType(contentTypeFile);
             fileStorageEntity.setHashFileBytes(hashFileBytes);
             fileStorageEntity.setExtractionTextByOrcFormFile(hasExtractionTextByOrcFormFile);
@@ -338,7 +336,7 @@ public class FileStorageService {
         try {
 
             FileStorageClientStatus fileStorageClientStatus =
-                    webSocketMessaging.startFileDeleteClient(fileStorage.getIdClientStorage(), fileDeleteMessage);
+                    webSocketMessaging.startFileDeleteClient(fileStorage.getIdServerStorageClient(), fileDeleteMessage);
             if (fileStorageClientStatus.isError())
                 throw new ApiBusinessException(fileStorageClientStatus.getMessageError());
 
@@ -350,7 +348,7 @@ public class FileStorageService {
 
             //Atualiza a quantidade de arquivo no Server Storage e Aplicação...
             if (fileStorageClientStatus.getFileStatusCode() == FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode()) {
-                var serverStorage = serverStorageService.findByIdClient(fileStorage.getIdClientStorage());
+                var serverStorage = serverStorageService.findByIdClient(fileStorage.getIdServerStorageClient());
                 if (serverStorage != null)
                     serverStorageService.updateServerStorageTotalFile(serverStorage.getId(), false);
                 if (fileStorage.getApplication() != null)
@@ -489,7 +487,7 @@ public class FileStorageService {
 
         String accessToken = UUID.randomUUID().toString();
 
-        FileStorageAccessToken tokenAccess = new FileStorageAccessToken();
+        FileAccessToken tokenAccess = new FileAccessToken();
         tokenAccess.setIdFile(fileStorage.getIdFile());
         tokenAccess.setFileStorage(fileStorage);
         tokenAccess.setAccessToken(accessToken);
@@ -513,7 +511,7 @@ public class FileStorageService {
         if (token == null ||  token.isEmpty())
             throw new ApiBusinessException("Token de acesso inválido ou não informado.");
 
-        FileStorageAccessToken accessToken = fileStorageAccessTokenRepository.findByAccessToken(token).orElse(null);;
+        FileAccessToken accessToken = fileStorageAccessTokenRepository.findByAccessToken(token).orElse(null);;
         if (accessToken == null)
             throw new ApiBusinessException("Token de acesso inválido ou não existente.");
 

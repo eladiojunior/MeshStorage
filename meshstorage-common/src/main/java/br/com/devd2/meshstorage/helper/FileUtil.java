@@ -22,10 +22,6 @@ import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
 
-    public static String hashContent(String textContent) {
-        return null;
-    }
-
     /**
      * Aplicar um padrão HASH em um conteúdo de array de byte[]
      * @param data - Array de bytes para aplicar o HASH

@@ -46,10 +46,10 @@ public class WebSocketConnectListener implements
             var storage = serverStorageService.findByServerNameAndStorageName(serverName, storageName);
             if (storage != null) {
 
-                if (!Objects.equals(idClient, storage.getIdClient()))
+                if (!Objects.equals(idClient, storage.getIdServerStorageClient()))
                 {//Identificador diferente do registrado... atualizar...
-                    logger.info("Id Cliente será atualizado de [{}] para [{}].", storage.getIdClient(), idClient);
-                    idClient = storage.getIdClient();
+                    logger.info("Id Cliente será atualizado de [{}] para [{}].", storage.getIdServerStorageClient(), idClient);
+                    idClient = storage.getIdServerStorageClient();
                     serverStorageService.updateIdClientServerStorage(storage.getId(), idClient);
                 }
 
@@ -87,7 +87,7 @@ public class WebSocketConnectListener implements
 
             var result = serverStorageService.registerServerStorage(model);
 
-            logger.info("Cliente CONECTADO: Id={}, IdClient={}, ServerName={}, StorageName={}", result.getId(), result.getIdClient(), result.getServerName(), result.getStorageName());
+            logger.info("Cliente CONECTADO: Id={}, IdClient={}, ServerName={}, StorageName={}", result.getId(), result.getIdServerStorageClient(), result.getServerName(), result.getStorageName());
 
         } catch (Exception erro) {
             logger.error("Erro ao registrar ou atualizar o Storage.", erro);

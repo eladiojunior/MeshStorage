@@ -23,7 +23,7 @@ public class HelperMapper {
         }
         ServerStorageResponse response = new ServerStorageResponse();
         response.setId(serverStorage.getId());
-        response.setIdClient(serverStorage.getIdClient());
+        response.setIdClient(serverStorage.getIdServerStorageClient());
         response.setServerName(serverStorage.getServerName());
         response.setStorageName(serverStorage.getStorageName());
         response.setIpServer(serverStorage.getIpServer());
@@ -57,7 +57,7 @@ public class HelperMapper {
         response.setHashFileContentByOcr(fileStorage.getHashFileContentByOcr());
         response.setCompressedFileContent(fileStorage.isCompressedFileContent());
         response.setCompressedFileLength(fileStorage.getCompressedFileLength());
-        response.setFileCompressionInformation(fileStorage.getFileCompressionInformation());
+        response.setFileCompressionInformation(fileStorage.getCompressionFileInformation());
         response.setDateTimeRegisteredFileStorage(fileStorage.getDateTimeRegisteredFileStorage());
         response.setDateTimeRemovedFileStorage(fileStorage.getDateTimeRemovedFileStorage());
         response.setDateTimeBackupFileStorage(fileStorage.getDateTimeBackupFileStorage());

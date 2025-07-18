@@ -92,7 +92,7 @@ public class ServerStorageService {
             throw new ApiBusinessException(String.format("Existem um Server [%1s] e Storage [%2s] registrado.", model.getServeName(), model.getStorageName()));
 
         server = new ServerStorage();
-        server.setIdClient(model.getIdClient());
+        server.setIdServerStorageClient(model.getIdClient());
         server.setServerName(model.getServeName());
         server.setIpServer(model.getIpServer());
         server.setOsServer(model.getOsServer());
@@ -102,7 +102,7 @@ public class ServerStorageService {
         server.setTotalFiles(0L);
         server.setAvailable(true);
         server.setDateTimeAvailable(LocalDateTime.now());
-        server.setDateTimeServerStorage(LocalDateTime.now());
+        server.setDateTimeRegisteredServerStorage(LocalDateTime.now());
 
         return serverStorageRepository.save(server);
 
@@ -186,7 +186,7 @@ public class ServerStorageService {
         if (server == null)
             throw new ApiBusinessException("Server Storage não identificado para atualização do seu status.");
 
-        server.setIdClient(idClient);
+        server.setIdServerStorageClient(idClient);
 
         serverStorageRepository.save(server);
 
