@@ -20,12 +20,12 @@ public class ServerStorageService {
     }
 
     /**
-     * Recupera um ServerStorage pelo idClient.
-     * @param idClient - Identificador único do Client de Storage;
+     * Recupera um ServerStorage pelo idServerStorageClient.
+     * @param idServerStorageClient - Identificador único do Client de Storage;
      * @return ServerStorage ou nulo se não existir;
      */
-    public ServerStorage findByIdClient(String idClient) {
-        Optional<ServerStorage> serverStorage = serverStorageRepository.findByIdClient(idClient);
+    public ServerStorage findByIdServerStorageClient(String idServerStorageClient) {
+        Optional<ServerStorage> serverStorage = serverStorageRepository.findByIdServerStorageClient(idServerStorageClient);
         return serverStorage.orElse(null);
     }
 

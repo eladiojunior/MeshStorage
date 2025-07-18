@@ -237,14 +237,15 @@ public class FileStorageService {
                 }
             }
 
-            //Verificar qual o ClientStorage será utilizado...
+            //TODO Aqui verificar se a Aplicação tem necessidade de gerar replicas em mais de um servidor.
+            //Verificar qual o ServerStorageClient será utilizado...
             var bestStorage = serverStorageService.getBestServerStorage();
-            var idClientStorage = bestStorage.getIdServerStorageClient();
+            var idServerStorageClient = bestStorage.getIdServerStorageClient();
 
             var fileStorageEntity = new FileStorage();
             fileStorageEntity.setApplication(application);
             fileStorageEntity.setIdFile(UUID.randomUUID().toString());
-            fileStorageEntity.setIdServerStorageClient(idClientStorage);
+            fileStorageEntity.setIdServerStorageClient(idServerStorageClient);
             fileStorageEntity.setApplicationStorageFolder(application.getApplicationName());
             fileStorageEntity.setFileLogicName(file.getOriginalFilename());
             fileStorageEntity.setFileFisicalName(nomeFisicoArquivo);
@@ -269,7 +270,7 @@ public class FileStorageService {
             fileRegisterMessage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
 
             FileStorageClientStatus fileStorageClientStatus =
-                    webSocketMessaging.startFileRegisterClient(idClientStorage, fileRegisterMessage);
+                    webSocketMessaging.startFileRegisterClient(idServerStorageClient, fileRegisterMessage);
             if (fileStorageClientStatus.isError())
                 throw new ApiBusinessException(fileStorageClientStatus.getMessageError());
 
@@ -348,7 +349,7 @@ public class FileStorageService {
 
             //Atualiza a quantidade de arquivo no Server Storage e Aplicação...
             if (fileStorageClientStatus.getFileStatusCode() == FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode()) {
-                var serverStorage = serverStorageService.findByIdClient(fileStorage.getIdServerStorageClient());
+                var serverStorage = serverStorageService.findByIdServerStorageClient(fileStorage.getIdServerStorageClient());
                 if (serverStorage != null)
                     serverStorageService.updateServerStorageTotalFile(serverStorage.getId(), false);
                 if (fileStorage.getApplication() != null)
