@@ -22,33 +22,14 @@ O MeshStorage consiste em:
 
 ## 🏗️ Arquitetura
 
-```plaintext
-+---------------+       
-|  MeshStorage  | 
-|   Interface   | 
-+-------+-------+       
-        |                         
-+-------+-------+       +---------------+
-|  MeshStorage  | ----> |  MeshStorage  |
-|    Server     | <---- |    Clients    |
-+---------------+       +---------------+
-                                |         +------------------+
-                                +-------> | Server Storage 1 |
-                                |         +------------------+
-                                |         +------------------+
-                                +-------> | Server Storage 2 |
-                                |         +------------------+
-                                |         +------------------+
-                                +-------> | Server Storage 3 |
-                                          +------------------+                                  
-```
+![arquitetura-simplificada.png](documentos/arquitetura-simplificada.png)
 
 ## 📦 Instalação e Configuração
 
 ### 🔹 **Requisitos**
 - Java 17+
 - Spring Boot 3+
-- Banco de dados (H2/PostgreSQL)
+- Banco de dados (MySQL ou H2/PostgreSQL no DEV)
 - WebSockets e REST API habilitados
 
 ### 🔹 **Passo 1: Clonar o repositório**
@@ -66,38 +47,48 @@ O servidor inicia na porta `3001`.
 ### 🔹 **Passo 3: Iniciar os Clientes (Agents)**
 Nos file servers, execute:
 ```sh
-$ java -jar meshstorage-client.jar -url-websocket-server=ws://localhost:3001/server-storage-websocket -server-name=HOSTNAME -storage-name=STORAGE_X -storage-path=\storage\xpto
+$ java -jar meshstorage-client.jar -url-websocket-server=ws://localhost:3001/server-storage-websocket -server-name=HOSTNAME -storage-name=STORAGE_X -storage-path=C:\storage\xpto
 ```
+- **Parametros:**\
+- **-url-websocket-server** = URL do servidor que irá se conectar ao cliente.
+- **-server-name** = Nome do servidor (fileserver) que o cliente está sendo executado, obtido automaticamente, mas pode ser alterado pelo usuário.
+- **-storage-name** = Nome do armazenamento (storage) como podemos ter vários clientes sendo executados em uma mesmo servidor, gerado automaticamente, mas pode ser alterado pelo usuário.
+- **-storage-path** = Local de armazenamento (path) dos arquivos, dentro do servidor, pode ser um drive (C:, D:, etc.) ou pasta (C:\Temp, /mnt/data, etc.) específica.
+
 ### 🔹 **Passo 4: Iniciar o Dashboard (frontend)**
 ```sh
 $ mvn spring-boot:run
 ```
+A aplicação de frontend (dashboard) inicia na porta `3000`.
+http://localhost:3000/
 
 ## 🌐 Endpoints Principais
 ### 🔹 REST API 
 #### Swagger: http://localhost:3001/swagger-ui/index.html
 
-| Método    | Endpoint                     | Descrição                                                                                 |
-|-----------|------------------------------|-------------------------------------------------------------------------------------------|
-| `GET`     | `api/system/status`          | Verifica o status (saúde) e informações quantitativas do MeshStorage como um todo.        |
-| `POST`    | `api/app/register`           | Registrar uma aplicação que irá utilizar o servidor de armazenamento de arquivos físicos. |
-| `PUT`     | `api/app/update/{id}`        | Atualizar uma aplicação, pelo ID, para armazenamento de arquivos físicos.                 |
-| `GET`     | `api/app/list`               | Lista todas as aplicações para armazenamento de arquivos físicos.                         |
-| `DELETE`  | `api/app/remove/{id}`        | Remover (logicamente) uma aplicação do processo de armazemanto de arquivos físicos.       |
-| `POST`    | `api/file/upload`            | Registrar um arquivo no ServerStorage.                                                    |
-| `GET`     | `api/file/list`              | Lista os arquivos de uma aplicação (nome) de forma paginada.                              |
-| `GET`     | `api/file/listStatusCode`    | Lista os codigos/descrições dos status arquivos do ServerSorage.                          |
-| `GET`     | `api/file/download/{idFile}` | Baixa um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).        |
-| `DELETE`  | `api/file/delete/{idFile}`   | Remover um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).      |
-| `GET`     | `api/server/list`            | Lista todos os Server Storages para armazenamento de arquivos físicos.                    |
-| `GET`     | `api/server/best`            | Obter o melhor Server Storage para armazenamento de arquivos físicos.                     |
+| Método    | Endpoint                          | Descrição                                                                                 |
+|-----------|-----------------------------------|-------------------------------------------------------------------------------------------|
+| `GET`     | `api/v1/system/status`            | Verifica o status (saúde) e informações quantitativas do MeshStorage como um todo.        |
+| `POST`    | `api/v1/application/register`     | Registrar uma aplicação que irá utilizar o servidor de armazenamento de arquivos físicos. |
+| `PUT`     | `api/v1/application/update/{id}`  | Atualizar uma aplicação, pelo ID, para armazenamento de arquivos físicos.                 |
+| `GET`     | `api/v1/application/list`         | Lista todas as aplicações para armazenamento de arquivos físicos.                         |
+| `DELETE`  | `api/v1/application/remove/{id}`  | Remover (logicamente) uma aplicação do processo de armazemanto de arquivos físicos.       |
+| `POST`    | `api/v1/file/upload`              | Registrar um arquivo no ServerStorage.                                                    |
+| `GET`     | `api/v1/file/qrcode/{idFile}`     | Obter informações de acesso ao arquivo por link e imagem QR Code.                         |
+| `GET`     | `api/v1/file/list`                | Lista os arquivos de uma aplicação (nome) de forma paginada.                              |
+| `GET`     | `api/v1/file/listStatusCode`      | Lista os codigos/descrições dos status arquivos do ServerSorage.                          |
+| `GET`     | `api/v1/file/link/{token}`        | Baixa um arquivo do ServerStorage por um token de acesso, por link e imagem QR Code.      |
+| `GET`     | `api/v1/file/download/{idFile}`   | Baixa um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).        |
+| `DELETE`  | `api/v1/file/delete/{idFile}`     | Remover um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).      |
+| `GET`     | `api/v1/storage/list`             | Lista todos os Server Storages para armazenamento de arquivos físicos.                    |
+| `GET`     | `api/v1/storage/best`             | Obter o melhor Server Storage para armazenamento de arquivos físicos.                     |
 
 #### Cabeçalhos de identificação de usuário
 
-| Header             | Obrig? | Exemplo         | Observação                                   |
-|--------------------|--------|-----------------|----------------------------------------------|
-| X‑User‑Name        | não¹   | `eladio.junior` | Preenchido automaticamente no Gateway caso JWT possua `sub`. |
-| X‑Access‑Channel   | não    | `Mobile`        | `{Site, Mobile, Chat}` – ajuda na segmentação de relatórios. |
+| Header            | Obrig? | Exemplo         | Observação                                                    |
+|-------------------|--------|-----------------|---------------------------------------------------------------|
+| X‑User‑Name        | não¹   | `eladio.junior` | Preenchido automaticamente no Gateway caso JWT possua `sub`.  |
+| X‑Access‑Channel   | não    | `Mobile`        | `{Site, Mobile, Chat}` – ajuda na segmentação de relatórios.  |
 
 ¹ Se o usuário é autenticado via JWT/Spring Security, o filtro extrai o `Principal` quando o header vem vazio.
 
@@ -117,4 +108,4 @@ $ mvn spring-boot:run
 Este projeto é licenciado sob a **MIT License**.
 
 ## ✨ Contato
-📧 Email: eladiojunior@gmail.com (Aceito PIX)
+📧 Email: eladiojunior@gmail.com (Aceito PIX, qualquer valor $$$)

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity @Table(name = "TB_FILE_STORAGE")
@@ -24,12 +25,6 @@ public class FileStorage {
      */
     @Column(name = "CD_FILE_STORAGE_CLIENT")
     private String idFile; //Chave de identificação externa do arquivo.
-
-    /**
-     * Identificador do Storage para recuperação do arquivo.
-     */
-    @Column(name = "ID_SERVER_STORAGE_CLIENT")
-    private String idServerStorageClient; //Identificador do Client Storage que está armazenado.
 
     /**
      * Nome da estrutura de armazenamento do arquivo no Storage
@@ -149,5 +144,11 @@ public class FileStorage {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ID_APPLICATION")
     private Application application;
+
+    /**
+     * Relacionamento com os Server Storages
+     */
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<FileStorageClient> listFileStorageClient;
 
 }
