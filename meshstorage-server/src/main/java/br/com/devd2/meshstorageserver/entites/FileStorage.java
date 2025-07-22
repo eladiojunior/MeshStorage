@@ -148,7 +148,7 @@ public class FileStorage {
     /**
      * Relacionamento com os Server Storages
      */
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     private List<FileStorageClient> listFileStorageClient;
 
 }

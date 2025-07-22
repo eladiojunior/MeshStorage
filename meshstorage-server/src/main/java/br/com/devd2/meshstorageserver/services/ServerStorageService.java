@@ -39,8 +39,22 @@ public class ServerStorageService {
         List<ServerStorage> listServerStorage = serverStorageRepository.findByAvailableTrueOrderByFreeSpaceDesc();
         var server = listServerStorage.isEmpty() ? null : listServerStorage.get(0);
         if (server == null)
-            throw new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível.");
+            throw new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível no momento.");
         return server;
+    }
+
+    /**
+     * Responsável por recuperar o melhor storage disponível no momento
+     * para armazenamento das informações, que seja diferente do ID informado.
+     * @return ServerStoreage ou erro.
+     * @throws ApiBusinessException Erro de negócio.
+     */
+    public ServerStorage getBestServerStorage(String idServerStorageUse) throws ApiBusinessException {
+        List<ServerStorage> listServerStorage = serverStorageRepository.findByAvailableTrueOrderByFreeSpaceDesc();
+        if (listServerStorage.isEmpty())
+            throw new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível no momento.");
+        return listServerStorage.stream().filter(f ->
+                !f.getIdServerStorageClient().equals(idServerStorageUse)).findFirst().orElse(null);
     }
 
     /**

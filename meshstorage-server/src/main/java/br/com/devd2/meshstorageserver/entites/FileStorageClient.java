@@ -1,14 +1,14 @@
 package br.com.devd2.meshstorageserver.entites;
 
-import br.com.devd2.meshstorage.enums.ExtractionTextByOcrStatusEnum;
 import jakarta.persistence.*;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Data
 @Entity @Table(name = "TB_FILE_STORAGE_CLIENT")
 public class FileStorageClient {
+
+    public FileStorageClient() {
+    }
 
     public FileStorageClient(String idServerStorageClient) {
         this.idServerStorageClient = idServerStorageClient;

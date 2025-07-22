@@ -9,5 +9,6 @@
   "compressedFileContentToZip": true,
   "convertImageFileToWebp": true,
   "applyOcrFileContent": false,
-  "allowDuplicateFile": true
+  "allowDuplicateFile": true,
+  "requiresFileReplication": true
 }

@@ -229,12 +229,17 @@ public class FileStorageService {
                 }
             }
 
-            //TODO Aqui verificar se a Aplicação tem necessidade de gerar replicas em mais de um servidor.
             //Verificar qual o ServerStorageClient será utilizado...
             List<FileStorageClient> listFileStorageClient = new  ArrayList<>();
+
             var bestStorage = serverStorageService.getBestServerStorage();
-            var idServerStorageClient = bestStorage.getIdServerStorageClient();
-            listFileStorageClient.add(new FileStorageClient(idServerStorageClient));
+            listFileStorageClient.add(new FileStorageClient(bestStorage.getIdServerStorageClient()));
+            if (application.isRequiresFileReplication())
+            {//Recuperar mais um ServerStorage para Replicação, se existir.
+                var bestStorageReplica = serverStorageService.getBestServerStorage(bestStorage.getIdServerStorageClient());
+                if (bestStorageReplica!=null)
+                    listFileStorageClient.add(new FileStorageClient(bestStorageReplica.getIdServerStorageClient()));
+            }
 
             var fileStorageEntity = new FileStorage();
             fileStorageEntity.setApplication(application);
@@ -562,6 +567,8 @@ public class FileStorageService {
                     return result;
 
                 //Guarda para lançar depois, mas só se não houver mais tentativas.
+                log.warn("Erro no downlod do arquivo {} no ServerStorageClient {}, tentar no próximo Storage.",
+                        fileStorageMessage.getFileName(), client.getIdServerStorageClient());
                 lastError = new ApiBusinessException(result.getMessageError());
 
                 //Verificar se existe uma replica para recperar.

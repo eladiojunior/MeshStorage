@@ -51,6 +51,7 @@ public class ApplicationService {
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
         application.setMaximumFileSizeMB(request.getMaximumFileSizeMB());
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
+        application.setRequiresFileReplication(request.isRequiresFileReplication());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());
         application.setCompressedFileContentToZip(request.isCompressedFileContentToZip());
         application.setConvertImageFileToWebp(request.isConvertImageFileToWebp());
@@ -92,6 +93,7 @@ public class ApplicationService {
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
         application.setMaximumFileSizeMB(request.getMaximumFileSizeMB());
         application.setAllowDuplicateFile(request.isAllowDuplicateFile());
+        application.setRequiresFileReplication(request.isRequiresFileReplication());
         application.setCompressedFileContentToZip(request.isCompressedFileContentToZip());
         application.setConvertImageFileToWebp(request.isConvertImageFileToWebp());
         application.setApplyOcrFileContent(request.isApplyOcrFileContent());

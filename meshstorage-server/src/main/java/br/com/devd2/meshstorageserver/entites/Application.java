@@ -60,6 +60,12 @@ public class Application {
     @Column(name = "IS_ALLOW_DUPLICATE_FILE", nullable = false)
     private boolean allowDuplicateFile;
     /**
+     * Verificar se aplicação requer replicação do arquivo em outro servidor de arquivos;
+     * Para replicar será necessário ter mais de um ServerStorage (Client) ativo no sistrma.
+     */
+    @Column(name = "IS_REQUIRES_FILE_REPLICATION", nullable = false)
+    private boolean requiresFileReplication;
+    /**
      * Quantidade total de arquivos armazenados na aplicação.
      */
     @Column(name = "QT_TOTAL_FILES_APPLICATION", nullable = false)

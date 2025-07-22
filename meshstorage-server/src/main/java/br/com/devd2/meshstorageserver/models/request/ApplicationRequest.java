@@ -39,4 +39,10 @@ public class ApplicationRequest {
      */
     private boolean allowDuplicateFile = true;
 
+    /**
+     * Verificar se aplicação requer replicação do arquivo em outro servidor de arquivos;
+     * Para replicar será necessário ter mais de um ServerStorage (Client) ativo no sistrma.
+     */
+    private boolean requiresFileReplication = false;
+
 }
