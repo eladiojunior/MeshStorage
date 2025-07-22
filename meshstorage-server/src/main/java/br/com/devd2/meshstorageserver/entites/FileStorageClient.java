@@ -10,6 +10,10 @@ import java.time.LocalDateTime;
 @Entity @Table(name = "TB_FILE_STORAGE_CLIENT")
 public class FileStorageClient {
 
+    public FileStorageClient(String idServerStorageClient) {
+        this.idServerStorageClient = idServerStorageClient;
+    }
+
     /**
      * Identificador único do arquivo no banco de dados.
      * Gerado automaticamente

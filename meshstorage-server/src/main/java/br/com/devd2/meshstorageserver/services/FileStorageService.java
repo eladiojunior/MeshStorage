@@ -14,6 +14,7 @@ import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
 import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.entites.FileAccessToken;
+import br.com.devd2.meshstorageserver.entites.FileStorageClient;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperFormat;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
@@ -109,10 +110,7 @@ public class FileStorageService {
         fileStorageMessage.setApplicationStorageFolder(fileStorage.getApplicationStorageFolder());
         try {
 
-            FileStorageClientDownload fileStorageClientDownload =
-                    webSocketMessaging.startFileDownloadClient(fileStorage.getIdServerStorageClient(), fileStorageMessage);
-            if (fileStorageClientDownload.isError())
-                throw new ApiBusinessException(fileStorageClientDownload.getMessageError());
+            var fileStorageClientDownload = downloadFileStorageClient(fileStorage.getListFileStorageClient(), fileStorageMessage);
 
             //Carregar os dados do arquivo.
             byte[] bytesFile = FileBase64Util.base64ToBytes(fileStorageClientDownload.getDataBase64());
@@ -131,12 +129,6 @@ public class FileStorageService {
 
         } catch (ApiBusinessException error) {
             throw error;
-        }
-        catch (InterruptedException | ExecutionException error) {
-            throw new ApiBusinessException(error.getMessage());
-        }
-        catch (TimeoutException error) {
-            throw new ApiBusinessException("Erro de timeout do Storage ["+fileStorage.getIdServerStorageClient()+"] no download do arquivo.");
         }
         catch (Exception error) {
             throw new ApiBusinessException("Erro não esperado: " + error.getMessage());
@@ -239,13 +231,15 @@ public class FileStorageService {
 
             //TODO Aqui verificar se a Aplicação tem necessidade de gerar replicas em mais de um servidor.
             //Verificar qual o ServerStorageClient será utilizado...
+            List<FileStorageClient> listFileStorageClient = new  ArrayList<>();
             var bestStorage = serverStorageService.getBestServerStorage();
             var idServerStorageClient = bestStorage.getIdServerStorageClient();
+            listFileStorageClient.add(new FileStorageClient(idServerStorageClient));
 
             var fileStorageEntity = new FileStorage();
             fileStorageEntity.setApplication(application);
             fileStorageEntity.setIdFile(UUID.randomUUID().toString());
-            fileStorageEntity.setIdServerStorageClient(idServerStorageClient);
+            fileStorageEntity.setListFileStorageClient(listFileStorageClient);
             fileStorageEntity.setApplicationStorageFolder(application.getApplicationName());
             fileStorageEntity.setFileLogicName(file.getOriginalFilename());
             fileStorageEntity.setFileFisicalName(nomeFisicoArquivo);
@@ -269,11 +263,10 @@ public class FileStorageService {
             fileRegisterMessage.setApplicationStorageFolder(fileStorageEntity.getApplicationStorageFolder());
             fileRegisterMessage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
 
-            FileStorageClientStatus fileStorageClientStatus =
-                    webSocketMessaging.startFileRegisterClient(idServerStorageClient, fileRegisterMessage);
-            if (fileStorageClientStatus.isError())
-                throw new ApiBusinessException(fileStorageClientStatus.getMessageError());
+            FileStorageClientStatus fileStorageClientStatus = uploadFileStorageClient(listFileStorageClient, fileRegisterMessage);
+            fileStorageEntity.setListFileStorageClient(listFileStorageClient);
 
+            //Atualizar o status do arquivo...
             fileStorageEntity.setFileStatusCode(fileStorageClientStatus.getFileStatusCode());
 
             //Gravar status...
@@ -336,10 +329,8 @@ public class FileStorageService {
 
         try {
 
-            FileStorageClientStatus fileStorageClientStatus =
-                    webSocketMessaging.startFileDeleteClient(fileStorage.getIdServerStorageClient(), fileDeleteMessage);
-            if (fileStorageClientStatus.isError())
-                throw new ApiBusinessException(fileStorageClientStatus.getMessageError());
+            var listFileStorageClient = fileStorage.getListFileStorageClient();
+            var fileStorageClientStatus = deleteFileStorageClient(listFileStorageClient, fileDeleteMessage);
 
             fileStorage.setDateTimeRemovedFileStorage(LocalDateTime.now());
             fileStorage.setFileStatusCode(fileStorageClientStatus.getFileStatusCode());
@@ -349,9 +340,11 @@ public class FileStorageService {
 
             //Atualiza a quantidade de arquivo no Server Storage e Aplicação...
             if (fileStorageClientStatus.getFileStatusCode() == FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode()) {
-                var serverStorage = serverStorageService.findByIdServerStorageClient(fileStorage.getIdServerStorageClient());
-                if (serverStorage != null)
-                    serverStorageService.updateServerStorageTotalFile(serverStorage.getId(), false);
+                for (FileStorageClient client : listFileStorageClient) {
+                    var serverStorage = serverStorageService.findByIdServerStorageClient(client.getIdServerStorageClient());
+                    if (serverStorage != null)
+                        serverStorageService.updateServerStorageTotalFile(serverStorage.getId(), false);
+                }
                 if (fileStorage.getApplication() != null)
                     applicationService.updateApplicationTotalFile(fileStorage.getApplication().getId(), false);
             }
@@ -540,4 +533,175 @@ public class FileStorageService {
         return getFile(accessToken.getIdFile());
 
     }
+
+
+    /**
+     * Responsável por recupera um arquivo do Storage em caso de replica acessar o que tiver o arquivo.
+     * @param listFileStorageClient - Lista de Storages que o arquivo está.
+     * @param fileStorageMessage - Informações do arquivo a ser recuperado no Storage.
+     * @return instância do download do arquivo.
+     */
+    private FileStorageClientDownload downloadFileStorageClient(List<FileStorageClient> listFileStorageClient,
+                                                                FileDownloadMessage fileStorageMessage) throws ApiBusinessException {
+
+        boolean hasReplica = listFileStorageClient.size() > 1;
+        ApiBusinessException lastError = null;
+        String idServerStorageClient = "";
+
+        try {
+
+            for (FileStorageClient client : listFileStorageClient) {
+
+                idServerStorageClient = client.getIdServerStorageClient();
+
+                FileStorageClientDownload result =
+                        webSocketMessaging.startFileDownloadClient(idServerStorageClient, fileStorageMessage);
+
+                //Verificar se teve sucesso, e não precisa acionar as replicas, se existir.
+                if (!result.isError())
+                    return result;
+
+                //Guarda para lançar depois, mas só se não houver mais tentativas.
+                lastError = new ApiBusinessException(result.getMessageError());
+
+                //Verificar se existe uma replica para recperar.
+                if (!hasReplica)
+                    break;
+
+            }
+
+            throw lastError != null ? lastError :
+                    new ApiBusinessException("Falha em todas tentativas de realizar o download do arquivo.");
+
+        } catch (InterruptedException | ExecutionException error) {
+            throw new ApiBusinessException(error.getMessage());
+        }
+        catch (TimeoutException error) {
+            throw new ApiBusinessException("Erro de timeout do Storage ["+idServerStorageClient+"] no download do arquivo.");
+        }
+
+    }
+
+    /**
+     * Responsável por realizar o upload do arquivo em todas as replicas de Storage,
+     * objetivo é armazenar em pelo menos um Storage.
+     * @param listFileStorageClient - Lista de Storage para upload do arquivo.
+     * @param fileRegisterMessage - Informações do arquivo para upload nos Storages.
+     * @return Status do Upload do aquivo nos Storages.
+     */
+    private FileStorageClientStatus uploadFileStorageClient(List<FileStorageClient> listFileStorageClient,
+                                                            FileRegisterMessage fileRegisterMessage) throws ApiBusinessException {
+
+        boolean hasReplica = listFileStorageClient.size() > 1;
+        ApiBusinessException lastError = null;
+        String idServerStorageClient;
+        List<String> idServerStorageClientErrors = new ArrayList<>();
+        FileStorageClientStatus resultSuccess = null;
+
+        for (FileStorageClient client : listFileStorageClient) {
+
+            idServerStorageClient
+                    = client.getIdServerStorageClient();
+
+            try {
+
+                FileStorageClientStatus lastResult = webSocketMessaging.startFileRegisterClient(idServerStorageClient, fileRegisterMessage);
+                if (lastResult.isError()) {
+                    idServerStorageClientErrors.add(idServerStorageClient);
+                    lastError = new ApiBusinessException(lastResult.getMessageError());
+                    if (hasReplica) {
+                        log.warn("Erro no upload no arquivo {} no ServerStorageClient {}, tentar no próximo Storage.",
+                                fileRegisterMessage.getFileName(), client.getIdServerStorageClient());
+                    }
+                } else
+                    resultSuccess = lastResult;
+
+            } catch (InterruptedException | ExecutionException error) {
+                lastError = new ApiBusinessException(error.getMessage());
+                idServerStorageClientErrors.add(idServerStorageClient);
+            }
+            catch (TimeoutException error) {
+                lastError = new ApiBusinessException("Erro de timeout do Storage [" + idServerStorageClient +
+                        "] no upload do arquivo.");
+                idServerStorageClientErrors.add(idServerStorageClient);
+            }
+
+        }
+
+        if (!idServerStorageClientErrors.isEmpty()) {
+            if (idServerStorageClientErrors.size() == listFileStorageClient.size()) {//Todos as tentativas de uploads falharam...
+                throw lastError != null ? lastError :
+                        new ApiBusinessException("Falha em todas tentativas de realizar o upload do arquivo.");
+            }
+            else
+            {//Remover os ServerStorageClient que deram erro...
+                listFileStorageClient.removeIf(f -> idServerStorageClientErrors.contains(f.getIdServerStorageClient()));
+            }
+        }
+
+        return resultSuccess;
+
+    }
+
+    /**
+     * Responsável por remover o arquivo de todos os Storages, mestre e suas replicas.
+     * @param listFileStorageClient - Lista de Storage para remoção do arquivo.
+     * @param fileDeleteMessage - Informções do arquivo para realizar a remoção dos Storages.
+     * @return Status da Remoção do aquivo dos Storages.
+     */
+    private FileStorageClientStatus deleteFileStorageClient(List<FileStorageClient> listFileStorageClient,
+                                                            FileDeleteMessage fileDeleteMessage) throws ApiBusinessException {
+
+        ApiBusinessException lastError = null;
+        String idServerStorageClient;
+        List<String> idServerStorageClientErrors = new ArrayList<>();
+        FileStorageClientStatus resultSuccess = null;
+
+        for (FileStorageClient client : listFileStorageClient) {
+
+            idServerStorageClient
+                    = client.getIdServerStorageClient();
+
+            try {
+
+                FileStorageClientStatus lastResult = webSocketMessaging.startFileDeleteClient(idServerStorageClient, fileDeleteMessage);
+                if (lastResult.isError()) {
+                    idServerStorageClientErrors.add(idServerStorageClient);
+                    lastError = new ApiBusinessException(lastResult.getMessageError());
+                } else
+                    resultSuccess = lastResult;
+
+            } catch (InterruptedException | ExecutionException error) {
+                lastError = new ApiBusinessException(error.getMessage());
+                idServerStorageClientErrors.add(idServerStorageClient);
+            }
+            catch (TimeoutException error) {
+                lastError = new ApiBusinessException("Erro de timeout do Storage [" + idServerStorageClient +
+                        "] na remoção do arquivo.");
+                idServerStorageClientErrors.add(idServerStorageClient);
+            }
+
+        }
+
+        if (!idServerStorageClientErrors.isEmpty()) {
+            if (idServerStorageClientErrors.size() == listFileStorageClient.size())
+            {//Todos as tentativas de delete falharam...
+                throw lastError != null ? lastError :
+                        new ApiBusinessException("Falha em todas tentativas de realizar a remoção do arquivo.");
+            }
+            else
+            {//Remover os ServerStorageClient que deram erro...
+                listFileStorageClient.removeIf(f -> idServerStorageClientErrors.contains(f.getIdServerStorageClient()));
+                for (String idServerStorageClientError : idServerStorageClientErrors) {
+                    log.warn("Erro na remoção do arquivo {} do ServerStorageClient {}, verifique o Storage.",
+                            fileDeleteMessage.getFileName(), idServerStorageClientError);
+
+                }
+            }
+        }
+
+        return resultSuccess;
+
+    }
+
 }
