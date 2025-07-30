@@ -12,4 +12,6 @@ public interface ServerStorageRepository extends JpaRepository<ServerStorage, Lo
     List<ServerStorage> findByServerName(String serverName);
     List<ServerStorage> findByAvailableTrue();
     Optional<ServerStorage> findByIdServerStorageClient(String idServerStorageClient);
+
+    List<ServerStorage> findByServerStorageStatusCode(Integer serverStorageStatusCode);
 }

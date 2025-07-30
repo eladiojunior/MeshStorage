@@ -61,7 +61,7 @@ public class Application {
     private boolean allowDuplicateFile;
     /**
      * Verificar se aplicação requer replicação do arquivo em outro servidor de arquivos;
-     * Para replicar será necessário ter mais de um ServerStorage (Client) ativo no sistrma.
+     * Para replicar será necessário ter mais de um ServerStorage (Client) ativo no sistema.
      */
     @Column(name = "IS_REQUIRES_FILE_REPLICATION", nullable = false)
     private boolean requiresFileReplication;

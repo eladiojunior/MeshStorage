@@ -4,6 +4,7 @@ import br.com.devd2.meshstorageserver.entites.Application;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.models.StatusMeshStorageModel;
+import br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum;
 import br.com.devd2.meshstorageserver.models.response.*;
 
 import java.util.List;
@@ -28,10 +29,13 @@ public class HelperMapper {
         response.setStorageName(serverStorage.getStorageName());
         response.setIpServer(serverStorage.getIpServer());
         response.setOsServer(serverStorage.getOsServer());
-        response.setFreeSpace(serverStorage.getFreeSpace());
-        response.setTotalSpace(serverStorage.getTotalSpace());
-        response.setAvailable(serverStorage.isAvailable());
-        response.setDateTimeAvailable(serverStorage.getDateTimeAvailable());
+        response.setFreeSpace(serverStorage.getMetrics().getFreeSpace());
+        response.setTotalSpace(serverStorage.getMetrics().getTotalSpace());
+        response.setTotalFiles(serverStorage.getMetrics().getTotalFiles());
+        response.setStatusCode(serverStorage.getServerStorageStatusCode());
+        response.setStatusDescription(ServerStorageStatusEnum.getValue(serverStorage.getServerStorageStatusCode()));
+        response.setDateTimeRegistered(serverStorage.getDateTimeRegisteredServerStorage());
+        response.setDateTimeRemoved(serverStorage.getDateTimeRemovedServerStorage());
         return response;
     }
 

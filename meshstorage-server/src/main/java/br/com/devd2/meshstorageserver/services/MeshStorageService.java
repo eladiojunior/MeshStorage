@@ -32,7 +32,7 @@ public class MeshStorageService {
             return statusMeshStorageModel;
         }
         long totalServerStorage = listServerStorages.size();
-        long totalNotAvailable = listServerStorages.stream().filter(f -> !f.isAvailable()).count();
+        long totalNotAvailable = listServerStorages.stream().filter(f -> !f.isAtive()).count();
         long totalServerStorageAvailable = totalServerStorage - totalNotAvailable;
 
         if (totalServerStorageAvailable == 0) {
@@ -49,12 +49,15 @@ public class MeshStorageService {
         }
 
         //Recuperar a informações de quantidades...
-        long totalSpace = listServerStorages.stream().filter(ServerStorage::isAvailable).mapToLong(ServerStorage::getTotalSpace).sum();
+        long totalSpace = listServerStorages.stream().filter(ServerStorage::isAtive)
+                .mapToLong(serverStorage -> serverStorage.getMetrics().getTotalSpace()).sum();
         statusMeshStorageModel.setTotalSpaceStorages(totalSpace);
-        long totalFree = listServerStorages.stream().filter(ServerStorage::isAvailable).mapToLong(ServerStorage::getFreeSpace).sum();
+        long totalFree = listServerStorages.stream().filter(ServerStorage::isAtive)
+                .mapToLong(serverStorage -> serverStorage.getMetrics().getFreeSpace()).sum();
         statusMeshStorageModel.setTotalFreeStorages(totalFree);
         statusMeshStorageModel.setTotalClientsConnected(totalServerStorageAvailable);
-        long totalFiles = listServerStorages.stream().mapToLong(ServerStorage::getTotalFiles).sum();
+        long totalFiles = listServerStorages.stream()
+                .mapToLong(serverStorage -> serverStorage.getMetrics().getTotalFiles()).sum();
         statusMeshStorageModel.setTotalFilesStorages(totalFiles);
 
         return statusMeshStorageModel;

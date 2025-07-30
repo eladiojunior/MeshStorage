@@ -30,7 +30,7 @@ public class FileStorageClient {
     private String idServerStorageClient; //Identificador do Client Storage que está armazenado.
 
     /**
-     * Relacionamento com uma aplicação.
+     * Relacionamento com um FileStorage.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ID_FILE_STORAGE")

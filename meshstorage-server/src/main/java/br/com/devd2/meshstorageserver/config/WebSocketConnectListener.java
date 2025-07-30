@@ -1,6 +1,7 @@
 package br.com.devd2.meshstorageserver.config;
 
 import br.com.devd2.meshstorageserver.helper.HelperSessionClients;
+import br.com.devd2.meshstorageserver.models.MetricsStorageModel;
 import br.com.devd2.meshstorageserver.models.ServerStorageModel;
 import br.com.devd2.meshstorageserver.services.ServerStorageService;
 import org.slf4j.Logger;
@@ -53,7 +54,7 @@ public class WebSocketConnectListener implements
                     serverStorageService.updateIdClientServerStorage(storage.getId(), idClient);
                 }
 
-                if (storage.isAvailable())
+                if (storage.isAtive())
                 {//Existe e está ativo!
                     logger.info("Cliente já conectado: IdClient={} e ATIVO.", idClient);
                     return;

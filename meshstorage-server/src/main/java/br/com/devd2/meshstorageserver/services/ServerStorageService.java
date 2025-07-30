@@ -3,20 +3,26 @@ package br.com.devd2.meshstorageserver.services;
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperServer;
+import br.com.devd2.meshstorageserver.models.MetricsStorageModel;
 import br.com.devd2.meshstorageserver.models.ServerStorageModel;
+import br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum;
 import br.com.devd2.meshstorageserver.repositories.ServerStorageRepository;
+import br.com.devd2.meshstorageserver.services.cache.ServerStorageCache;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 @Service
 public class ServerStorageService {
+    private final ServerStorageCache cacheServerStorage;
     private final ServerStorageRepository serverStorageRepository;
 
-    public ServerStorageService(ServerStorageRepository fileServerRepository) {
-        this.serverStorageRepository = fileServerRepository;
+    public ServerStorageService(ServerStorageCache cacheServerStorage, ServerStorageRepository serverStorageRepository) {
+        this.cacheServerStorage = cacheServerStorage;
+        this.serverStorageRepository = serverStorageRepository;
     }
 
     /**
@@ -24,9 +30,8 @@ public class ServerStorageService {
      * @param idServerStorageClient - Identificador único do Client de Storage;
      * @return ServerStorage ou nulo se não existir;
      */
-    public ServerStorage findByIdServerStorageClient(String idServerStorageClient) {
-        Optional<ServerStorage> serverStorage = serverStorageRepository.findByIdServerStorageClient(idServerStorageClient);
-        return serverStorage.orElse(null);
+    public ServerStorage getByIdServerStorageClient(String idServerStorageClient) {
+        return cacheServerStorage.getByIdServerStorageClient(idServerStorageClient);
     }
 
     /**
@@ -36,11 +41,9 @@ public class ServerStorageService {
      * @throws ApiBusinessException Erro de negócio.
      */
     public ServerStorage getBestServerStorage() throws ApiBusinessException {
-        List<ServerStorage> listServerStorage = serverStorageRepository.findByAvailableTrueOrderByFreeSpaceDesc();
-        var server = listServerStorage.isEmpty() ? null : listServerStorage.get(0);
-        if (server == null)
-            throw new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível no momento.");
-        return server;
+        return cacheServerStorage.listByStatusActive().stream()
+                .max(Comparator.comparingDouble(ServerStorage::getScoreStorage))
+                .orElseThrow(() -> new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível no momento."));
     }
 
     /**
@@ -50,11 +53,10 @@ public class ServerStorageService {
      * @throws ApiBusinessException Erro de negócio.
      */
     public ServerStorage getBestServerStorage(String idServerStorageUse) throws ApiBusinessException {
-        List<ServerStorage> listServerStorage = serverStorageRepository.findByAvailableTrueOrderByFreeSpaceDesc();
-        if (listServerStorage.isEmpty())
-            throw new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível no momento.");
-        return listServerStorage.stream().filter(f ->
-                !f.getIdServerStorageClient().equals(idServerStorageUse)).findFirst().orElse(null);
+        return cacheServerStorage.listByStatusActive().stream()
+                .filter(s -> !Objects.equals(s.getIdServerStorageClient(), idServerStorageUse))
+                .max(Comparator.comparingDouble(ServerStorage::getScoreStorage))
+                .orElseThrow(() -> new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível no momento."));
     }
 
     /**
@@ -63,7 +65,7 @@ public class ServerStorageService {
      * @return Lista de Storages do Server
      */
     public List<ServerStorage> findByServerName(String serverName) {
-        return serverStorageRepository.findByServerName(serverName);
+        return cacheServerStorage.listByServerName(serverName);
     }
 
     /**
@@ -73,8 +75,7 @@ public class ServerStorageService {
      * @return Instância de um ServerStorage ou null
      */
     public ServerStorage findByServerNameAndStorageName(String serverName, String storageName) {
-        Optional<ServerStorage> serverStorage = serverStorageRepository.findByServerNameAndStorageName(serverName, storageName);
-        return serverStorage.orElse(null);
+        return cacheServerStorage.getByServerNameAndStorageName(serverName, storageName);
     }
 
     /**
@@ -99,9 +100,8 @@ public class ServerStorageService {
             throw new ApiBusinessException("Storage name (nome do local de armazenamento) não pode ser nulo ou vazio.");
 
         //Verificar se existe um server/storage registrado.
-        ServerStorage server = serverStorageRepository
-                .findByServerNameAndStorageName(model.getServeName(), model.getStorageName())
-                .orElse(null);
+        ServerStorage server = cacheServerStorage
+                .getByServerNameAndStorageName(model.getServeName(), model.getStorageName());
         if (server != null)
             throw new ApiBusinessException(String.format("Existem um Server [%1s] e Storage [%2s] registrado.", model.getServeName(), model.getStorageName()));
 
@@ -111,15 +111,32 @@ public class ServerStorageService {
         server.setIpServer(model.getIpServer());
         server.setOsServer(model.getOsServer());
         server.setStorageName(model.getStorageName());
-        server.setTotalSpace(model.getTotalSpace());
-        server.setFreeSpace(model.getTotalSpace());
-        server.setTotalFiles(0L);
-        server.setAvailable(true);
-        server.setDateTimeAvailable(LocalDateTime.now());
         server.setDateTimeRegisteredServerStorage(LocalDateTime.now());
+        server.setServerStorageStatusCode(ServerStorageStatusEnum.ACTIVE.getCode());
+        //Metricas do Storage
+        server.getMetrics().setTotalSpace(model.getTotalSpace());
+        server.getMetrics().setFreeSpace(model.getFreeSpace());
+        server.getMetrics().setTotalFiles(0L);
+        server.getMetrics().setDateTimeLastAvailable(LocalDateTime.now());
 
-        return serverStorageRepository.save(server);
+        var serverStorage = serverStorageRepository.save(server);
 
+        //Adicionar novo Storage no cache...
+        cacheServerStorage.addOrUpdateServerStorage(serverStorage);
+        return serverStorage;
+
+    }
+
+    /**
+     * Atualiza as métricas do Server Storage.
+     *
+     * @param serverName  - Nome do server (FileServer), pode ser o nome do servidor ou codenome;
+     * @param storageName - Nome do storage que está sendo utilizando no server (FileServer), local físico de armazenamento;
+     * @param metricsStorage - Metricas de espaço livre em disco (MB), disponibilidade, erros, requisições e tempo de resposta do Storage;
+     * @throws ApiBusinessException - Erro de negócio
+     */
+    public void updateServerStorageMetrics(String serverName, String storageName, MetricsStorageModel metricsStorage) throws ApiBusinessException {
+        //TODO implementar lógica de atualização das métricas.
     }
 
     /**
@@ -139,18 +156,22 @@ public class ServerStorageService {
             throw new ApiBusinessException("Storage name (nome do local de armazenamento) não pode ser nulo ou vazio.");
 
         //Verificar Server Storage existente para atualização.
-        ServerStorage server = serverStorageRepository
-                .findByServerNameAndStorageName(serverName, storageName)
-                .orElse(null);
-
+        ServerStorage server = cacheServerStorage.getByServerNameAndStorageName(serverName, storageName);
         if (server == null)
             throw new ApiBusinessException("Server Storage não identificado para atualização do seu status.");
 
-        server.setFreeSpace(freeSpace);
-        server.setAvailable(available);
-        server.setDateTimeAvailable(LocalDateTime.now());
+        if (available)
+            server.setServerStorageStatusCode(ServerStorageStatusEnum.ACTIVE.getCode());
+        else
+            server.setServerStorageStatusCode(ServerStorageStatusEnum.INACTIVE.getCode());
+
+        server.getMetrics().setFreeSpace(freeSpace);
+        server.getMetrics().setDateTimeLastAvailable(LocalDateTime.now());
 
         serverStorageRepository.save(server);
+
+        //Atualizar as métricas do Storage no cache.
+        cacheServerStorage.refreshMetrics(server.getMetrics());
 
     }
 
@@ -167,17 +188,19 @@ public class ServerStorageService {
 
         //Verificar Server Storage existente para atualização.
         ServerStorage server = serverStorageRepository.findById(idServerStorage).orElse(null);
-
         if (server == null)
             throw new ApiBusinessException("Server Storage não identificado para atualização da quantidade de arquivos.");
 
-        long totalFiles = server.getTotalFiles() == null ? 0 : server.getTotalFiles();
+        long totalFiles = server.getMetrics().getTotalFiles() == null ? 0 : server.getMetrics().getTotalFiles();
         totalFiles = hasAdicionar ? totalFiles + 1 : totalFiles - 1;
         if (totalFiles < 0) totalFiles = 0; //Evitar informação negativa;
-        server.setTotalFiles(totalFiles);
-        server.setDateTimeAvailable(LocalDateTime.now());
+        server.getMetrics().setTotalFiles(totalFiles);
+        server.getMetrics().setDateTimeLastAvailable(LocalDateTime.now());
 
         serverStorageRepository.save(server);
+
+        //Atualizar Storage no cache...
+        cacheServerStorage.addOrUpdateServerStorage(server);
 
     }
 
@@ -204,6 +227,9 @@ public class ServerStorageService {
 
         serverStorageRepository.save(server);
 
+        //Atualizar Storage no cache...
+        cacheServerStorage.addOrUpdateServerStorage(server);
+
     }
 
     /**
@@ -212,7 +238,7 @@ public class ServerStorageService {
      */
     public List<ServerStorage> getListServerStorage(boolean hasAvailable) throws ApiBusinessException {
         if (hasAvailable)
-            return serverStorageRepository.findByAvailableTrue();
+            return cacheServerStorage.listByStatusActive();
         else
             return serverStorageRepository.findAll();
     }

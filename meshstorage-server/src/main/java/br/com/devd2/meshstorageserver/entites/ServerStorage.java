@@ -1,9 +1,11 @@
 package br.com.devd2.meshstorageserver.entites;
 
+import br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Data
 @Entity @Table(name = "TB_SERVER_STORAGE")
@@ -33,6 +35,12 @@ public class ServerStorage {
     private String storageName;
 
     /**
+     * Score do Storage para classificação do melhor Storage para armazenar os arquivos.
+     */
+    @Transient
+    private double scoreStorage;
+
+    /**
      * IP da máquina do Server Storage enviado na configuração, execução do agent no Cliente.
      */
     @Column(name = "CD_IP_SERVER_STORAGE")
@@ -45,37 +53,11 @@ public class ServerStorage {
     private String osServer;
 
     /**
-     * Tamanho total do espaço de armazenamento do Storage enviado na configuração, execução do agent no Cliente.
+     * Código da situação do ServerStorage, por Client:
+     * {@link br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum}
      */
-    @Column(name = "QT_TOTAL_SPACE_STORAGE_CLIENT")
-    private Long totalSpace;  // em MB
-
-    /**
-     * Espaço disponível de armazenamento do Storage enviado na configuração, execução do agent no Cliente.
-     * Atualizado sempre por um processo no Client, enviando a informação para o servidor.
-     */
-    @Column(name = "QT_FREE_SPACE_STORAGE_CLIENT")
-    private Long freeSpace;   // em MB
-
-    /**
-     * Total de arquivos no Storage, sempre que um arquivo é enviado e confirmado esse quantitativo é atualizado.
-     */
-    @Column(name = "QT_TOTAL_FILES_STORAGE_CLIENT")
-    private Long totalFiles;  // Quantidade
-
-    /**
-     * Indicador de disponibilidade do Storage para receber aquivos.
-     * Atualizado sempre por um processo no Client, enviando a informação para o servidor.
-     */
-    @Column(name = "IS_AVAILABLE_STORAGE_CLIENT")
-    private boolean available;
-
-    /**
-     * Data e hora da última atualização da disponibilidade do Storage para receber arquivos.
-     * Atualizado sempre por um processo no Client, enviando a informação para o servidor.
-     */
-    @Column(name = "DH_AVAILABLE_STORAGE_CLIENT")
-    private LocalDateTime dateTimeAvailable;
+    @Column(name = "CD_STATUS_SERVER_STORAGE", nullable = false)
+    private Integer serverStorageStatusCode;
 
     /**
      * Data e hora de registro do Server Storage, no envio da informação do Client e registro do Server Storage.
@@ -83,4 +65,25 @@ public class ServerStorage {
     @Column(name = "DH_REGISTERED_SERVER_STORAGE")
     private LocalDateTime dateTimeRegisteredServerStorage;
 
+    /**
+     * Data e hora de remoção lógica do Server Storage, quando código da situação igual a 3=REMOVED.
+     */
+    @Column(name = "DH_REMOVED_SERVER_STORAGE")
+    private LocalDateTime dateTimeRemovedServerStorage;
+
+    /**
+     * Relacionamento com a Métrica do Server Storages
+     */
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    private ServerStorageMetrics metrics;
+
+    /**
+     * Verifica o código do status do Storage para identificar se ele está ativo.
+     * @return true Ativo, false Inativo.
+     */
+    @Transient
+    public boolean isAtive() {
+        return serverStorageStatusCode != null &&
+                Objects.equals(serverStorageStatusCode, ServerStorageStatusEnum.ACTIVE.getCode());
+    }
 }

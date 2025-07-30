@@ -346,7 +346,7 @@ public class FileStorageService {
             //Atualiza a quantidade de arquivo no Server Storage e Aplicação...
             if (fileStorageClientStatus.getFileStatusCode() == FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode()) {
                 for (FileStorageClient client : listFileStorageClient) {
-                    var serverStorage = serverStorageService.findByIdServerStorageClient(client.getIdServerStorageClient());
+                    var serverStorage = serverStorageService.getByIdServerStorageClient(client.getIdServerStorageClient());
                     if (serverStorage != null)
                         serverStorageService.updateServerStorageTotalFile(serverStorage.getId(), false);
                 }

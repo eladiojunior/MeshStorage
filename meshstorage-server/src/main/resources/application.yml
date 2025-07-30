@@ -3,15 +3,6 @@
 server:
   port: ${SERVER_PORT}
 
-# Configuração do tamanho máximo em MB=Megabytes do upload de arquivos
-limit-mb: ${LIMIT_MAX_UPLOADFILE_MB}
-
-# Configuração da URL de acesso ao arquivo utilizando um QR Code ou Link com o token
-acesso-file-url: ${ACESSO_ARQUIVO_URL}
-
-# Configuração da qualidade na compressão das imagens (PNG, JPG, GIF, TIFF, BMP) em WebP.
-quality-compressed-webp: ${QUALITY_COMPRESSED_WEBP}
-
 spring:
   datasource:
     url: ${DB_URL_JDBC}
@@ -30,6 +21,18 @@ spring:
     multipart:
       max-file-size: ${limit-mb}MB
       max-request-size: ${limit-mb}MB
+
+# Configuração do tamanho máximo em MB=Megabytes do upload de arquivos
+limit-mb: ${LIMIT_MAX_UPLOADFILE_MB}
+# Configuração da URL de acesso ao arquivo utilizando um QR Code ou Link com o token
+acesso-file-url: ${ACESSO_ARQUIVO_URL}
+# Configuração da qualidade na compressão das imagens (PNG, JPG, GIF, TIFF, BMP) em WebP.
+quality-compressed-webp: ${QUALITY_COMPRESSED_WEBP}
+# Configuração dos PESOS para cálculo do Score para o melhor Storage
+weight-free-space: ${WEIGHT_FREE_SPACE}                   # Espaço disponível no Storage.
+weight-response-time: ${WEIGHT_RESPONSE_TIME}             # Tempo de resposta do upload no Storage.
+weight-request-last-minute: ${WEIGHT_REQUEST_LAST_MINUTE} # Número uploads no último minuto para o Storage.
+weight-errors-last-request: ${WEIGHT_ERRORS_LAST_REQUEST} # Número de erros nas últimas 10 requisições para Storage.
 
 # Configuração do swagger para apresentar a documentação da API
 springdoc:

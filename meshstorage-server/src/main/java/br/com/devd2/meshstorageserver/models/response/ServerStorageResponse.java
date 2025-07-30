@@ -11,12 +11,16 @@ public class ServerStorageResponse {
     private String idClient;
     private String serverName;
     private String storageName;
-    private long totalSpace;
-    private long freeSpace;
+    private Long totalSpace;
+    private Long freeSpace;
+    private Long totalFiles;
     private String ipServer;
     private String osServer;
-    private boolean available;
+    private Integer statusCode;
+    private String statusDescription;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    private LocalDateTime dateTimeAvailable;
+    private LocalDateTime dateTimeRegistered;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    private LocalDateTime dateTimeRemoved;
 
 }
