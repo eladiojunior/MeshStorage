@@ -1,6 +1,7 @@
 package br.com.devd2.meshstorageserver.services;
 
 import br.com.devd2.meshstorageserver.entites.ServerStorage;
+import br.com.devd2.meshstorageserver.entites.ServerStorageMetrics;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperServer;
 import br.com.devd2.meshstorageserver.models.MetricsStorageModel;
@@ -100,8 +101,8 @@ public class ServerStorageService {
             throw new ApiBusinessException("Storage name (nome do local de armazenamento) não pode ser nulo ou vazio.");
 
         //Verificar se existe um server/storage registrado.
-        ServerStorage server = cacheServerStorage
-                .getByServerNameAndStorageName(model.getServeName(), model.getStorageName());
+        ServerStorage server = serverStorageRepository
+                .findByServerNameAndStorageName(model.getServeName(), model.getStorageName()).orElse(null);
         if (server != null)
             throw new ApiBusinessException(String.format("Existem um Server [%1s] e Storage [%2s] registrado.", model.getServeName(), model.getStorageName()));
 
@@ -114,14 +115,20 @@ public class ServerStorageService {
         server.setDateTimeRegisteredServerStorage(LocalDateTime.now());
         server.setServerStorageStatusCode(ServerStorageStatusEnum.ACTIVE.getCode());
         //Metricas do Storage
-        server.getMetrics().setTotalSpace(model.getTotalSpace());
-        server.getMetrics().setFreeSpace(model.getFreeSpace());
-        server.getMetrics().setTotalFiles(0L);
-        server.getMetrics().setDateTimeLastAvailable(LocalDateTime.now());
+        var metrics = new ServerStorageMetrics();
+        metrics.setTotalSpace(model.getTotalSpace());
+        metrics.setFreeSpace(model.getFreeSpace());
+        metrics.setTotalFiles(0L);
+        metrics.setResponseTime(0L);
+        metrics.setRequestLastMinute(0);
+        metrics.setErrosLastRequest(0);
+        metrics.setDateTimeLastAvailable(LocalDateTime.now());
+        server.setMetrics(metrics);
 
         var serverStorage = serverStorageRepository.save(server);
 
         //Adicionar novo Storage no cache...
+        cacheServerStorage.clearAvailableCache();
         cacheServerStorage.addOrUpdateServerStorage(serverStorage);
         return serverStorage;
 
@@ -171,7 +178,7 @@ public class ServerStorageService {
         serverStorageRepository.save(server);
 
         //Atualizar as métricas do Storage no cache.
-        cacheServerStorage.refreshMetrics(server.getMetrics());
+        cacheServerStorage.refreshMetrics(server);
 
     }
 

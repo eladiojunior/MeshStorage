@@ -7,11 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ServerStorageRepository extends JpaRepository<ServerStorage, Long> {
-    List<ServerStorage> findByAvailableTrueOrderByFreeSpaceDesc();
     Optional<ServerStorage> findByServerNameAndStorageName(String serverName, String storageName);
     List<ServerStorage> findByServerName(String serverName);
-    List<ServerStorage> findByAvailableTrue();
     Optional<ServerStorage> findByIdServerStorageClient(String idServerStorageClient);
-
     List<ServerStorage> findByServerStorageStatusCode(Integer serverStorageStatusCode);
 }

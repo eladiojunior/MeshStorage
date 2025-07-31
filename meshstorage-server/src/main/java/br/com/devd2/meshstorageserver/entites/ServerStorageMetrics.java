@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 public class ServerStorageMetrics {
 
     @Id
-    @Column(name = "ID_SERVER_STORAGE")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_SERVER_STORAGE_METRICS")
     private Long id;
 
     /**
@@ -55,12 +56,5 @@ public class ServerStorageMetrics {
      */
     @Column(name = "DH_LAST_AVAILABLE_STORAGE")
     private LocalDateTime dateTimeLastAvailable;
-
-    /**
-     * Relacionamento com um FileStorage.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_SERVER_STORAGE")
-    private ServerStorage serverStorage;
 
 }

@@ -75,6 +75,7 @@ public class ServerStorage {
      * Relacionamento com a Métrica do Server Storages
      */
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "ID_SERVER_STORAGE_METRICS")
     private ServerStorageMetrics metrics;
 
     /**

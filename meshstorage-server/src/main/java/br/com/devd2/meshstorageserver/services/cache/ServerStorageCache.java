@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class ServerStorageCache {
     private final ServerStorageRepository serverStorageRepository;
     private final Map<String, ServerStorage> mapServerStorageCache = new ConcurrentHashMap<>();
-    private final List<ServerStorage> listAvailableCache = new ArrayList<>();
+    private List<ServerStorage> listAvailableCache = new ArrayList<>();
 
     @Value("${weight-free-space:0}")
     private double weight_free_space;
@@ -34,19 +34,20 @@ public class ServerStorageCache {
 
     /**
      * Atualizar as metricas do servidor de armazenamento se estiver em cache.
-     * @param storageMetrics Metricas do servidor de armazenamento para atualização do cache.
+     * @param storage Servidor de armazenamento para atualização do cache.
      */
-    public void refreshMetrics(ServerStorageMetrics storageMetrics) {
+    public void refreshMetrics(ServerStorage storage) {
         try {
-            mapServerStorageCache.computeIfPresent(storageMetrics
-                    .getServerStorage().getIdServerStorageClient(), (k, ss) -> {
-                ss.getMetrics().setTotalSpace(storageMetrics.getTotalSpace());
-                ss.getMetrics().setFreeSpace(storageMetrics.getFreeSpace());
-                ss.getMetrics().setTotalFiles(storageMetrics.getTotalFiles());
-                ss.getMetrics().setResponseTime(storageMetrics.getTotalSpace());
-                ss.getMetrics().setRequestLastMinute(storageMetrics.getRequestLastMinute());
-                ss.getMetrics().setErrosLastRequest(storageMetrics.getErrosLastRequest());
-                ss.getMetrics().setDateTimeLastAvailable(storageMetrics.getDateTimeLastAvailable());
+            if (storage == null || storage.getMetrics() == null)
+                return;
+            mapServerStorageCache.computeIfPresent(storage.getIdServerStorageClient(), (k, ss) -> {
+                ss.getMetrics().setTotalSpace(storage.getMetrics().getTotalSpace());
+                ss.getMetrics().setFreeSpace(storage.getMetrics().getFreeSpace());
+                ss.getMetrics().setTotalFiles(storage.getMetrics().getTotalFiles());
+                ss.getMetrics().setResponseTime(storage.getMetrics().getTotalSpace());
+                ss.getMetrics().setRequestLastMinute(storage.getMetrics().getRequestLastMinute());
+                ss.getMetrics().setErrosLastRequest(storage.getMetrics().getErrosLastRequest());
+                ss.getMetrics().setDateTimeLastAvailable(storage.getMetrics().getDateTimeLastAvailable());
                 //Calcular Score...
                 ss.setScoreStorage(score(ss));
                 return ss;
@@ -110,13 +111,9 @@ public class ServerStorageCache {
     public List<ServerStorage> listByStatusActive() {
         if (!listAvailableCache.isEmpty())
             return listAvailableCache;
-        List<ServerStorage> listFromDb = serverStorageRepository
+        listAvailableCache = serverStorageRepository
                 .findByServerStorageStatusCode(ServerStorageStatusEnum.ACTIVE.getCode());
-        listFromDb.forEach(s -> {
-            s.setScoreStorage(score(s)); //Calcular o Score.
-            mapServerStorageCache.put(s.getIdServerStorageClient(), s);
-        });
-        return listFromDb;
+        return listAvailableCache;
     }
 
     /**
@@ -174,7 +171,6 @@ public class ServerStorageCache {
     private double score(ServerStorage storage) {
 
         var listStoragesAvaliable = listByStatusActive();
-
         if (listStoragesAvaliable.size() <= 1)
             return 1; //Como só existe um Storage ativo não gastar com cálculo de Score.
 

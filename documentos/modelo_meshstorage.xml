@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="yes" ?>
 <DBMODEL Version="4.0">
 <SETTINGS>
-<GLOBALSETTINGS ModelName="modelo_meshstorage" IDModel="0" IDVersion="0" VersionStr="1.0.0.0" Comments="" UseVersionHistroy="1" AutoIncVersion="1" DatabaseType="MySQL" ZoomFac="94.00" XPos="398" YPos="122" DefaultDataType="5" DefaultTablePrefix="0" DefSaveDBConn="" DefSyncDBConn="" DefQueryDBConn="" Printer="" HPageCount="4.0" PageAspectRatio="1.440892512336408" PageOrientation="1" PageFormat="A4 (210x297 mm, 8.26x11.7 inches)" SelectedPages="" UsePositionGrid="0" PositionGridX="20" PositionGridY="20" TableNameInRefs="1" DefaultTableType="0" ActivateRefDefForNewRelations="1" FKPrefix="" FKPostfix="" CreateFKRefDefIndex="1" DBQuoteCharacter="`" CreateSQLforLinkedObjects="0" DefModelFont="Tahoma" CanvasWidth="4096" CanvasHeight="2842" />
+<GLOBALSETTINGS ModelName="modelo_meshstorage" IDModel="0" IDVersion="0" VersionStr="1.0.0.0" Comments="" UseVersionHistroy="1" AutoIncVersion="1" DatabaseType="MySQL" ZoomFac="94.00" XPos="0" YPos="120" DefaultDataType="5" DefaultTablePrefix="0" DefSaveDBConn="" DefSyncDBConn="" DefQueryDBConn="" Printer="" HPageCount="4.0" PageAspectRatio="1.440892512336408" PageOrientation="1" PageFormat="A4 (210x297 mm, 8.26x11.7 inches)" SelectedPages="" UsePositionGrid="0" PositionGridX="20" PositionGridY="20" TableNameInRefs="1" DefaultTableType="0" ActivateRefDefForNewRelations="1" FKPrefix="" FKPostfix="" CreateFKRefDefIndex="1" DBQuoteCharacter="`" CreateSQLforLinkedObjects="0" DefModelFont="Tahoma" CanvasWidth="4096" CanvasHeight="2842" />
 <DATATYPEGROUPS>
 <DATATYPEGROUP Name="Numeric Types" Icon="1" />
 <DATATYPEGROUP Name="Date and Time Types" Icon="2" />
@@ -260,9 +260,9 @@
 <REGIONS>
 </REGIONS>
 <TABLES>
-<TABLE ID="1401" Tablename="TB_APPICATION" PrevTableName="Table_01" XPos="70" YPos="171" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena as aplica\231\245es utilizadas no proceso de armazenamento de arquivos nos reposit\243rios de arquivos (file server)." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="2" >
+<TABLE ID="1401" Tablename="tb_application" PrevTableName="Table_01" XPos="62" YPos="65" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena as aplica\231\245es utilizadas no proceso de armazenamento de arquivos nos reposit\243rios de arquivos (file server)." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="2" >
 <COLUMNS>
-<COLUMN ID="1403" ColName="ID_APPICATION" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador da aplica\231\227o">
+<COLUMN ID="1403" ColName="ID_APPLICATION" PrevColName="ID_APPICATION" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador da aplica\231\227o">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="0" />
 <OPTIONSELECT Value="0" />
@@ -304,6 +304,10 @@
 <OPTIONSELECTED>
 </OPTIONSELECTED>
 </COLUMN>
+<COLUMN ID="1614" ColName="IS_REQUIRES_FILE_REPLICATION" PrevColName="" Pos="13" idDatatype="22" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="false" Comments="Verificar se aplica\231\227o requer replica\231\227o do arquivo em outro servidor de arquivos">
+<OPTIONSELECTED>
+</OPTIONSELECTED>
+</COLUMN>
 <COLUMN ID="1414" ColName="QT_TOTAL_FILES_APPLICATION" PrevColName="" Pos="8" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="0" Comments="Quantidade total de arquivos armazenados na aplica\231\227o">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="0" />
@@ -316,7 +320,7 @@
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1416" ColName="DH_REGISTERED_APPLICATION" PrevColName="" Pos="9" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="CURRENT_DATETIME" Comments="Data e hora de registro da aplica\231\227o">
+<COLUMN ID="1416" ColName="DH_REGISTERED_APPLICATION" PrevColName="" Pos="9" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="CURRENT_TIMESTAMP" Comments="Data e hora de registro da aplica\231\227o">
 <OPTIONSELECTED>
 </OPTIONSELECTED>
 </COLUMN>
@@ -334,9 +338,14 @@
 <INDEXCOLUMN idColumn="1403" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
+<INDEX ID="1590" IndexName="IX_NM_APPLICATION" IndexKind="1" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1405" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1426" Tablename="TB_FILE_STORAGE" PrevTableName="Table_02" XPos="598" YPos="341" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade para armazenamento das informa\231\245es do arquivo armazenado no reposit\243rio de arquivos." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="3" >
+<TABLE ID="1426" Tablename="tb_file_storage" PrevTableName="Table_02" XPos="598" YPos="293" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade para armazenamento das informa\231\245es do arquivo armazenado no reposit\243rio de arquivos." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="3" >
 <COLUMNS>
 <COLUMN ID="1428" ColName="ID_FILE_STORAGE" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico do arquivo no banco de dados.">
 <OPTIONSELECTED>
@@ -344,7 +353,7 @@
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1486" ColName="ID_APPICATION" PrevColName="" Pos="1" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="1" DefaultValue="" Comments="Relacionamento com a aplica\231\227o e o arquivo.">
+<COLUMN ID="1625" ColName="ID_APPLICATION" PrevColName="" Pos="1" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="1" DefaultValue="" Comments="">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="0" />
 <OPTIONSELECT Value="0" />
@@ -455,14 +464,24 @@
 <INDEXCOLUMN idColumn="1428" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
-<INDEX ID="1458" IndexName="FK_APPLICATION_FILE" IndexKind="1" FKRefDef_Obj_id="1456">
+<INDEX ID="1588" IndexName="IX_CD_FILE_STORAGE_CLIENT" IndexKind="1" FKRefDef_Obj_id="-1">
 <INDEXCOLUMNS>
-<INDEXCOLUMN idColumn="1486" LengthParam="0" />
+<INDEXCOLUMN idColumn="1430" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+<INDEX ID="1619" IndexName="IX_ID_APPLICATION_HASH_FILE_BYTES" IndexKind="1" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1440" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+<INDEX ID="1626" IndexName="TB_FILE_STORAGE_FKIndex1" IndexKind="1" FKRefDef_Obj_id="1456">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1625" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1449" Tablename="TB_FILE_STORAGE_CLIENT" PrevTableName="Table_03" XPos="80" YPos="802" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena o(s) Storage(s) em que o arquivo foi armazenado, pois ser\225 poss\237vel enviar um arquivo para mais de um storage em caso de solicita\231\227o de replica\231\227o de dados ou sincroniza\231\227o de estruturas." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="4" >
+<TABLE ID="1449" Tablename="tb_file_storage_client" PrevTableName="Table_03" XPos="620" YPos="63" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena o(s) Storage(s) em que o arquivo foi armazenado, pois ser\225 poss\237vel enviar um arquivo para mais de um storage em caso de solicita\231\227o de replica\231\227o de dados ou sincroniza\231\227o de estruturas." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="4" >
 <COLUMNS>
 <COLUMN ID="1451" ColName="ID_FILE_STORAGE_CLIENT" PrevColName="ID_FILE_CLIENT_STORAGE" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico dos arquivos armazenados nos reposit\243rios.">
 <OPTIONSELECTED>
@@ -491,16 +510,22 @@
 <INDEXCOLUMN idColumn="1451" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
-<INDEX ID="1455" IndexName="FK_FILE_STORAGE_CLIENT" IndexKind="1" FKRefDef_Obj_id="1453">
+<INDEX ID="1455" IndexName="IX_ID_FILE_STORAGE" IndexKind="1" FKRefDef_Obj_id="1453">
 <INDEXCOLUMNS>
 <INDEXCOLUMN idColumn="1542" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1459" Tablename="TB_SERVER_STORAGE" PrevTableName="Table_04" XPos="66" YPos="477" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena os Server Storage que s\227o os Clientes (hosts) espalhados pelo rede interna e controlados pelo servidor MeshStorage, para envio dos arquivos para armazenamento." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="7" >
+<TABLE ID="1459" Tablename="tb_server_storage" PrevTableName="Table_04" XPos="63" YPos="394" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena os Server Storage que s\227o os Clientes (hosts) espalhados pelo rede interna e controlados pelo servidor MeshStorage, para envio dos arquivos para armazenamento." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="7" >
 <COLUMNS>
 <COLUMN ID="1461" ColName="ID_SERVER_STORAGE" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nido do servidor de armazenamento dos arquivos.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1650" ColName="ID_SERVER_STORAGE_METRICS" PrevColName="" Pos="1" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="1" DefaultValue="" Comments="">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="0" />
 <OPTIONSELECT Value="0" />
@@ -531,46 +556,59 @@
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1471" ColName="QT_TOTAL_SPACE_STORAGE_CLIENT" PrevColName="" Pos="6" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Tamanho total do espa\231o de armazenamento do Storage enviado na configura\231\227o, execu\231\227o do agent no Cliente.">
+<COLUMN ID="1603" ColName="CD_STATUS_SERVER_STORAGE" PrevColName="" Pos="12" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="C\243digo da situa\231\227o do ServerStorage, por Client.">
 <OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
 <OPTIONSELECT Value="0" />
-<OPTIONSELECT Value="0" />
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1472" ColName="QT_FREE_SPACE_STORAGE_CLIENT" PrevColName="" Pos="7" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Espa\231o dispon\237vel de armazenamento do Storage enviado na configura\231\227o, execu\231\227o do agent no Cliente. Atualizado sempre por um processo no Client, enviando a informa\231\227o para o servidor.">
-<OPTIONSELECTED>
-<OPTIONSELECT Value="0" />
-<OPTIONSELECT Value="0" />
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1473" ColName="QT_TOTAL_FILES_STORAGE_CLIENT" PrevColName="" Pos="8" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="0" Comments="Total de arquivos no Storage, sempre que um arquivo \233 enviado e confirmado esse quantitativo \233 atualizado.">
-<OPTIONSELECTED>
-<OPTIONSELECT Value="0" />
-<OPTIONSELECT Value="0" />
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1474" ColName="IS_AVAILABLE_STORAGE_CLIENT" PrevColName="" Pos="9" idDatatype="22" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="false" Comments="Indicador de disponibilidade do Storage para receber aquivos. Atualizado sempre por um processo no Client, enviando a informa\231\227o para o servidor.">
-<OPTIONSELECTED>
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1475" ColName="DH_AVAILABLE_STORAGE_CLIENT" PrevColName="" Pos="10" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="0" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Data e hora da \250ltima atualiza\231\227o da disponibilidade do Storage para receber arquivos. Atualizado sempre por um processo no Client, enviando a informa\231\227o para o servidor.">
-<OPTIONSELECTED>
 </OPTIONSELECTED>
 </COLUMN>
 <COLUMN ID="1476" ColName="DH_REGISTERED_SERVER_STORAGE" PrevColName="DH_REGISTRED_STORAGE_CLIENT" Pos="11" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="CURRENT_TIMESTAMP" Comments="Data e hora de registro do Server Storage, no envio da informa\231\227o do Client e registro do Server Storage.">
 <OPTIONSELECTED>
 </OPTIONSELECTED>
 </COLUMN>
+<COLUMN ID="1606" ColName="DH_REMOVED_SERVER_STORAGE" PrevColName="" Pos="11" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="0" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Data e hora de remo\231\227o l\243gica do Server Storage, quando c\243digo da situa\231\227o igual a 3=REMOVED.">
+<OPTIONSELECTED>
+</OPTIONSELECTED>
+</COLUMN>
 </COLUMNS>
+<RELATIONS_END>
+<RELATION_END ID="1647" />
+</RELATIONS_END>
 <INDICES>
 <INDEX ID="1462" IndexName="PRIMARY" IndexKind="0" FKRefDef_Obj_id="-1">
 <INDEXCOLUMNS>
 <INDEXCOLUMN idColumn="1461" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
+<INDEX ID="1593" IndexName="IX_CD_SERVER_STORAGE" IndexKind="1" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1467" LengthParam="0" />
+<INDEXCOLUMN idColumn="1468" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+<INDEX ID="1600" IndexName="IX_ID_SERVER_STORAGE_CLIENT" IndexKind="1" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1463" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+<INDEX ID="1621" IndexName="IX_CD_STATUS_SERVER_STORAGE" IndexKind="1" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1603" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+<INDEX ID="1623" IndexName="IX_NM_SERVER_STORAGE" IndexKind="1" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1467" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+<INDEX ID="1649" IndexName="IX_ID_SERVER_STORAGE_METRICS" IndexKind="1" FKRefDef_Obj_id="1647">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1650" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1492" Tablename="TB_FILE_STORAGE_ACCESS_TOKEN" PrevTableName="Table_05" XPos="1280" YPos="281" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade respons\225vel por armazenar as chaves de acesso, token, para acesso de um arquivo por link direto ou QR Code (link) com verifica\231\227o de validade do token." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="8" >
+<TABLE ID="1492" Tablename="tb_file_storage_access_token" PrevTableName="Table_05" XPos="1266" YPos="237" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade respons\225vel por armazenar as chaves de acesso, token, para acesso de um arquivo por link direto ou QR Code (link) com verifica\231\227o de validade do token." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="8" >
 <COLUMNS>
 <COLUMN ID="1494" ColName="ID_FILE_STORAGE_ACCESS_TOKEN" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico do Access Token em banco de dados.">
 <OPTIONSELECTED>
@@ -624,14 +662,19 @@
 <INDEXCOLUMN idColumn="1494" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
-<INDEX ID="1498" IndexName="FK_FILE_STORAGE_TOKEN" IndexKind="1" FKRefDef_Obj_id="1496">
+<INDEX ID="1498" IndexName="IX_ID_FILE_STORAGE" IndexKind="1" FKRefDef_Obj_id="1496">
 <INDEXCOLUMNS>
 <INDEXCOLUMN idColumn="1499" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
+<INDEX ID="1586" IndexName="IX_CD_ACCESS_TOKEN_FILE" IndexKind="1" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1506" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1511" Tablename="TB_FILE_STORAGE_LOG_ACCESS" PrevTableName="Table_06" XPos="1281" YPos="719" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena acessos ao arquivo armazemando no file server, registrando as informa\231\245es do usu\225rio que est\225 acessando ou token de acesso caso seja um acesso direto por token, via link." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="10" >
+<TABLE ID="1511" Tablename="tb_file_storage_log_access" PrevTableName="Table_06" XPos="1253" YPos="617" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena acessos ao arquivo armazemando no file server, registrando as informa\231\245es do usu\225rio que est\225 acessando ou token de acesso caso seja um acesso direto por token, via link." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="10" >
 <COLUMNS>
 <COLUMN ID="1513" ColName="ID_FILE_STORAGE_LOG_ACCESS" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificar \250nico do log de acesso ao arquivo.">
 <OPTIONSELECTED>
@@ -679,14 +722,19 @@
 <INDEXCOLUMN idColumn="1513" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
-<INDEX ID="1522" IndexName="FK_FILE_STORAGE_LOG" IndexKind="1" FKRefDef_Obj_id="1520">
+<INDEX ID="1522" IndexName="IX_ID_FILE_STORAGE" IndexKind="1" FKRefDef_Obj_id="1520">
 <INDEXCOLUMNS>
 <INDEXCOLUMN idColumn="1523" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
+<INDEX ID="1617" IndexName="IX_NM_USER_LOG_ACCESS" IndexKind="1" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1515" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1525" Tablename="TB_FILE_OCR_EXTRACTION" PrevTableName="Table_07" XPos="593" YPos="904" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena o processo OCR do arquivo quando sinalizado na aplica\231\227o que \233 para realizar para os arquivos pertinentes ao processo de extra\231\227o de informa\231\245es via OCR." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="12" >
+<TABLE ID="1525" Tablename="tb_file_ocr_extraction" PrevTableName="Table_07" XPos="593" YPos="917" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena o processo OCR do arquivo quando sinalizado na aplica\231\227o que \233 para realizar para os arquivos pertinentes ao processo de extra\231\227o de informa\231\245es via OCR." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="12" >
 <COLUMNS>
 <COLUMN ID="1528" ColName="ID_FILE_OCR_EXTRACTION" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico da extra\231\227o OCR.">
 <OPTIONSELECTED>
@@ -736,14 +784,14 @@
 <INDEXCOLUMN idColumn="1528" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
-<INDEX ID="1536" IndexName="FK_FILE_STORAGE_OCR" IndexKind="1" FKRefDef_Obj_id="1534">
+<INDEX ID="1536" IndexName="IX_ID_FILE_STORAGE" IndexKind="1" FKRefDef_Obj_id="1534">
 <INDEXCOLUMNS>
 <INDEXCOLUMN idColumn="1540" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1530" Tablename="TB_FILE_OCR_EXTRACTION_FIELDS" PrevTableName="Table_08" XPos="1088" YPos="1053" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena os campos (chave e valor) do processo de OCR realizado no arquivo." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="13" >
+<TABLE ID="1530" Tablename="tb_file_ocr_extraction_fields" PrevTableName="Table_08" XPos="1167" YPos="1060" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena os campos (chave e valor) do processo de OCR realizado no arquivo." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="13" >
 <COLUMNS>
 <COLUMN ID="1532" ColName="ID_FILE_OCR_EXTRACTION_FIELDS" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico dos campos da extra\231\227o do OCR.">
 <OPTIONSELECTED>
@@ -777,21 +825,82 @@
 <INDEXCOLUMN idColumn="1532" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
-<INDEX ID="1539" IndexName="FK_FILE_OCR_EXTRACTION" IndexKind="1" FKRefDef_Obj_id="1537">
+<INDEX ID="1539" IndexName="IX_ID_FILE_OCR_EXTRACTION" IndexKind="1" FKRefDef_Obj_id="1537">
 <INDEXCOLUMNS>
 <INDEXCOLUMN idColumn="1541" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
 </INDICES>
 </TABLE>
+<TABLE ID="1561" Tablename="tb_server_storage_metrics" PrevTableName="Table_09" XPos="57" YPos="873" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="" Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="16" >
+<COLUMNS>
+<COLUMN ID="1628" ColName="ID_SERVER_STORAGE_METRICS" PrevColName="" Pos="8" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico da metrica do storage">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1565" ColName="QT_TOTAL_SPACE_STORAGE" PrevColName="" Pos="1" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Tamanho total do espa\231o de armazenamento do Storage enviado na configura\231\227o, execu\231\227o do agent no Cliente.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1566" ColName="QT_FREE_SPACE_STORAGE" PrevColName="" Pos="2" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Espa\231o dispon\237vel de armazenamento do Storage enviado na configura\231\227o, execu\231\227o do agent no Cliente.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1567" ColName="QT_TOTAL_FILES_STORAGE" PrevColName="" Pos="3" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Total de arquivos no Storage, sempre que um arquivo \233 enviado e confirmado esse quantitativo \233 atualizado.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1568" ColName="VL_RESPONSE_TIME_STORAGE" PrevColName="" Pos="4" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Valor do tempo de resposta (em mil\233ssimo de segundo) no envio do arquivos para Storage.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1569" ColName="QT_REQUEST_LAST_MINUTE_STORAGE" PrevColName="" Pos="5" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Quantidade de requisi\231\245es no \250ltimo minuto para de envio de arquivos para Storage.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1570" ColName="QT_ERRORS_LAST_REQUEST_STORAGE" PrevColName="" Pos="6" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Quantidade de requisi\231\245es no \250ltimo minuto para de envio de arquivos para Storage.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1571" ColName="DH_LAST_AVAILABLE_STORAGE" PrevColName="" Pos="7" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="CURRENT_TIMESTAMP" Comments="Data e hora da \250ltima atualiza\231\227o das m\233tricas do Storage Cliente.">
+<OPTIONSELECTED>
+</OPTIONSELECTED>
+</COLUMN>
+</COLUMNS>
+<RELATIONS_START>
+<RELATION_START ID="1647" />
+</RELATIONS_START>
+<INDICES>
+<INDEX ID="1564" IndexName="PRIMARY" IndexKind="0" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1628" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+</INDICES>
+</TABLE>
 </TABLES>
 <RELATIONS>
-<RELATION ID="1453" RelationName="RL_FILE_STORAGE_CLIENT" Kind="2" SrcTable="1426" DestTable="1449" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="4" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1455" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="5" />
-<RELATION ID="1456" RelationName="RL_APPLICATION_FILE_STORAGE" Kind="2" SrcTable="1401" DestTable="1426" FKFields="ID_APPICATION=ID_APPICATION\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1458" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="6" />
+<RELATION ID="1453" RelationName="RL_FILE_STORAGE_CLIENT" Kind="2" SrcTable="1426" DestTable="1449" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="1" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1455" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="5" />
+<RELATION ID="1456" RelationName="RL_APPLICATION_FILE_STORAGE" Kind="2" SrcTable="1401" DestTable="1426" FKFields="ID_APPLICATION=ID_APPLICATION\n" FKFieldsComments="Identificador da aplica\231\227o de relacionamento.\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1626" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="6" />
 <RELATION ID="1496" RelationName="RL_FILE_STORAGE_ACCESS_TOKEN" Kind="2" SrcTable="1426" DestTable="1492" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1498" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="9" />
 <RELATION ID="1520" RelationName="RL_FILE_STORAGE_LOG_ACCESS" Kind="2" SrcTable="1426" DestTable="1511" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1522" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="11" />
 <RELATION ID="1534" RelationName="RL_FILE_STORAGE_OCR_EXTRACTION" Kind="2" SrcTable="1426" DestTable="1525" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="3" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1536" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="14" />
 <RELATION ID="1537" RelationName="RL_FILE_OCR_EXTRACTION_FIELDS" Kind="2" SrcTable="1525" DestTable="1530" FKFields="ID_FILE_OCR_EXTRACTION=ID_FILE_OCR_EXTRACTION\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1539" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="15" />
+<RELATION ID="1647" RelationName="RL_SERVER_STORAGE_METRICS" Kind="5" SrcTable="1561" DestTable="1459" FKFields="ID_SERVER_STORAGE_METRICS=ID_SERVER_STORAGE_METRICS\n" FKFieldsComments="Identificador da metrica do servidor de armazenamento\n" relDirection="1" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1649" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="17" />
 </RELATIONS>
 <NOTES>
 </NOTES>
