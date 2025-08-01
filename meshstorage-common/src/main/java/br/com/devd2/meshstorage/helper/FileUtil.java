@@ -67,7 +67,7 @@ public class FileUtil {
      * @param originalFilename - Nome original do arquivo.
      * @return Nome fisico gerado.
      */
-    public static String generatePisicalName(String originalFilename) {
+    public static String generatePhisicalName(String originalFilename) {
         var extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         var prefixName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         return prefixName + "_" + UUID.randomUUID().toString().toUpperCase() + extension.toLowerCase();
@@ -139,6 +139,7 @@ public class FileUtil {
             "mp4","mkv","mov","pdf","ogg","mp3",
             "jpeg2000","woff","woff2"
     );
+
     /**
      * Verifica se o arquivo já está comprimido, simplesmente pelas extensões.
      * @param originalName - Nome do arquivo para verificar se é um ZIP;
@@ -159,6 +160,22 @@ public class FileUtil {
             "image/gif", "image/bmp", "image/x-windows-bmp", "image/tiff"
     );
 
+    /**
+     * Tipos de arquivos de compressão/contêiner. Tudo em minúsculas para comparação \"case-insensitive\".
+     **/
+    private static final Set<String> CONVERTIBLE_ZIP_TYPES = Set.of(
+            "application/zip", "application/x-zip-compressed", "application/gzip",
+            "application/x-7z-compressed", "application/x-rar-compressed", "application/x-bzip2",
+            "application/x-xz", "application/x-tar" );
+
+    /**
+     * Verifica se o arquivo é compactado, conforme seu ContentType.
+     * @param contentType - ContentType do arquivo para verificar se é um ZIP;
+     * @return true = se a extensão for COMPRESSED, caso contrário = false
+     */
+    public static boolean hasContentTypeCompressedZip(String contentType) {
+        return CONVERTIBLE_ZIP_TYPES.contains(contentType.toLowerCase());
+    }
     /**
      * Verifica se o <i>Content-Type</i> recebido representa
      * uma imagem que podemos converter para WEBP.
@@ -275,6 +292,18 @@ public class FileUtil {
             writer.dispose();
         }
 
+    }
+
+    /**
+     * Valida um ContentType informado.
+     * @param contentType - Content Type para validar.
+     * @return true, valido ou false, inválido.
+     */
+    public static boolean hasValidContentType(String contentType) {
+        if (contentType == null || contentType.isEmpty())
+            return false;
+        return Arrays.stream(FileContentTypesEnum.values())
+                .anyMatch( f -> f.getContentType().equals(contentType.toLowerCase()));
     }
 
 }

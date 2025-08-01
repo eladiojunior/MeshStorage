@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -148,7 +149,12 @@ public class FileStorage {
     /**
      * Relacionamento com os Server Storages
      */
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
-    private List<FileStorageClient> listFileStorageClient;
+    @OneToMany(mappedBy = "fileStorage", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    private List<FileStorageClient> listFileStorageClient = new ArrayList<>();
+
+    public void addFileStorageClient(FileStorageClient client) {
+        listFileStorageClient.add(client);
+        client.setFileStorage(this);
+    }
 
 }

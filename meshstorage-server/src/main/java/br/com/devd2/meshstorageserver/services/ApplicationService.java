@@ -1,9 +1,9 @@
 package br.com.devd2.meshstorageserver.services;
 
+import br.com.devd2.meshstorage.helper.FileUtil;
 import br.com.devd2.meshstorageserver.entites.Application;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperFormat;
-import br.com.devd2.meshstorageserver.helper.HelperFileType;
 import br.com.devd2.meshstorageserver.models.enums.ApplicationStatusEnum;
 import br.com.devd2.meshstorageserver.models.request.ApplicationRequest;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
@@ -115,7 +115,7 @@ public class ApplicationService {
         if (request.getAllowedFileTypes() == null || request.getAllowedFileTypes().length == 0)
             throw new ApiBusinessException("Tipos de arquivos (ContentType) não pode ser nulo ou vazio.");
         for (var contentType : request.getAllowedFileTypes()) {
-            var valid = HelperFileType.isValidContentType(contentType);
+            var valid = FileUtil.hasValidContentType(contentType);
             if (valid) continue;
             throw new ApiBusinessException(String.format("Tipos de arquivos (ContentType) [%1s] inválido.", contentType));
         }

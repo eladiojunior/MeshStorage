@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 public class ServerStorageCache {
     private final ServerStorageRepository serverStorageRepository;
     private final Map<String, ServerStorage> mapServerStorageCache = new ConcurrentHashMap<>();
-    private List<ServerStorage> listAvailableCache = new ArrayList<>();
 
     @Value("${weight-free-space:0}")
     private double weight_free_space;
@@ -54,23 +53,15 @@ public class ServerStorageCache {
             });
         } catch (Exception error) {
             log.error("Erro ao atualizar as métricas, cache será limpo.", error);
-            clearTotalCache();
+            clearCache();
         }
     }
 
     /**
      * Limpa o cache e força a recuperação em banco de dados.
      */
-    public void clearTotalCache() {
+    public void clearCache() {
         mapServerStorageCache.clear();
-        listAvailableCache.clear();
-    }
-
-    /**
-     * Limpa o cache a lista de servidores de armazenamento ativos para utilização.
-     */
-    public void clearAvailableCache() {
-        listAvailableCache.clear();
     }
 
     /**
@@ -109,11 +100,9 @@ public class ServerStorageCache {
      * @return Lista de Server Storage ativo.
      */
     public List<ServerStorage> listByStatusActive() {
-        if (!listAvailableCache.isEmpty())
-            return listAvailableCache;
-        listAvailableCache = serverStorageRepository
-                .findByServerStorageStatusCode(ServerStorageStatusEnum.ACTIVE.getCode());
-        return listAvailableCache;
+        return mapServerStorageCache.values().stream()
+                .filter(f ->
+                        f.getServerStorageStatusCode() == ServerStorageStatusEnum.ACTIVE.getCode()).toList();
     }
 
     /**
@@ -175,19 +164,36 @@ public class ServerStorageCache {
             return 1; //Como só existe um Storage ativo não gastar com cálculo de Score.
 
         //Calular metrics dos storages ativos para definir a máxima tempo de resposta e quantidade de requisições.
-        var listMetricsAvaliableStorages = listStoragesAvaliable.stream().map(ServerStorage::getMetrics).toList();
-        long maxResponseTime = listMetricsAvaliableStorages.stream().mapToLong(ServerStorageMetrics::getResponseTime).max().orElse(1);
-        int maxRequestLastMinute = listMetricsAvaliableStorages.stream().mapToInt(ServerStorageMetrics::getRequestLastMinute).max().orElse(1);
+        var listMetricsAvaliableStorages = listStoragesAvaliable.stream()
+                .map(ServerStorage::getMetrics).toList();
+        long maxResponseTime = listMetricsAvaliableStorages.stream()
+                .mapToLong(ServerStorageMetrics::getResponseTime).max().orElse(0);
+        int maxRequestLastMinute = listMetricsAvaliableStorages.stream()
+                .mapToInt(ServerStorageMetrics::getRequestLastMinute).max().orElse(0);
 
-        var storageMetrics = storage.getMetrics();
-        double freeSpace  = (double) storageMetrics.getFreeSpace() / storageMetrics.getTotalSpace(); // 0‑1
-        double respTime   = (double) storageMetrics.getResponseTime() / maxResponseTime;             // 0‑1 (quanto MAIOR = pior)
-        double reqsMinute = (double) storageMetrics.getRequestLastMinute() / maxRequestLastMinute;   // 0‑1
-        double errsMinute = storageMetrics.getErrosLastRequest();                                    // 0‑1
+        var score = calcScore(storage.getMetrics(), maxResponseTime, maxRequestLastMinute);
+        log.info("ServerStorage: {} => Score: {}", storage.getIdServerStorageClient(), score);
+        return score;
 
-        return ((weight_free_space * freeSpace) - (weight_response_time * respTime) -
+    }
+
+    /**
+     * Responsável por calcular o Score
+     * @param storageMetrics - Métricas do Server Storage
+     * @param maxResponseTime - Tempo máximo de requisição de todos os Server Storages ativos.
+     * @param maxRequestLastMinute - Quantidade máxima de requisições nos últimos 10 minutos.
+     * @return Score calculado.
+     */
+    private double calcScore(ServerStorageMetrics storageMetrics, long maxResponseTime, int maxRequestLastMinute) {
+        double freeSpace  = storageMetrics.getTotalSpace() !=0 ?
+                ((double) storageMetrics.getFreeSpace() / storageMetrics.getTotalSpace()) : 0; // 0‑1
+        double respTime   = maxResponseTime != 0 ?
+                ((double) storageMetrics.getResponseTime() / maxResponseTime) : 0;             // 0‑1 (quanto MAIOR = pior)
+        double reqsMinute = maxRequestLastMinute != 0 ?
+                ((double) storageMetrics.getRequestLastMinute() / maxRequestLastMinute) : 0;   // 0‑1
+        double errsMinute = storageMetrics.getErrosLastRequest();                              // 0‑1
+        return  ((weight_free_space * freeSpace) - (weight_response_time * respTime) -
                 (weight_request_last_minute * reqsMinute) - (weight_errors_last_request * errsMinute));
-
     }
 
 }

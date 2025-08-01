@@ -7,10 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface FileStorageRepository extends JpaRepository<FileStorage, Long>, JpaSpecificationExecutor<FileStorage> {
-    Optional<FileStorage> findByApplicationIdAndHashFileBytes(Long applicationId, String hashFileBytes);
+    List<FileStorage> findByApplicationIdAndHashFileBytes(Long applicationId, String hashFileBytes);
     Optional<FileStorage> findByIdFile(String idFile);
     Page<FileStorage> findByApplicationId(Long applicationId, Pageable pageable);
 }

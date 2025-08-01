@@ -9,6 +9,7 @@ import br.com.devd2.meshstorageserver.models.ServerStorageModel;
 import br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum;
 import br.com.devd2.meshstorageserver.repositories.ServerStorageRepository;
 import br.com.devd2.meshstorageserver.services.cache.ServerStorageCache;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class ServerStorageService {
     private final ServerStorageCache cacheServerStorage;
@@ -57,7 +59,7 @@ public class ServerStorageService {
         return cacheServerStorage.listByStatusActive().stream()
                 .filter(s -> !Objects.equals(s.getIdServerStorageClient(), idServerStorageUse))
                 .max(Comparator.comparingDouble(ServerStorage::getScoreStorage))
-                .orElseThrow(() -> new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível no momento."));
+                .orElse(null);
     }
 
     /**
@@ -128,7 +130,7 @@ public class ServerStorageService {
         var serverStorage = serverStorageRepository.save(server);
 
         //Adicionar novo Storage no cache...
-        cacheServerStorage.clearAvailableCache();
+        cacheServerStorage.clearCache();
         cacheServerStorage.addOrUpdateServerStorage(serverStorage);
         return serverStorage;
 
@@ -250,4 +252,24 @@ public class ServerStorageService {
             return serverStorageRepository.findAll();
     }
 
+    /**
+     * Realiza atualização nas metricas do Servidor de Armazenamento de ResponseTime e quantidade de requisições.
+     * @param idServerStorageClient - Identificador do ServerStorageClient para atualização
+     * @param responseTime - Tempo de resposta a requisição para o Servidor de Armanzenamento.
+     */
+    public void updateMetricsResposeTimeAndRequestCount(String idServerStorageClient, long responseTime) {
+        //TODO Implementar
+        log.info("Atualizar ServerStorageClient: {} - Tempo Resposta: {} - +1 Request", idServerStorageClient, responseTime);
+    }
+
+    /**
+     * Realiza atualização nas métricas do Servidor de Armazenamento quantidade de Erros.
+     * @param idServerStorageClientErrors - List[String] de Ids de Servidores que geraram erro de cominucação.
+     */
+    public void updateMetricsErrors(List<String> idServerStorageClientErrors) {
+        //TODO Implementar
+        for (String idServerStorageClient : idServerStorageClientErrors) {
+            log.info("Atualizar ServerStorageClient: {} - +1 Erro", idServerStorageClient);
+        }
+    }
 }

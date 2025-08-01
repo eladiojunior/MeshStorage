@@ -32,7 +32,7 @@ public class FileStorageClient {
     /**
      * Relacionamento com um FileStorage.
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_FILE_STORAGE")
     private FileStorage fileStorage;
 
