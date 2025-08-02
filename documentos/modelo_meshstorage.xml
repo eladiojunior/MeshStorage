@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="yes" ?>
 <DBMODEL Version="4.0">
 <SETTINGS>
-<GLOBALSETTINGS ModelName="modelo_meshstorage" IDModel="0" IDVersion="0" VersionStr="1.0.0.0" Comments="" UseVersionHistroy="1" AutoIncVersion="1" DatabaseType="MySQL" ZoomFac="94.00" XPos="0" YPos="72" DefaultDataType="5" DefaultTablePrefix="0" DefSaveDBConn="" DefSyncDBConn="" DefQueryDBConn="" Printer="" HPageCount="4.0" PageAspectRatio="1.440892512336408" PageOrientation="1" PageFormat="A4 (210x297 mm, 8.26x11.7 inches)" SelectedPages="" UsePositionGrid="0" PositionGridX="20" PositionGridY="20" TableNameInRefs="1" DefaultTableType="0" ActivateRefDefForNewRelations="1" FKPrefix="" FKPostfix="" CreateFKRefDefIndex="1" DBQuoteCharacter="`" CreateSQLforLinkedObjects="0" DefModelFont="Tahoma" CanvasWidth="4096" CanvasHeight="2842" />
+<GLOBALSETTINGS ModelName="modelo_meshstorage" IDModel="0" IDVersion="0" VersionStr="1.0.0.0" Comments="" UseVersionHistroy="1" AutoIncVersion="1" DatabaseType="MySQL" ZoomFac="94.00" XPos="0" YPos="96" DefaultDataType="5" DefaultTablePrefix="0" DefSaveDBConn="" DefSyncDBConn="" DefQueryDBConn="" Printer="" HPageCount="4.0" PageAspectRatio="1.440892512336408" PageOrientation="1" PageFormat="A4 (210x297 mm, 8.26x11.7 inches)" SelectedPages="" UsePositionGrid="0" PositionGridX="20" PositionGridY="20" TableNameInRefs="1" DefaultTableType="0" ActivateRefDefForNewRelations="1" FKPrefix="" FKPostfix="" CreateFKRefDefIndex="1" DBQuoteCharacter="`" CreateSQLforLinkedObjects="0" DefModelFont="Tahoma" CanvasWidth="4096" CanvasHeight="2842" />
 <DATATYPEGROUPS>
 <DATATYPEGROUP Name="Numeric Types" Icon="1" />
 <DATATYPEGROUP Name="Date and Time Types" Icon="2" />
@@ -260,7 +260,7 @@
 <REGIONS>
 </REGIONS>
 <TABLES>
-<TABLE ID="1401" Tablename="tb_application" PrevTableName="Table_01" XPos="62" YPos="65" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena as aplica\231\245es utilizadas no proceso de armazenamento de arquivos nos reposit\243rios de arquivos (file server)." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="2" >
+<TABLE ID="1401" Tablename="tb_application" PrevTableName="Table_01" XPos="57" YPos="66" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena as aplica\231\245es utilizadas no proceso de armazenamento de arquivos nos reposit\243rios de arquivos (file server)." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="2" >
 <COLUMNS>
 <COLUMN ID="1403" ColName="ID_APPLICATION" PrevColName="ID_APPICATION" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador da aplica\231\227o">
 <OPTIONSELECTED>
@@ -830,21 +830,21 @@
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1561" Tablename="tb_server_storage_metrics" PrevTableName="Table_09" XPos="57" YPos="877" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="" Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="16" >
+<TABLE ID="1561" Tablename="tb_server_storage_metrics" PrevTableName="Table_09" XPos="57" YPos="883" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="" Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="16" >
 <COLUMNS>
-<COLUMN ID="1628" ColName="ID_SERVER_STORAGE_METRICS" PrevColName="" Pos="8" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico da metrica do storage">
+<COLUMN ID="1628" ColName="ID_SERVER_STORAGE_METRICS" PrevColName="" Pos="8" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico da metrica do servidor de armazenamento.">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="0" />
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1565" ColName="QT_TOTAL_SPACE_STORAGE" PrevColName="" Pos="1" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Tamanho total do espa\231o de armazenamento do Storage enviado na configura\231\227o, execu\231\227o do agent no Cliente.">
+<COLUMN ID="1565" ColName="QT_TOTAL_SPACE_STORAGE" PrevColName="" Pos="1" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Tamanho total do espa\231o de armazenamento enviado na configura\231\227o, execu\231\227o do agente no cliente.">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="1" />
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1566" ColName="QT_FREE_SPACE_STORAGE" PrevColName="" Pos="2" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Espa\231o dispon\237vel de armazenamento do Storage enviado na configura\231\227o, execu\231\227o do agent no Cliente.">
+<COLUMN ID="1566" ColName="QT_FREE_SPACE_STORAGE" PrevColName="" Pos="2" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Espa\231o dispon\237vel de armazenamento enviado na configura\231\227o, execu\231\227o do agente no cliente.">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="1" />
 <OPTIONSELECT Value="0" />
@@ -856,25 +856,29 @@
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1568" ColName="VL_RESPONSE_TIME_STORAGE" PrevColName="" Pos="4" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Valor do tempo de resposta (em mil\233ssimo de segundo) no envio do arquivos para Storage.">
+<COLUMN ID="1568" ColName="VL_RESPONSE_TIME_STORAGE" PrevColName="" Pos="4" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Valor do tempo de resposta (em mil\233ssimo de segundo) no envio do arquivos para armazenamento.">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="1" />
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1569" ColName="QT_REQUEST_LAST_MINUTE_STORAGE" PrevColName="" Pos="5" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Quantidade de requisi\231\245es no \250ltimo minuto para de envio de arquivos para Storage.">
+<COLUMN ID="1569" ColName="QT_REQUEST_LAST_MINUTE_STORAGE" PrevColName="" Pos="5" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="0" Comments="Quantidade de requisi\231\245es no \250ltimo minuto para de envio de arquivos para armazenamento.">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="1" />
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1570" ColName="QT_ERRORS_LAST_REQUEST_STORAGE" PrevColName="" Pos="6" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Quantidade de requisi\231\245es no \250ltimo minuto para de envio de arquivos para Storage.">
+<COLUMN ID="1715" ColName="DH_LAST_REQUEST_STORAGE" PrevColName="" Pos="6" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="0" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Data e hora da \250ltima requisi\231\227o enviada do servidor de armazenamento.">
+<OPTIONSELECTED>
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1570" ColName="QT_ERRORS_LAST_REQUEST_STORAGE" PrevColName="" Pos="6" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="0" Comments="Quantidade de requisi\231\245es no \250ltimos minutos para de envio de arquivos para armazenamento.">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="1" />
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1571" ColName="DH_LAST_AVAILABLE_STORAGE" PrevColName="" Pos="7" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="CURRENT_TIMESTAMP" Comments="Data e hora da \250ltima atualiza\231\227o das m\233tricas do Storage Cliente.">
+<COLUMN ID="1571" ColName="DH_LAST_AVAILABLE_STORAGE" PrevColName="" Pos="7" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="CURRENT_TIMESTAMP" Comments="Data e hora da \250ltima atualiza\231\227o das m\233tricas do servidor de armazenamento.">
 <OPTIONSELECTED>
 </OPTIONSELECTED>
 </COLUMN>
@@ -943,7 +947,7 @@
 <RELATION ID="1496" RelationName="RL_FILE_STORAGE_ACCESS_TOKEN" Kind="2" SrcTable="1426" DestTable="1492" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1498" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="9" />
 <RELATION ID="1520" RelationName="RL_FILE_STORAGE_LOG_ACCESS" Kind="2" SrcTable="1426" DestTable="1511" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="5" CaptionOffsetY="-26" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1522" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="11" />
 <RELATION ID="1537" RelationName="RL_FILE_OCR_EXTRACTION_FIELDS" Kind="2" SrcTable="1525" DestTable="1530" FKFields="ID_FILE_OCR_EXTRACTION=ID_FILE_OCR_EXTRACTION\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1539" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="15" />
-<RELATION ID="1647" RelationName="RL_SERVER_STORAGE_METRICS" Kind="5" SrcTable="1561" DestTable="1459" FKFields="ID_SERVER_STORAGE_METRICS=ID_SERVER_STORAGE_METRICS\n" FKFieldsComments="Identificador da metrica do servidor de armazenamento\n" relDirection="1" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1649" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="17" />
+<RELATION ID="1647" RelationName="RL_SERVER_STORAGE_METRICS" Kind="5" SrcTable="1561" DestTable="1459" FKFields="ID_SERVER_STORAGE_METRICS=ID_SERVER_STORAGE_METRICS\n" FKFieldsComments="Identificador da metrica do servidor de armazenamento\n" relDirection="1" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="3" CaptionOffsetY="-22" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1649" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="17" />
 <RELATION ID="1703" RelationName="RL_FILE_STORAGE_COMPRESSED" Kind="2" SrcTable="1662" DestTable="1426" FKFields="ID_FILE_STORAGE_COMPRESSED=ID_FILE_STORAGE_COMPRESSED\n" FKFieldsComments="Identificador da estrutura de compress\227o do arquivo\n" relDirection="4" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="2" CaptionOffsetY="-23" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1705" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="19" />
 <RELATION ID="1709" RelationName="RL_FILE_STORAGE_OCR_EXTRACTION" Kind="2" SrcTable="1525" DestTable="1426" FKFields="ID_FILE_OCR_EXTRACTION=ID_FILE_OCR_EXTRACTION\n" FKFieldsComments="Identificador das informa\231\245es de extra\231\227o de OCR do arquivo.\n" relDirection="1" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="2" CaptionOffsetY="-16" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1711" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="19" />
 </RELATIONS>
