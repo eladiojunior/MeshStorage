@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="yes" ?>
 <DBMODEL Version="4.0">
 <SETTINGS>
-<GLOBALSETTINGS ModelName="modelo_meshstorage" IDModel="0" IDVersion="0" VersionStr="1.0.0.0" Comments="" UseVersionHistroy="1" AutoIncVersion="1" DatabaseType="MySQL" ZoomFac="94.00" XPos="0" YPos="120" DefaultDataType="5" DefaultTablePrefix="0" DefSaveDBConn="" DefSyncDBConn="" DefQueryDBConn="" Printer="" HPageCount="4.0" PageAspectRatio="1.440892512336408" PageOrientation="1" PageFormat="A4 (210x297 mm, 8.26x11.7 inches)" SelectedPages="" UsePositionGrid="0" PositionGridX="20" PositionGridY="20" TableNameInRefs="1" DefaultTableType="0" ActivateRefDefForNewRelations="1" FKPrefix="" FKPostfix="" CreateFKRefDefIndex="1" DBQuoteCharacter="`" CreateSQLforLinkedObjects="0" DefModelFont="Tahoma" CanvasWidth="4096" CanvasHeight="2842" />
+<GLOBALSETTINGS ModelName="modelo_meshstorage" IDModel="0" IDVersion="0" VersionStr="1.0.0.0" Comments="" UseVersionHistroy="1" AutoIncVersion="1" DatabaseType="MySQL" ZoomFac="94.00" XPos="0" YPos="72" DefaultDataType="5" DefaultTablePrefix="0" DefSaveDBConn="" DefSyncDBConn="" DefQueryDBConn="" Printer="" HPageCount="4.0" PageAspectRatio="1.440892512336408" PageOrientation="1" PageFormat="A4 (210x297 mm, 8.26x11.7 inches)" SelectedPages="" UsePositionGrid="0" PositionGridX="20" PositionGridY="20" TableNameInRefs="1" DefaultTableType="0" ActivateRefDefForNewRelations="1" FKPrefix="" FKPostfix="" CreateFKRefDefIndex="1" DBQuoteCharacter="`" CreateSQLforLinkedObjects="0" DefModelFont="Tahoma" CanvasWidth="4096" CanvasHeight="2842" />
 <DATATYPEGROUPS>
 <DATATYPEGROUP Name="Numeric Types" Icon="1" />
 <DATATYPEGROUP Name="Date and Time Types" Icon="2" />
@@ -345,9 +345,21 @@
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1426" Tablename="tb_file_storage" PrevTableName="Table_02" XPos="598" YPos="293" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade para armazenamento das informa\231\245es do arquivo armazenado no reposit\243rio de arquivos." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="3" >
+<TABLE ID="1426" Tablename="tb_file_storage" PrevTableName="Table_02" XPos="603" YPos="251" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade para armazenamento das informa\231\245es do arquivo armazenado no reposit\243rio de arquivos." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="3" >
 <COLUMNS>
 <COLUMN ID="1428" ColName="ID_FILE_STORAGE" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico do arquivo no banco de dados.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1712" ColName="ID_FILE_OCR_EXTRACTION" PrevColName="" Pos="1" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="1" DefaultValue="" Comments="">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1706" ColName="ID_FILE_STORAGE_COMPRESSED" PrevColName="" Pos="1" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="1" DefaultValue="" Comments="">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="0" />
 <OPTIONSELECT Value="0" />
@@ -395,36 +407,20 @@
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1437" ColName="IS_COMPRESSED_FILE_CONTENT" PrevColName="" Pos="8" idDatatype="22" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="true" Comments="Indicador que o arquivo passou por uma compress\227o em ZIP antes do armazenamento;">
-<OPTIONSELECTED>
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1438" ColName="QT_COMPRESSED_FILE_LENGTH" PrevColName="" Pos="9" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Tamanho em bytes do arquivo apos a compress\227o (ZIP ou WEBP).">
-<OPTIONSELECTED>
-<OPTIONSELECT Value="1" />
-<OPTIONSELECT Value="0" />
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1439" ColName="DS_COMPRESSED_FILE_INFORMATION" PrevColName="" Pos="10" idDatatype="20" DatatypeParams="(300)" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Resultado da compress\227o do arquivo Content Type \g\g (ZIP ou WEBP);">
+<COLUMN ID="1440" ColName="TX_HASH_FILE_BYTES" PrevColName="" Pos="11" idDatatype="20" DatatypeParams="(100)" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Hash dos bytes do arquivo.">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1440" ColName="TX_HASH_FILE_BYTES" PrevColName="" Pos="11" idDatatype="20" DatatypeParams="(100)" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Hash dos bytes do arquivo">
-<OPTIONSELECTED>
-<OPTIONSELECT Value="0" />
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1441" ColName="TX_HASH_FILE_CONTENT_OCR" PrevColName="" Pos="12" idDatatype="20" DatatypeParams="(100)" Width="-1" Prec="-1" PrimaryKey="0" NotNull="0" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Hash do conte\250do do arquivo extraido por OCR, se configurado.">
-<OPTIONSELECTED>
-<OPTIONSELECT Value="0" />
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1442" ColName="IS_EXTRACTION_TEXT_OCR_FILE" PrevColName="" Pos="13" idDatatype="22" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="false" Comments="Caso seja aplica\231\227o esteja com a extra\231\227o do OCR dos arquivos ativo, ser\225 setado como \atrue\a;">
+<COLUMN ID="1437" ColName="IS_COMPRESSED_FILE_CONTENT" PrevColName="" Pos="8" idDatatype="22" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="false" Comments="Indicador que o arquivo passou por uma compress\227o em ZIP ou WEBP antes do armazenamento.">
 <OPTIONSELECTED>
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1443" ColName="CD_STATUS_EXTRACTION_TEXT_ORC_FILE" PrevColName="" Pos="14" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="0" Comments="Status do processo de extra\231\227o de texto do arquivos, via OCR.">
+<COLUMN ID="1442" ColName="IS_EXTRACTION_TEXT_OCR_FILE" PrevColName="" Pos="13" idDatatype="22" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="false" Comments="Indicador que o arquivo passou por um processo de extra\231\227o de conte\250do por OCR.">
+<OPTIONSELECTED>
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1447" ColName="CD_STATUS_FILE_STORAGE" PrevColName="" Pos="18" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="1" Comments="C\243digo da situa\231\227o do arquivo: br.com.devd2.meshstorage.enums.FileStorageStatusEnum">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="1" />
 <OPTIONSELECT Value="0" />
@@ -442,21 +438,16 @@
 <OPTIONSELECTED>
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1447" ColName="CD_STATUS_FILE_STORAGE" PrevColName="" Pos="18" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="1" Comments="C\243digo da situa\231\227o do arquivo: br.com.devd2.meshstorage.enums.FileStorageStatusEnum">
-<OPTIONSELECTED>
-<OPTIONSELECT Value="1" />
-<OPTIONSELECT Value="0" />
-</OPTIONSELECTED>
-</COLUMN>
 </COLUMNS>
 <RELATIONS_START>
 <RELATION_START ID="1453" />
 <RELATION_START ID="1496" />
 <RELATION_START ID="1520" />
-<RELATION_START ID="1534" />
 </RELATIONS_START>
 <RELATIONS_END>
 <RELATION_END ID="1456" />
+<RELATION_END ID="1703" />
+<RELATION_END ID="1709" />
 </RELATIONS_END>
 <INDICES>
 <INDEX ID="1429" IndexName="PRIMARY" IndexKind="0" FKRefDef_Obj_id="-1">
@@ -474,14 +465,24 @@
 <INDEXCOLUMN idColumn="1440" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
-<INDEX ID="1626" IndexName="TB_FILE_STORAGE_FKIndex1" IndexKind="1" FKRefDef_Obj_id="1456">
+<INDEX ID="1626" IndexName="IX_ID_APPLICATION" IndexKind="1" FKRefDef_Obj_id="1456">
 <INDEXCOLUMNS>
 <INDEXCOLUMN idColumn="1625" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
+<INDEX ID="1705" IndexName="IX_ID_FILE_STORAGE_COMPRESSED" IndexKind="1" FKRefDef_Obj_id="1703">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1706" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+<INDEX ID="1711" IndexName="IX_ID_FILE_OCR_EXTRACTION" IndexKind="1" FKRefDef_Obj_id="1709">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1712" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1449" Tablename="tb_file_storage_client" PrevTableName="Table_03" XPos="620" YPos="63" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena o(s) Storage(s) em que o arquivo foi armazenado, pois ser\225 poss\237vel enviar um arquivo para mais de um storage em caso de solicita\231\227o de replica\231\227o de dados ou sincroniza\231\227o de estruturas." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="4" >
+<TABLE ID="1449" Tablename="tb_file_storage_client" PrevTableName="Table_03" XPos="621" YPos="54" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena o(s) Storage(s) em que o arquivo foi armazenado, pois ser\225 poss\237vel enviar um arquivo para mais de um storage em caso de solicita\231\227o de replica\231\227o de dados ou sincroniza\231\227o de estruturas." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="4" >
 <COLUMNS>
 <COLUMN ID="1451" ColName="ID_FILE_STORAGE_CLIENT" PrevColName="ID_FILE_CLIENT_STORAGE" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico dos arquivos armazenados nos reposit\243rios.">
 <OPTIONSELECTED>
@@ -608,7 +609,7 @@
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1492" Tablename="tb_file_storage_access_token" PrevTableName="Table_05" XPos="1266" YPos="237" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade respons\225vel por armazenar as chaves de acesso, token, para acesso de um arquivo por link direto ou QR Code (link) com verifica\231\227o de validade do token." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="8" >
+<TABLE ID="1492" Tablename="tb_file_storage_access_token" PrevTableName="Table_05" XPos="1217" YPos="103" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade respons\225vel por armazenar as chaves de acesso, token, para acesso de um arquivo por link direto ou QR Code (link) com verifica\231\227o de validade do token." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="8" >
 <COLUMNS>
 <COLUMN ID="1494" ColName="ID_FILE_STORAGE_ACCESS_TOKEN" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico do Access Token em banco de dados.">
 <OPTIONSELECTED>
@@ -674,7 +675,7 @@
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1511" Tablename="tb_file_storage_log_access" PrevTableName="Table_06" XPos="1253" YPos="617" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena acessos ao arquivo armazemando no file server, registrando as informa\231\245es do usu\225rio que est\225 acessando ou token de acesso caso seja um acesso direto por token, via link." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="10" >
+<TABLE ID="1511" Tablename="tb_file_storage_log_access" PrevTableName="Table_06" XPos="1219" YPos="405" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena acessos ao arquivo armazemando no file server, registrando as informa\231\245es do usu\225rio que est\225 acessando ou token de acesso caso seja um acesso direto por token, via link." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="10" >
 <COLUMNS>
 <COLUMN ID="1513" ColName="ID_FILE_STORAGE_LOG_ACCESS" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificar \250nico do log de acesso ao arquivo.">
 <OPTIONSELECTED>
@@ -734,15 +735,9 @@
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1525" Tablename="tb_file_ocr_extraction" PrevTableName="Table_07" XPos="593" YPos="917" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena o processo OCR do arquivo quando sinalizado na aplica\231\227o que \233 para realizar para os arquivos pertinentes ao processo de extra\231\227o de informa\231\245es via OCR." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="12" >
+<TABLE ID="1525" Tablename="tb_file_ocr_extraction" PrevTableName="Table_07" XPos="594" YPos="865" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena o processo OCR do arquivo quando sinalizado na aplica\231\227o que \233 para realizar para os arquivos pertinentes ao processo de extra\231\227o de informa\231\245es via OCR." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="12" >
 <COLUMNS>
-<COLUMN ID="1528" ColName="ID_FILE_OCR_EXTRACTION" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico da extra\231\227o OCR.">
-<OPTIONSELECTED>
-<OPTIONSELECT Value="0" />
-<OPTIONSELECT Value="0" />
-</OPTIONSELECTED>
-</COLUMN>
-<COLUMN ID="1540" ColName="ID_FILE_STORAGE" PrevColName="" Pos="1" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="1" DefaultValue="" Comments="Relacionamento do arquivo ao processo de extra\231\227o.">
+<COLUMN ID="1528" ColName="ID_FILE_OCR_EXTRACTION" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico da extra\231\227o OCR.">
 <OPTIONSELECTED>
 <OPTIONSELECT Value="0" />
 <OPTIONSELECT Value="0" />
@@ -767,31 +762,34 @@
 <OPTIONSELECT Value="0" />
 </OPTIONSELECTED>
 </COLUMN>
-<COLUMN ID="1560" ColName="DH_REGISTERED_EXTRACTION_OCR" PrevColName="" Pos="6" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="CURRENT_TIMESTAMP" Comments="Data e hora do registro de extra\231\227o de texto, via OCR.">
+<COLUMN ID="1658" ColName="CD_STATUS_EXTRACTION_TEXT_ORC_FILE" PrevColName="" Pos="7" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="0" Comments="Status do processo de extra\231\227o de texto do arquivos, via OCR.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1560" ColName="DH_START_EXTRACTION_OCR" PrevColName="DH_REGISTERED_EXTRACTION_OCR" Pos="6" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="CURRENT_TIMESTAMP" Comments="Data e hora inicial do processo de extra\231\227o de texto, via OCR.">
+<OPTIONSELECTED>
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1695" ColName="DH_END_EXTRACTION_OCR" PrevColName="" Pos="8" idDatatype="15" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="0" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Data e hora final do processo de extra\231\227o de texto, via OCR.">
 <OPTIONSELECTED>
 </OPTIONSELECTED>
 </COLUMN>
 </COLUMNS>
 <RELATIONS_START>
 <RELATION_START ID="1537" />
+<RELATION_START ID="1709" />
 </RELATIONS_START>
-<RELATIONS_END>
-<RELATION_END ID="1534" />
-</RELATIONS_END>
 <INDICES>
 <INDEX ID="1529" IndexName="PRIMARY" IndexKind="0" FKRefDef_Obj_id="-1">
 <INDEXCOLUMNS>
 <INDEXCOLUMN idColumn="1528" LengthParam="0" />
 </INDEXCOLUMNS>
 </INDEX>
-<INDEX ID="1536" IndexName="IX_ID_FILE_STORAGE" IndexKind="1" FKRefDef_Obj_id="1534">
-<INDEXCOLUMNS>
-<INDEXCOLUMN idColumn="1540" LengthParam="0" />
-</INDEXCOLUMNS>
-</INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1530" Tablename="tb_file_ocr_extraction_fields" PrevTableName="Table_08" XPos="1167" YPos="1060" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena os campos (chave e valor) do processo de OCR realizado no arquivo." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="13" >
+<TABLE ID="1530" Tablename="tb_file_ocr_extraction_fields" PrevTableName="Table_08" XPos="1217" YPos="882" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="Entidade que armazena os campos (chave e valor) do processo de OCR realizado no arquivo." Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="13" >
 <COLUMNS>
 <COLUMN ID="1532" ColName="ID_FILE_OCR_EXTRACTION_FIELDS" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico dos campos da extra\231\227o do OCR.">
 <OPTIONSELECTED>
@@ -832,7 +830,7 @@
 </INDEX>
 </INDICES>
 </TABLE>
-<TABLE ID="1561" Tablename="tb_server_storage_metrics" PrevTableName="Table_09" XPos="57" YPos="873" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="" Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="16" >
+<TABLE ID="1561" Tablename="tb_server_storage_metrics" PrevTableName="Table_09" XPos="57" YPos="877" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="" Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="16" >
 <COLUMNS>
 <COLUMN ID="1628" ColName="ID_SERVER_STORAGE_METRICS" PrevColName="" Pos="8" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico da metrica do storage">
 <OPTIONSELECTED>
@@ -892,15 +890,62 @@
 </INDEX>
 </INDICES>
 </TABLE>
+<TABLE ID="1662" Tablename="tb_file_storage_compressed" PrevTableName="Table_10" XPos="1218" YPos="678" TableType="0" TablePrefix="0" nmTable="0" Temporary="0" UseStandardInserts="0" StandardInserts="\n" TableOptions="DelayKeyTblUpdates=0\nPackKeys=0\nRowChecksum=0\nRowFormat=0\nUseRaid=0\nRaidType=0\n" Comments="" Collapsed="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="18" >
+<COLUMNS>
+<COLUMN ID="1664" ColName="ID_FILE_STORAGE_COMPRESSED" PrevColName="" Pos="0" idDatatype="6" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="1" NotNull="1" AutoInc="1" IsForeignKey="0" DefaultValue="" Comments="Identificador \250nico das informa\231\245es de compress\227o do arquivo.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1670" ColName="QT_COMPRESSED_FILE_LENGTH" PrevColName="" Pos="1" idDatatype="5" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="0" Comments="Tamanho em bytes do arquivo ap\243s a compress\227o (ZIP ou WEBP).">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="1" />
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1673" ColName="DS_COMPRESSED_FILE_CONTENT_TYPE" PrevColName="" Pos="2" idDatatype="20" DatatypeParams="(50)" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Tipo do arquivo (content type) ap\243s compress\227o do arquivo.">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1676" ColName="DS_COMPRESSED_FILE_INFORMATION" PrevColName="" Pos="3" idDatatype="20" DatatypeParams="(300)" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Resultado da compress\227o do arquivo Content Type \g\g (ZIP ou WEBP);">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1679" ColName="TX_COMPRESSED_HASH_FILE_BYTES" PrevColName="" Pos="4" idDatatype="20" DatatypeParams="(100)" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="" Comments="Hash dos bytes do arquivo ap\243s compress\227o (ZIP ou WEBP).">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+<COLUMN ID="1681" ColName="VL_COMPRESSED_FILE_CONTENT" PrevColName="" Pos="5" idDatatype="12" DatatypeParams="" Width="-1" Prec="-1" PrimaryKey="0" NotNull="1" AutoInc="0" IsForeignKey="0" DefaultValue="0.0" Comments="Percentual de compress\227o do conte\250do do arquivo (ZIP ou WEBP).">
+<OPTIONSELECTED>
+<OPTIONSELECT Value="0" />
+</OPTIONSELECTED>
+</COLUMN>
+</COLUMNS>
+<RELATIONS_START>
+<RELATION_START ID="1703" />
+</RELATIONS_START>
+<INDICES>
+<INDEX ID="1665" IndexName="PRIMARY" IndexKind="0" FKRefDef_Obj_id="-1">
+<INDEXCOLUMNS>
+<INDEXCOLUMN idColumn="1664" LengthParam="0" />
+</INDEXCOLUMNS>
+</INDEX>
+</INDICES>
+</TABLE>
 </TABLES>
 <RELATIONS>
 <RELATION ID="1453" RelationName="RL_FILE_STORAGE_CLIENT" Kind="2" SrcTable="1426" DestTable="1449" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="1" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1455" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="5" />
 <RELATION ID="1456" RelationName="RL_APPLICATION_FILE_STORAGE" Kind="2" SrcTable="1401" DestTable="1426" FKFields="ID_APPLICATION=ID_APPLICATION\n" FKFieldsComments="Identificador da aplica\231\227o de relacionamento.\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1626" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="6" />
 <RELATION ID="1496" RelationName="RL_FILE_STORAGE_ACCESS_TOKEN" Kind="2" SrcTable="1426" DestTable="1492" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1498" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="9" />
-<RELATION ID="1520" RelationName="RL_FILE_STORAGE_LOG_ACCESS" Kind="2" SrcTable="1426" DestTable="1511" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1522" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="11" />
-<RELATION ID="1534" RelationName="RL_FILE_STORAGE_OCR_EXTRACTION" Kind="2" SrcTable="1426" DestTable="1525" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="3" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1536" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="14" />
+<RELATION ID="1520" RelationName="RL_FILE_STORAGE_LOG_ACCESS" Kind="2" SrcTable="1426" DestTable="1511" FKFields="ID_FILE_STORAGE=ID_FILE_STORAGE\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="5" CaptionOffsetY="-26" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1522" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="11" />
 <RELATION ID="1537" RelationName="RL_FILE_OCR_EXTRACTION_FIELDS" Kind="2" SrcTable="1525" DestTable="1530" FKFields="ID_FILE_OCR_EXTRACTION=ID_FILE_OCR_EXTRACTION\n" FKFieldsComments="\n" relDirection="2" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1539" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="15" />
 <RELATION ID="1647" RelationName="RL_SERVER_STORAGE_METRICS" Kind="5" SrcTable="1561" DestTable="1459" FKFields="ID_SERVER_STORAGE_METRICS=ID_SERVER_STORAGE_METRICS\n" FKFieldsComments="Identificador da metrica do servidor de armazenamento\n" relDirection="1" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="0" CaptionOffsetY="0" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1649" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="17" />
+<RELATION ID="1703" RelationName="RL_FILE_STORAGE_COMPRESSED" Kind="2" SrcTable="1662" DestTable="1426" FKFields="ID_FILE_STORAGE_COMPRESSED=ID_FILE_STORAGE_COMPRESSED\n" FKFieldsComments="Identificador da estrutura de compress\227o do arquivo\n" relDirection="4" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="2" CaptionOffsetY="-23" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1705" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="19" />
+<RELATION ID="1709" RelationName="RL_FILE_STORAGE_OCR_EXTRACTION" Kind="2" SrcTable="1525" DestTable="1426" FKFields="ID_FILE_OCR_EXTRACTION=ID_FILE_OCR_EXTRACTION\n" FKFieldsComments="Identificador das informa\231\245es de extra\231\227o de OCR do arquivo.\n" relDirection="1" MidOffset="0" OptionalStart="0" OptionalEnd="0" CaptionOffsetX="2" CaptionOffsetY="-16" StartIntervalOffsetX="0" StartIntervalOffsetY="0" EndIntervalOffsetX="0" EndIntervalOffsetY="0" CreateRefDef="1" Invisible="0" RefDef="Matching=0\nOnDelete=3\nOnUpdate=3\n" Comments="" FKRefDefIndex_Obj_id="1711" Splitted="0" IsLinkedObject="0" IDLinkedModel="-1" Obj_id_Linked="-1" OrderPos="19" />
 </RELATIONS>
 <NOTES>
 </NOTES>

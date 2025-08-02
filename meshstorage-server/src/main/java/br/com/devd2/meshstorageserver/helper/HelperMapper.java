@@ -1,8 +1,8 @@
 package br.com.devd2.meshstorageserver.helper;
 
-import br.com.devd2.meshstorageserver.entites.Application;
-import br.com.devd2.meshstorageserver.entites.FileStorage;
-import br.com.devd2.meshstorageserver.entites.ServerStorage;
+import br.com.devd2.meshstorage.enums.ExtractionTextByOcrStatusEnum;
+import br.com.devd2.meshstorage.enums.FileStorageStatusEnum;
+import br.com.devd2.meshstorageserver.entites.*;
 import br.com.devd2.meshstorageserver.models.StatusMeshStorageModel;
 import br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum;
 import br.com.devd2.meshstorageserver.models.response.*;
@@ -36,6 +36,29 @@ public class HelperMapper {
         response.setStatusDescription(ServerStorageStatusEnum.getValue(serverStorage.getServerStorageStatusCode()));
         response.setDateTimeRegistered(serverStorage.getDateTimeRegisteredServerStorage());
         response.setDateTimeRemoved(serverStorage.getDateTimeRemovedServerStorage());
+        if (serverStorage.getMetrics() != null)
+            response.setMetrics(ConvertToResponse(serverStorage.getMetrics()));
+        return response;
+    }
+
+    /**
+     * Converte um objeto Entity (ServerStorageMetrics) para Response (ServerStorageMetricsResponse).
+     *
+     * @param metrics - Objeto a ser convertido em Response
+     * @return Instancia de Respose
+     */
+    public static ServerStorageMetricsResponse ConvertToResponse(ServerStorageMetrics metrics) {
+        if (metrics == null) {
+            return null;
+        }
+        ServerStorageMetricsResponse response = new ServerStorageMetricsResponse();
+        response.setTotalSpace(metrics.getTotalSpace());
+        response.setFreeSpace(metrics.getFreeSpace());
+        response.setResponseTime(metrics.getResponseTime());
+        response.setRequestLastMinute(metrics.getRequestLastMinute());
+        response.setDateTimeLastRequest(metrics.getDateTimeLastRequest());
+        response.setErrosLastRequest(metrics.getErrosLastRequest());
+        response.setDateTimeLastAvailable(metrics.getDateTimeLastAvailable());
         return response;
     }
 
@@ -56,17 +79,92 @@ public class HelperMapper {
         response.setFileContentType(fileStorage.getFileContentType());
         response.setFileLength(fileStorage.getFileLength());
         response.setHashFileBytes(fileStorage.getHashFileBytes());
-        response.setExtractionTextByOrcFormFile(fileStorage.isExtractionTextByOrcFormFile());
-        response.setExtractionTextByOrcFormFileStatus(fileStorage.getExtractionTextByOrcFormFileStatus());
-        response.setHashFileContentByOcr(fileStorage.getHashFileContentByOcr());
+        response.setExtractionTextFileByOcr(fileStorage.isExtractionTextFileByOcr());
+        if (fileStorage.isExtractionTextFileByOcr() && fileStorage.getFileExtractionByOcr() != null)
+            response.setFileExtractionByOcr(ConvertToResponse(fileStorage.getFileExtractionByOcr()));
         response.setCompressedFileContent(fileStorage.isCompressedFileContent());
-        response.setCompressedFileLength(fileStorage.getCompressedFileLength());
-        response.setFileCompressionInformation(fileStorage.getCompressionFileInformation());
+        if (fileStorage.isCompressedFileContent() && fileStorage.getFileCompressed() != null)
+            response.setFileCompressed(ConvertToResponse(fileStorage.getFileCompressed()));
         response.setDateTimeRegisteredFileStorage(fileStorage.getDateTimeRegisteredFileStorage());
         response.setDateTimeRemovedFileStorage(fileStorage.getDateTimeRemovedFileStorage());
         response.setDateTimeBackupFileStorage(fileStorage.getDateTimeBackupFileStorage());
         response.setFileStatusCode(fileStorage.getFileStatusCode());
+        response.setFileStatusDescription(FileStorageStatusEnum.getValue(fileStorage.getFileStatusCode()));
         return response;
+    }
+
+    /**
+     * Converte um objeto Entity (FileStorageCompressed) para Response (FileStorageCompressedResponse).
+     *
+     * @param fileStorageCompressed - Objeto a ser convertido em Response
+     * @return Instancia de Response
+     */
+    public static FileStorageCompressedResponse ConvertToResponse(FileStorageCompressed fileStorageCompressed) {
+        if (fileStorageCompressed == null) {
+            return null;
+        }
+        FileStorageCompressedResponse response = new FileStorageCompressedResponse();
+        response.setCompressedFileLength(fileStorageCompressed.getCompressedFileLength());
+        response.setCompressedFileContentType(fileStorageCompressed.getCompressedFileContentType());
+        response.setCompressedFileInformation(fileStorageCompressed.getCompressionFileInformation());
+        response.setCompressedHashFileBytes(fileStorageCompressed.getCompressedHashFileBytes());
+        response.setPercentualCompressedFile(fileStorageCompressed.getPercentualCompressedFileContent());
+        return response;
+    }
+
+    /**
+     * Converte um objeto Entity (FileOcrExtraction) para Response (FileOcrExtractionResponse).
+     *
+     * @param fileOcrExtraction - Objeto a ser convertido em Response
+     * @return Instancia de Response
+     */
+    public static FileOcrExtractionResponse ConvertToResponse(FileOcrExtraction fileOcrExtraction) {
+        if (fileOcrExtraction == null) {
+            return null;
+        }
+        FileOcrExtractionResponse response = new FileOcrExtractionResponse();
+        response.setContentTextByOcr(fileOcrExtraction.getTextFileOcr());
+        response.setHashContentTextByOcr(fileOcrExtraction.getHashContentFile());
+        response.setNameTypeDocumentByOcr(fileOcrExtraction.getDocumentType());
+        response.setPercentualConfidenceTypeDocumentByOcr(fileOcrExtraction.getDegreeConfidenceDocumentType());
+        response.setCodeStatusExtractionTextByOrc(fileOcrExtraction.getExtractionTextByOrcStatusCode());
+        response.setDescriptionStatusExtractionTextByOrc(
+                ExtractionTextByOcrStatusEnum.getValue(fileOcrExtraction.getExtractionTextByOrcStatusCode()));
+        response.setDateTimeStartExtractionByOcr(fileOcrExtraction.getDateTimeStartExtraction());
+        response.setDateTimeEndExtractionByOcr(fileOcrExtraction.getDateTimeEndExtraction());
+        if (fileOcrExtraction.getFieldsOcrExtraction() != null &&
+                !fileOcrExtraction.getFieldsOcrExtraction().isEmpty()) {
+            response.setFieldsExtractionByOcr(ConvertToResponseListFieldsOcrExtraction
+                    (fileOcrExtraction.getFieldsOcrExtraction()));
+        }
+        return response;
+    }
+
+    /**
+     * Converte um objeto Entity (FileOcrExtractionFields) para Response (FileOcrExtractionFieldsResponse).
+     *
+     * @param fileOcrExtractionFields - Objeto a ser convertido em Response
+     * @return Instancia de Response
+     */
+    private static FileOcrExtractionFieldsResponse ConvertToResponse(FileOcrExtractionFields fileOcrExtractionFields) {
+        if (fileOcrExtractionFields == null) {
+            return null;
+        }
+        FileOcrExtractionFieldsResponse response = new FileOcrExtractionFieldsResponse();
+        response.setKeyField(fileOcrExtractionFields.getKeyField());
+        response.setValueField(fileOcrExtractionFields.getValueField());
+        return response;
+    }
+
+
+    /**
+     * Converte lista de objeto Entity (FileOcrExtractionFields) para lista de Response (FileOcrExtractionFieldsResponse).
+     * @param listFieldsExtractionOcr - Lista de Entites para conversão.
+     * @return Lista de Responses convertidas.
+     */
+    public static List<FileOcrExtractionFieldsResponse> ConvertToResponseListFieldsOcrExtraction
+    (List<FileOcrExtractionFields> listFieldsExtractionOcr) {
+        return listFieldsExtractionOcr.stream().map(HelperMapper::ConvertToResponse).toList();
     }
 
     /**
@@ -74,7 +172,8 @@ public class HelperMapper {
      * @param listServerStorage - Lista de Entites para conversão.
      * @return Lista de Responses convertidas.
      */
-    public static List<ServerStorageResponse> ConvertToResponseListServerStorage(List<ServerStorage> listServerStorage) {
+    public static List<ServerStorageResponse> ConvertToResponseListServerStorage
+    (List<ServerStorage> listServerStorage) {
         return listServerStorage.stream().map(HelperMapper::ConvertToResponse).toList();
     }
 

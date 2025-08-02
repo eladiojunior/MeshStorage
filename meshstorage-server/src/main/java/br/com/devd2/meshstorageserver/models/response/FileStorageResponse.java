@@ -1,6 +1,6 @@
 package br.com.devd2.meshstorageserver.models.response;
 
-import br.com.devd2.meshstorage.enums.ExtractionTextByOcrStatusEnum;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -43,20 +43,9 @@ public class FileStorageResponse {
     private String hashFileBytes;
 
     /**
-     * Hash do conteúdo do arquivo extraido por OCR, se configurado.
+     * Indicador que o arquivo passou ou está passando pelo processo de extração de texto, via OCR;
      */
-    private String hashFileContentByOcr;
-
-    /**
-     * Caso seja aplicação esteja com a extração do OCR dos arquivos ativo, será setado como 'true';
-     */
-    private boolean extractionTextByOrcFormFile;
-
-    /**
-     * Status do processo de extração de texto do arquivos, via OCR.
-     * {@link ExtractionTextByOcrStatusEnum}
-     */
-    private Integer extractionTextByOrcFormFileStatus = ExtractionTextByOcrStatusEnum.IN_PROCESSING.getCode();
+    private boolean extractionTextFileByOcr;
 
     /**
      * Indicador que o arquivo passou por uma compressão em ZIP antes do armazenamento;
@@ -64,28 +53,21 @@ public class FileStorageResponse {
     private boolean compressedFileContent;
 
     /**
-     * Tamnho em bytes do arquivo apos a compressão (ZIP ou WEBP).
-     */
-    private int compressedFileLength;
-
-    /**
-     * Resultado da compressão do arquivo Content Type >> (ZIP ou WEBP);
-     */
-    private String fileCompressionInformation;
-
-    /**
      * Data e hora do registro do arquivo no armazenamento.
      */
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime dateTimeRegisteredFileStorage;
 
     /**
      * Data e hora da remoção do arquivo para do armazenamento.
      */
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime dateTimeRemovedFileStorage;
 
     /**
      * Data e hora do envio do arquivo para o backup, armazenamento não online.
      */
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime dateTimeBackupFileStorage;
 
     /**
@@ -93,5 +75,21 @@ public class FileStorageResponse {
      * {@link br.com.devd2.meshstorage.enums.FileStorageStatusEnum}
      */
     private Integer fileStatusCode;
+
+    /**
+     * Descrição da situação do arquivo:
+     * {@link br.com.devd2.meshstorage.enums.FileStorageStatusEnum}
+     */
+    private String fileStatusDescription;
+
+    /**
+     * Informações do processo de extração de conteúdo texto do arquivo, via OCR, quando existir.
+     */
+    private FileOcrExtractionResponse fileExtractionByOcr;
+
+    /**
+     * Informações da compressão do arquivo, quando existir.
+     */
+    private FileStorageCompressedResponse fileCompressed;
 
 }

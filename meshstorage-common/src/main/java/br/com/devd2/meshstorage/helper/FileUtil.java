@@ -27,7 +27,7 @@ public class FileUtil {
      * @param data - Array de bytes para aplicar o HASH
      * @return String do HASH aplicado.
      */
-    public static String hashConteudo(byte[] data) {
+    public static String hashConteudoBytes(byte[] data) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(data);

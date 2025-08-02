@@ -26,4 +26,14 @@ public class HelperServer {
     public static long elapsedMillis(LocalDateTime start, LocalDateTime end) {
         return ChronoUnit.MILLIS.between(start, end);
     }
+
+    /**
+     * Responsável por calulcar o tempo de resposta em minutos (long).
+     * @param start - LocalDateTime inicial (t1).
+     * @param end - LocalDateTime final (t2).
+     * @return tempo de resposta (long);
+     */
+    public static long elapsedMinutes(LocalDateTime start, LocalDateTime end) {
+        return ChronoUnit.MINUTES.between(start, end);
+    }
 }

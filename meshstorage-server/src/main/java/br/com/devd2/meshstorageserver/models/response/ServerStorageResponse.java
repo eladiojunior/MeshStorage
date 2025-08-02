@@ -23,4 +23,9 @@ public class ServerStorageResponse {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime dateTimeRemoved;
 
+    /**
+     * Informações de metricas do Server Storage, se existir.
+     */
+    private ServerStorageMetricsResponse metrics;
+
 }

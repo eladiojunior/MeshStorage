@@ -17,4 +17,17 @@ public enum ExtractionTextByOcrStatusEnum {
         this.description = description;
     }
 
+    /**
+     * Recupera o value (description) do enum pelo code.
+     * @param code - código do enum para recuperar a descrição.
+     * @return Descrição do enum ou nulo;
+     */
+    public static String getValue(Integer code) {
+        for (ExtractionTextByOcrStatusEnum _enum : ExtractionTextByOcrStatusEnum.values()) {
+            if (_enum.code == code)
+                return _enum.description;
+        }
+        return null;
+    }
+
 }

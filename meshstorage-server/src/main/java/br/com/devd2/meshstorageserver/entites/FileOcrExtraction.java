@@ -1,5 +1,6 @@
 package br.com.devd2.meshstorageserver.entites;
 
+import br.com.devd2.meshstorage.enums.ExtractionTextByOcrStatusEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -44,22 +45,28 @@ public class FileOcrExtraction {
     private double degreeConfidenceDocumentType = 0.0;
 
     /**
-     * Data e hora do registro de extração de texto, via OCR.
+     * Status do processo de extração de texto do arquivos, via OCR.
+     * {@link ExtractionTextByOcrStatusEnum}
      */
-    @Column(name = "DH_REGISTERED_EXTRACTION_OCR")
-    private LocalDateTime dateTimeRegisteredExtraction;
+    @Column(name = "CD_STATUS_EXTRACTION_TEXT_ORC_FILE")
+    private Integer extractionTextByOrcStatusCode = ExtractionTextByOcrStatusEnum.NOT_EXTRACTIO.getCode();
+
+    /**
+     * Data e hora do inicio do processo de extração de texto, via OCR.
+     */
+    @Column(name = "DH_START_EXTRACTION_OCR")
+    private LocalDateTime dateTimeStartExtraction;
+
+    /**
+     * Data e hora do final do processo de extração de texto, via OCR.
+     */
+    @Column(name = "DH_END_EXTRACTION_OCR")
+    private LocalDateTime dateTimeEndExtraction;
 
     /**
      * Lista de campos (chave, valor) da extração do conteúdo texto, após processamento OCR.
      */
     @OneToMany
     private List<FileOcrExtractionFields> fieldsOcrExtraction;
-
-    /**
-     * Relacionamento do arquivo ao processo de extração.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_FILE_STORAGE")
-    private FileStorage fileStorage;
 
 }

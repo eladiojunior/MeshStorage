@@ -1,6 +1,5 @@
 package br.com.devd2.meshstorageserver.entites;
 
-import br.com.devd2.meshstorage.enums.ExtractionTextByOcrStatusEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -72,47 +71,29 @@ public class FileStorage {
     private byte[] fileContent;
 
     /**
-     * Indicador que o arquivo passou por uma compressão em ZIP antes do armazenamento;
-     */
-    @Column(name = "IS_COMPRESSED_FILE_CONTENT")
-    private boolean compressedFileContent;
-
-    /**
-     * Tamanho em bytes do arquivo apos a compressão (ZIP ou WEBP).
-     */
-    @Column(name = "QT_COMPRESSED_FILE_LENGTH")
-    private int compressedFileLength;
-
-    /**
-     * Resultado da compressão do arquivo Content Type >> (ZIP ou WEBP);
-     */
-    @Column(name = "DS_COMPRESSED_FILE_INFORMATION")
-    private String compressionFileInformation;
-
-    /**
      * Hash dos bytes do arquivo.
      */
     @Column(name = "TX_HASH_FILE_BYTES")
     private String hashFileBytes;
 
     /**
-     * Hash do conteúdo do arquivo extraido por OCR, se configurado.
+     * Indicador que o arquivo passou por uma compressão em ZIP ou WEBP antes do armazenamento;
      */
-    @Column(name = "TX_HASH_FILE_CONTENT_OCR")
-    private String hashFileContentByOcr;
+    @Column(name = "IS_COMPRESSED_FILE_CONTENT")
+    private boolean compressedFileContent;
 
     /**
      * Caso seja aplicação esteja com a extração do OCR dos arquivos ativo, será setado como 'true';
      */
     @Column(name = "IS_EXTRACTION_TEXT_OCR_FILE")
-    private boolean extractionTextByOrcFormFile;
+    private boolean extractionTextFileByOcr;
 
     /**
-     * Status do processo de extração de texto do arquivos, via OCR.
-     * {@link ExtractionTextByOcrStatusEnum}
+     * Código da situação do arquivo:
+     * {@link br.com.devd2.meshstorage.enums.FileStorageStatusEnum}
      */
-    @Column(name = "CD_STATUS_EXTRACTION_TEXT_ORC_FILE")
-    private Integer extractionTextByOrcFormFileStatus = ExtractionTextByOcrStatusEnum.NOT_EXTRACTIO.getCode();
+    @Column(name = "CD_STATUS_FILE_STORAGE")
+    private Integer fileStatusCode;
 
     /**
      * Data e hora do registro do arquivo no armazenamento.
@@ -133,13 +114,6 @@ public class FileStorage {
     private LocalDateTime dateTimeBackupFileStorage;
 
     /**
-     * Código da situação do arquivo:
-     * {@link br.com.devd2.meshstorage.enums.FileStorageStatusEnum}
-     */
-    @Column(name = "CD_STATUS_FILE_STORAGE")
-    private Integer fileStatusCode;
-
-    /**
      * Relacionamento com uma aplicação.
      */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -151,10 +125,24 @@ public class FileStorage {
      */
     @OneToMany(mappedBy = "fileStorage", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<FileStorageClient> listFileStorageClient = new ArrayList<>();
-
     public void addFileStorageClient(FileStorageClient client) {
         listFileStorageClient.add(client);
         client.setFileStorage(this);
     }
+
+    /**
+     * Relacionamento com a estrutura de compressão do arquivo, se houver.
+     */
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "ID_FILE_STORAGE_COMPRESSED")
+    private FileStorageCompressed fileCompressed;
+
+    /**
+     * Relacionamento com a estrutura de extração, via OCR, se houver.
+     */
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "ID_FILE_OCR_EXTRACTION")
+    private FileOcrExtraction fileExtractionByOcr;
+
 
 }

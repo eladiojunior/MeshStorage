@@ -46,6 +46,12 @@ public class ServerStorageMetrics {
     private Integer requestLastMinute;
 
     /**
+     * Data e hora da última requisição enviada ao Server Storage Client.
+     */
+    @Column(name = "DH_LAST_REQUEST_STORAGE")
+    private LocalDateTime dateTimeLastRequest;
+
+    /**
      * Quantidade de requisições no último minuto para de envio de arquivos para Storage.
      */
     @Column(name = "QT_ERRORS_LAST_REQUEST_STORAGE")

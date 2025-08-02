@@ -12,9 +12,7 @@ import br.com.devd2.meshstorage.models.messages.FileDeleteMessage;
 import br.com.devd2.meshstorage.models.messages.FileDownloadMessage;
 import br.com.devd2.meshstorage.models.messages.FileRegisterMessage;
 import br.com.devd2.meshstorageserver.config.WebSocketMessaging;
-import br.com.devd2.meshstorageserver.entites.FileStorage;
-import br.com.devd2.meshstorageserver.entites.FileAccessToken;
-import br.com.devd2.meshstorageserver.entites.FileStorageClient;
+import br.com.devd2.meshstorageserver.entites.*;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperFormat;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
@@ -119,12 +117,15 @@ public class FileStorageService {
                 bytesFile = FileUtil.descompressZipFileContent(bytesFile);
             }
 
-            var hashFileDownload = FileUtil.hashConteudo(bytesFile);
-            if ( (fileStorage.isCompressedFileContent() &&
-                    FileUtil.hasContentTypeCompressedZip(fileStorage.getFileContentType()) &&
-                    !fileStorage.getHashFileBytes().equals(hashFileDownload)) ||
-                    (!fileStorage.isCompressedFileContent() &&
-                            !fileStorage.getHashFileBytes().equals(hashFileDownload)) )
+            //Verificar se o hash do arquivo de download está conforme o armazenado no upload ;)
+            var hashFileDownload = FileUtil.hashConteudoBytes(bytesFile);
+            var hashFileEntity = fileStorage.getHashFileBytes();
+            if (fileStorage.isCompressedFileContent() && fileStorage.getFileCompressed()!=null &&
+                    fileStorage.getFileCompressed().getCompressedHashFileBytes()!=null &&
+                    !fileStorage.getFileCompressed().getCompressedHashFileBytes().isEmpty()) {
+                hashFileEntity = fileStorage.getFileCompressed().getCompressedHashFileBytes();
+            }
+            if (!hashFileEntity.equals(hashFileDownload))
                 log.warn("Arquivo [{}] com HASH diferente, esse arquivo pode ter sido manipulado no Storage!",
                         pathFileStorage);
 
@@ -175,16 +176,10 @@ public class FileStorageService {
             String nomeFisicoArquivo = FileUtil.generatePhisicalName(Objects.requireNonNull(file.getOriginalFilename()));
 
             //Aplicar HASH nos bytes do arquivo, não no conteúdo.
-            hashFileBytes = FileUtil.hashConteudo(bytesFile);
-
+            hashFileBytes = FileUtil.hashConteudoBytes(bytesFile);
             if (application.isAllowDuplicateFile())
             {//Verificar duplicicade de HASH
-                var fileStorage = fileStorageRepository.findByApplicationIdAndHashFileBytes(
-                        application.getId(), hashFileBytes).stream().filter(f ->
-                        f.getFileStatusCode()==FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode())
-                        .findFirst().orElse(null);
-                if (fileStorage != null)
-                    throw new ApiBusinessException("Arquivo já existe na aplicação e armazenado confirmado, duplicidade não é permitido.");
+                checkFileDuplicationByHash(application.getId(), hashFileBytes);
             }
 
             //Verificar qual o ServerStorageClient será utilizado...
@@ -199,49 +194,63 @@ public class FileStorageService {
                     listFileStorageClient.add(new FileStorageClient(bestStorageReplica.getIdServerStorageClient()));
             }
 
-            boolean fileCompressedContent = false;
+            boolean isFileCompressedContent = false;
             int lengthBytes = bytesFile.length;
             int lengthBytesCompressed = 0;
             String fileCompressionInformation = "";
             String contentTypeFile = file.getContentType();
+            String hashFileBytesCompressed = "";
+            String contentTypeFileCompressed = "";
+            double percentualFileCompressed = 0;
 
             //Verificar se está configurado para executar a extração de OCR do arquivo.
-            boolean hasExtractionTextByOrcFormFile = application.isApplyOcrFileContent() &&
+            boolean isExtractionTextByOrcFormFile = application.isApplyOcrFileContent() &&
                     OcrUtil.isAllowedTypeForOcr(contentTypeFile);
 
             //Guardar os bytes original do arquivo para pocessamento do OCR.
             var bytesFileOcr = new byte[]{};
-            if (hasExtractionTextByOrcFormFile)
+            if (isExtractionTextByOrcFormFile)
                 bytesFileOcr = bytesFile.clone();
 
+            //Verificar se a aplicação está configurada para compressão de arquivo em ZIP
+            // e se o tipo do arquivo é compatível com compressão.
             if (application.isCompressedFileContentToZip() && FileUtil.hasFileTypeNameCompressedZip(contentTypeFile))
             {//Compactar arquivo antes de armazenar
                 try {
                     bytesFile = FileUtil.compressZipFileContent(nomeFisicoArquivo, bytesFile);
                     lengthBytesCompressed = bytesFile.length;
                     nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, FileContentTypesEnum.ZIP.getExtension());
-                    double percentual_compressed = 100.0 - ((double) lengthBytesCompressed / lengthBytes * 100);
+                    percentualFileCompressed = 100.0 - ((double) lengthBytesCompressed / lengthBytes * 100);
                     fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.ZIP.getContentType() +
-                            " [compressão de: " + HelperFormat.formatPercent(percentual_compressed) + "]";
-                    fileCompressedContent = true;
+                            " [compressão de: " + HelperFormat.formatPercent(percentualFileCompressed) + "]";
+                    isFileCompressedContent = true;
+                    //Como a conversão foi bem sucedida precisamos gerar o HASH dos bytes do arquivo comprimido.
+                    hashFileBytesCompressed = FileUtil.hashConteudoBytes(bytesFile);
+                    contentTypeFileCompressed = FileContentTypesEnum.ZIP.getContentType();
                 } catch (Exception error) {
                     log.error("Erro ao realizar compressão do arquivo.", error);
                 }
             }
 
+            //Verificar se a aplicação está configurada para conversão de imagem em WebP
+            // e se o tipo do arquivo é compatível para realizar essa conversão.
             if (application.isConvertImageFileToWebp() && FileUtil.hasFileTypeCompressedWebP(file.getContentType()))
-            {//Converter imagem em um formato mais leve.
+            {//Converter imagem em um formato mais leve (WebP).
                 try {
                     byte[] bytesFileWebp = FileUtil.convertImagemToWebp(bytesFile, quality_compressed_webp);
                     if (bytesFileWebp.length != 0 && bytesFileWebp.length < lengthBytes) {
                         lengthBytesCompressed = bytesFileWebp.length;
-                        nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, FileContentTypesEnum.WEBP.getExtension());
-                        double percentual_compressed = 100.0 - ((double) bytesFileWebp.length / lengthBytes * 100);
-                        fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.WEBP.getContentType() +
-                                " [quality: " + quality_compressed_webp + ", compressão de: " + HelperFormat.formatPercent(percentual_compressed) + "]";
-                        fileCompressedContent = true;
-                        contentTypeFile = FileContentTypesEnum.WEBP.getContentType();
+                        nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo,
+                                FileContentTypesEnum.WEBP.getExtension());
+                        percentualFileCompressed = 100.0 - ((double) bytesFileWebp.length / lengthBytes * 100);
+                        fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.
+                                WEBP.getContentType() + " [quality: " + quality_compressed_webp + ", compressão de: " +
+                                HelperFormat.formatPercent(percentualFileCompressed) + "]";
+                        isFileCompressedContent = true;
                         bytesFile = bytesFileWebp.clone();
+                        //Como a conversão foi bem sucedida precisamos gerar o HASH dos bytes do arquivo comprimido.
+                        hashFileBytesCompressed = FileUtil.hashConteudoBytes(bytesFile);
+                        contentTypeFileCompressed = FileContentTypesEnum.WEBP.getContentType();
                     }
                 } catch (Exception error) {
                     log.error("Erro ao realizar conversão da imagem para WebP.", error);
@@ -256,16 +265,29 @@ public class FileStorageService {
             fileStorageEntity.setFileFisicalName(nomeFisicoArquivo);
             fileStorageEntity.setFileLength(lengthBytes);
             fileStorageEntity.setFileContent(bytesFile);
-            fileStorageEntity.setCompressedFileLength(lengthBytesCompressed);
-            fileStorageEntity.setCompressedFileContent(fileCompressedContent);
-            fileStorageEntity.setCompressionFileInformation(fileCompressionInformation);
             fileStorageEntity.setFileContentType(contentTypeFile);
             fileStorageEntity.setHashFileBytes(hashFileBytes);
-            fileStorageEntity.setExtractionTextByOrcFormFile(hasExtractionTextByOrcFormFile);
-            if (hasExtractionTextByOrcFormFile)
-                fileStorageEntity.setExtractionTextByOrcFormFileStatus(ExtractionTextByOcrStatusEnum.IN_PROCESSING.getCode());
-            fileStorageEntity.setDateTimeRegisteredFileStorage(LocalDateTime.now());
+            fileStorageEntity.setCompressedFileContent(isFileCompressedContent);
+            //Informações da compressão do arquivo...
+            if (isFileCompressedContent) {
+                var fileStorageCompressedEntity = new FileStorageCompressed();
+                fileStorageCompressedEntity.setCompressedFileLength(lengthBytesCompressed);
+                fileStorageCompressedEntity.setCompressedFileContentType(contentTypeFileCompressed);
+                fileStorageCompressedEntity.setCompressionFileInformation(fileCompressionInformation);
+                fileStorageCompressedEntity.setCompressedHashFileBytes(hashFileBytesCompressed);
+                fileStorageCompressedEntity.setPercentualCompressedFileContent(percentualFileCompressed);
+                fileStorageEntity.setFileCompressed(fileStorageCompressedEntity);
+            }
+            //Informações da extração OCR do conteúdo do arquivo...
+            fileStorageEntity.setExtractionTextFileByOcr(isExtractionTextByOrcFormFile);
+            if (isExtractionTextByOrcFormFile) {
+                var fileOcrExtractionEntity = new FileOcrExtraction();
+                fileOcrExtractionEntity.setExtractionTextByOrcStatusCode(ExtractionTextByOcrStatusEnum.IN_PROCESSING.getCode());
+                fileStorageEntity.setFileExtractionByOcr(fileOcrExtractionEntity);
+            }
+            //Informações de registro e status do arquivo...
             fileStorageEntity.setFileStatusCode(FileStorageStatusEnum.SENT_TO_STORAGE.getCode());
+            fileStorageEntity.setDateTimeRegisteredFileStorage(LocalDateTime.now());
 
             //Enviar para armazenar fisicamente...
             var fileRegisterMessage = new FileRegisterMessage();
@@ -291,7 +313,7 @@ public class FileStorageService {
                 serverStorageService.updateServerStorageTotalFile(bestStorage.getId(), true);
                 applicationService.updateApplicationTotalFile(application.getId(), true);
 
-                if (hasExtractionTextByOrcFormFile)
+                if (isExtractionTextByOrcFormFile)
                 {//Colocar na fila para processamento do OCR do arquivo...
                     OcrUtil.sendExtractionTextFormFile(fileStorageEntity.getId(), hashFileBytes, bytesFileOcr);
                 }
@@ -306,6 +328,22 @@ public class FileStorageService {
             throw new ApiBusinessException(error.getMessage());
         }
 
+    }
+
+    /**
+     * Verifica se o arquivo já existe, seu armazenamento confirmado, para uma aplicação (ID)
+     * com base no HASH dos bytes do arquivo.
+     * @param applicationId - Identificador da aplicação que está armazenando o arquivo.
+     * @param hashFileBytes - HASH dos bytes do arquivos para verificação da duplicidade.
+     * @throws ApiBusinessException Caso exista duplicidade será retornado um exception de negócio.
+     */
+    private void checkFileDuplicationByHash(Long applicationId, String hashFileBytes) throws ApiBusinessException {
+        var fileStorage = fileStorageRepository.findByApplicationIdAndHashFileBytes(
+                        applicationId, hashFileBytes).stream().filter(f ->
+                        f.getFileStatusCode()==FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode())
+                .findFirst().orElse(null);
+        if (fileStorage != null)
+            throw new ApiBusinessException("Arquivo já existe na aplicação e armazenado confirmado, duplicidade não é permitido.");
     }
 
     /**
@@ -390,11 +428,8 @@ public class FileStorageService {
         if (application == null)
             throw new ApiBusinessException("Aplicação não identificada pelo seu nome ("+applicationName+"), obrigatório.");
 
-        if (pageNumber == 0)
-            pageNumber = 1;
-
-        if (recordsPerPage == 0)
-            recordsPerPage = 15;
+        if (pageNumber == 0) pageNumber = 1;
+        if (recordsPerPage == 0) recordsPerPage = 15;
 
         Specification<FileStorage> specification = (root, q, cb) -> {
             List<Integer> fileStatusCodes = new ArrayList<>();
@@ -468,7 +503,7 @@ public class FileStorageService {
             throw new ApiBusinessException("Arquivo com o ID invalido ou não existente.");
 
         if (url_file_acess == null || url_file_acess.isEmpty())
-            throw new ApiBusinessException("URL de acesso ao arquivo do repositório diretamente.");
+            throw new ApiBusinessException("URL de acesso ao arquivo do repositório diretamente não configurada.");
 
         QrCodeFileResponse response = new QrCodeFileResponse();
         String tokenPublic = generateTokenAccess(file, tokenExpirationTime, maximumAccessestoken);
@@ -603,7 +638,7 @@ public class FileStorageService {
                 idServerStorageClientErrors.add(idServerStorageClient); //Registrar ID com erro.
             } finally { //Calcular o tempo de resposta do Upload...
                 var responseTime = HelperServer.elapsedMillis(timestampStart, LocalDateTime.now());
-                serverStorageService.updateMetricsResposeTimeAndRequestCount(idServerStorageClient, responseTime);
+                serverStorageService.updateMetricsResponseTimeAndRequestCount(idServerStorageClient, responseTime);
             }
 
         }
@@ -663,7 +698,7 @@ public class FileStorageService {
                 idServerStorageClientErrors.add(idServerStorageClient);
             } finally { //Calcular o tempo de resposta do Upload...
                 var responseTime = HelperServer.elapsedMillis(timestampStart, LocalDateTime.now());
-                serverStorageService.updateMetricsResposeTimeAndRequestCount(idServerStorageClient, responseTime);
+                serverStorageService.updateMetricsResponseTimeAndRequestCount(idServerStorageClient, responseTime);
             }
 
         }
@@ -722,7 +757,7 @@ public class FileStorageService {
                 idServerStorageClientErrors.add(idServerStorageClient);
             } finally { //Calcular o tempo de resposta do Upload...
                 var responseTime = HelperServer.elapsedMillis(timestampStart, LocalDateTime.now());
-                serverStorageService.updateMetricsResposeTimeAndRequestCount(idServerStorageClient, responseTime);
+                serverStorageService.updateMetricsResponseTimeAndRequestCount(idServerStorageClient, responseTime);
             }
 
         }

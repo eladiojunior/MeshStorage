@@ -4,12 +4,12 @@ import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.entites.ServerStorageMetrics;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperServer;
-import br.com.devd2.meshstorageserver.models.MetricsStorageModel;
 import br.com.devd2.meshstorageserver.models.ServerStorageModel;
 import br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum;
 import br.com.devd2.meshstorageserver.repositories.ServerStorageRepository;
 import br.com.devd2.meshstorageserver.services.cache.ServerStorageCache;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -60,15 +60,6 @@ public class ServerStorageService {
                 .filter(s -> !Objects.equals(s.getIdServerStorageClient(), idServerStorageUse))
                 .max(Comparator.comparingDouble(ServerStorage::getScoreStorage))
                 .orElse(null);
-    }
-
-    /**
-     * Recupera a lista de Storages (armazenamento) de um server pelo nome do servidor.
-     * @param serverName - Nome do server (ServerStorage), pode ser o nome do servidor ou codenome;
-     * @return Lista de Storages do Server
-     */
-    public List<ServerStorage> findByServerName(String serverName) {
-        return cacheServerStorage.listByServerName(serverName);
     }
 
     /**
@@ -134,18 +125,6 @@ public class ServerStorageService {
         cacheServerStorage.addOrUpdateServerStorage(serverStorage);
         return serverStorage;
 
-    }
-
-    /**
-     * Atualiza as métricas do Server Storage.
-     *
-     * @param serverName  - Nome do server (FileServer), pode ser o nome do servidor ou codenome;
-     * @param storageName - Nome do storage que está sendo utilizando no server (FileServer), local físico de armazenamento;
-     * @param metricsStorage - Metricas de espaço livre em disco (MB), disponibilidade, erros, requisições e tempo de resposta do Storage;
-     * @throws ApiBusinessException - Erro de negócio
-     */
-    public void updateServerStorageMetrics(String serverName, String storageName, MetricsStorageModel metricsStorage) throws ApiBusinessException {
-        //TODO implementar lógica de atualização das métricas.
     }
 
     /**
@@ -216,19 +195,19 @@ public class ServerStorageService {
     /**
      * Atualiza o IdClient do Server Storage caso ele mude.
      *
-     * @param id       - Identificador do Server/Storage no banco.
+     * @param idServerStorage - Identificador do Server/Storage no banco.
      * @param idClient - Identificador do Cliente Server/Storage no servidor;
      * @throws ApiBusinessException - Erro de negócio
      */
-    public void updateIdClientServerStorage(Long id, String idClient) throws ApiBusinessException {
+    public void updateIdClientServerStorage(Long idServerStorage, String idClient) throws ApiBusinessException {
 
-        if (id == null || id == 0)
+        if (idServerStorage == null || idServerStorage == 0)
             throw new ApiBusinessException("Id do Server Storage não pode ser nulo ou zero.");
         if (idClient == null || idClient.isEmpty())
             throw new ApiBusinessException("Id Client (identificador do storage cliente) não pode ser nulo ou vazio.");
 
         //Verificar Server Storage existente para atualização.
-        ServerStorage server = serverStorageRepository.findById(id).orElse(null);
+        ServerStorage server = serverStorageRepository.findById(idServerStorage).orElse(null);
         if (server == null)
             throw new ApiBusinessException("Server Storage não identificado para atualização do seu status.");
 
@@ -257,19 +236,99 @@ public class ServerStorageService {
      * @param idServerStorageClient - Identificador do ServerStorageClient para atualização
      * @param responseTime - Tempo de resposta a requisição para o Servidor de Armanzenamento.
      */
-    public void updateMetricsResposeTimeAndRequestCount(String idServerStorageClient, long responseTime) {
-        //TODO Implementar
-        log.info("Atualizar ServerStorageClient: {} - Tempo Resposta: {} - +1 Request", idServerStorageClient, responseTime);
+    @Async("metricsResponseTimeAndRequestCount")
+    public void updateMetricsResponseTimeAndRequestCount(String idServerStorageClient, long responseTime) {
+
+        if (idServerStorageClient == null || idServerStorageClient.isEmpty()) {
+            log.warn("Id do ServerStorageClient não informado, impossível atualizar as metricas.");
+            return;
+        }
+
+        //Verificar Server Storage existente para atualização.
+        ServerStorage server = serverStorageRepository
+                .findByIdServerStorageClient(idServerStorageClient).orElse(null);
+        if (server == null) {
+            log.warn("ServerStorageClient: {} não encontrato para atualização das " +
+                    "metricas (ResponseTimeAndRequestCount).", idServerStorageClient);
+            return;
+        }
+
+        log.info("Atualizar ServerStorageClient: {} - Tempo Resposta: {} e adicionar +1 requisição.",
+                idServerStorageClient, responseTime);
+
+        /*
+         Regras:
+         - Atualizar o tempo de resposta do Server Storage Client, sempre.
+         - Atualizar a quantidade de requisições realizadas nos últimos 10 minutos:
+            - Recuperar o tempo da última atualização, se maior que 10 minutos ao tempo atual inicia do 1.
+         */
+
+        int TIME_REFRESH_REQUESTS = 10; //em Minutos
+        var dtLastRequest = server.getMetrics().getDateTimeLastRequest();
+        var countRequests = server.getMetrics().getRequestLastMinute();
+        if (dtLastRequest != null) {
+            var tempoUltimaAtualizacao = HelperServer.elapsedMinutes(dtLastRequest, LocalDateTime.now());
+            //Munutos
+            if (tempoUltimaAtualizacao >= TIME_REFRESH_REQUESTS)
+                countRequests = 0; //Reset a quantidade de requist.
+        }
+        server.getMetrics().setRequestLastMinute(countRequests + 1);
+        server.getMetrics().setDateTimeLastRequest(LocalDateTime.now());
+        server.getMetrics().setResponseTime(responseTime);
+
+        serverStorageRepository.save(server);
+
+        //Atualizar Storage no cache...
+        cacheServerStorage.addOrUpdateServerStorage(server);
+
     }
 
     /**
      * Realiza atualização nas métricas do Servidor de Armazenamento quantidade de Erros.
      * @param idServerStorageClientErrors - List[String] de Ids de Servidores que geraram erro de cominucação.
      */
+    @Async("metricErrors")
     public void updateMetricsErrors(List<String> idServerStorageClientErrors) {
-        //TODO Implementar
-        for (String idServerStorageClient : idServerStorageClientErrors) {
-            log.info("Atualizar ServerStorageClient: {} - +1 Erro", idServerStorageClient);
+
+        if (idServerStorageClientErrors == null || idServerStorageClientErrors.isEmpty()) {
+            log.warn("Nenhum ServerStorageClient informado, impossível atualizar as metricas.");
+            return;
         }
+
+        for (String idServerStorageClient : idServerStorageClientErrors) {
+
+            //Verificar Server Storage existente para atualização.
+            ServerStorage server = serverStorageRepository
+                    .findByIdServerStorageClient(idServerStorageClient).orElse(null);
+            if (server == null) {
+                log.warn("ServerStorageClient: {} não encontrato para " +
+                        "atualização das metricas (Errors).", idServerStorageClient);
+                return;
+            }
+
+            log.info("Atualizar ServerStorageClient: {} - erro identificado.", idServerStorageClient);
+
+            /*
+             Regras:
+             - Atualizar a quantidade de erros na comunicação com o Server Storage, das 10 últimas requisições:
+                - Recuperar a quantidade de requisições, se maior que 10 inicia da quantidade de erros no 1.
+             */
+
+            int COUNT_REQUESTS_REFRESH_ERRORS = 10; //Requisições
+            var countRequests = server.getMetrics().getRequestLastMinute();
+            var countErrors = server.getMetrics().getErrosLastRequest();
+            if (countRequests >= COUNT_REQUESTS_REFRESH_ERRORS)
+                countErrors = 0; //Reset a quantidade de erros nas 10 últimas requisições.
+
+            server.getMetrics().setErrosLastRequest(countErrors + 1);
+
+            serverStorageRepository.save(server);
+
+            //Atualizar Storage no cache...
+            cacheServerStorage.addOrUpdateServerStorage(server);
+
+        }
+
     }
+
 }
