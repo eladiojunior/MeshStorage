@@ -11,6 +11,8 @@ import br.com.devd2.meshstorageserver.services.cache.ServerStorageCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -237,6 +239,7 @@ public class ServerStorageService {
      * @param responseTime - Tempo de resposta a requisição para o Servidor de Armanzenamento.
      */
     @Async("metricsResponseTimeAndRequestCount")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateMetricsResponseTimeAndRequestCount(String idServerStorageClient, long responseTime) {
 
         if (idServerStorageClient == null || idServerStorageClient.isEmpty()) {
@@ -253,7 +256,7 @@ public class ServerStorageService {
             return;
         }
 
-        log.info("Atualizar ServerStorageClient: {} - Tempo Resposta: {} e adicionar +1 requisição.",
+        log.debug("Atualizar ServerStorageClient: {} - Tempo Resposta: {} e adicionar +1 requisição.",
                 idServerStorageClient, responseTime);
 
         /*
@@ -287,7 +290,8 @@ public class ServerStorageService {
      * Realiza atualização nas métricas do Servidor de Armazenamento quantidade de Erros.
      * @param idServerStorageClientErrors - List[String] de Ids de Servidores que geraram erro de cominucação.
      */
-    @Async("metricErrors")
+    @Async("metricsErrors")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateMetricsErrors(List<String> idServerStorageClientErrors) {
 
         if (idServerStorageClientErrors == null || idServerStorageClientErrors.isEmpty()) {
@@ -306,7 +310,7 @@ public class ServerStorageService {
                 return;
             }
 
-            log.info("Atualizar ServerStorageClient: {} - erro identificado.", idServerStorageClient);
+            log.debug("Atualizar ServerStorageClient: {} - erro identificado.", idServerStorageClient);
 
             /*
              Regras:

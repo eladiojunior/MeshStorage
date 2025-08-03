@@ -40,3 +40,11 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+# Configuração do log da aplicação
+logging:
+  level:
+    root: INFO
+    br.com.devd2.meshstorageserver: INFO
+#  pattern:
+#    console: "%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"

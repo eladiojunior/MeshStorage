@@ -72,9 +72,12 @@ public class FileStorageController {
             @PathVariable String idFile) {
         try {
             FileStorage file = fileStorageService.getFile(idFile);
+            String contentType = file.getFileContentType();
+            if (file.isCompressedFileContent() && file.getFileCompressed() != null)
+                contentType = file.getFileCompressed().getCompressedFileContentType();
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileFisicalName() + "\"")
-                    .header(HttpHeaders.CONTENT_TYPE, file.getFileContentType())
+                    .header(HttpHeaders.CONTENT_TYPE, contentType)
                     .body(file.getFileContent());
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
@@ -203,9 +206,12 @@ public class FileStorageController {
                                            @Parameter(description = "Token (chave acesso) ao arquivo para download") String token) {
         try {
             FileStorage file = fileStorageService.getFileByToken(token);
+            String contentType = file.getFileContentType();
+            if (file.isCompressedFileContent() && file.getFileCompressed() != null)
+                contentType = file.getFileCompressed().getCompressedFileContentType();
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileFisicalName() + "\"")
-                    .header(HttpHeaders.CONTENT_TYPE, file.getFileContentType())
+                    .header(HttpHeaders.CONTENT_TYPE, contentType)
                     .body(file.getFileContent());
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));

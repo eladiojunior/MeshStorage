@@ -17,6 +17,12 @@ public class FileStorageCompressed {
     private Long id;
 
     /**
+     * Nome Físico do arquivo no Servidor de Arquivo, após a compressão (ZIP ou WEBP).
+     */
+    @Column(name = "NM_COMPRESSED_FILE_FISICAL")
+    private String compressedFileFisicalName;
+
+    /**
      * Tamanho em bytes do arquivo apos a compressão (ZIP ou WEBP).
      */
     @Column(name = "QT_COMPRESSED_FILE_LENGTH")

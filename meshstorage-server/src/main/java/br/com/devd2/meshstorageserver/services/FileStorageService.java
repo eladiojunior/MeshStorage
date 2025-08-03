@@ -106,28 +106,34 @@ public class FileStorageService {
         var fileStorageMessage = new FileDownloadMessage();
         fileStorageMessage.setIdFile(fileStorage.getIdFile());
         fileStorageMessage.setFileName(fileStorage.getFileFisicalName());
+        if (fileStorage.isCompressedFileContent() && fileStorage.getFileCompressed() != null)
+            fileStorageMessage.setFileName(fileStorage.getFileCompressed().getCompressedFileFisicalName());
         fileStorageMessage.setApplicationStorageFolder(fileStorage.getApplicationStorageFolder());
         try {
 
+            //TODO implementar para retornar em qual ServerStorage o arquivo foi recurado... ;)
             var fileStorageClientDownload = downloadFileStorageClient(fileStorage.getListFileStorageClient(), fileStorageMessage);
 
             //Carregar os dados do arquivo.
             byte[] bytesFile = FileBase64Util.base64ToBytes(fileStorageClientDownload.getDataBase64());
-            if (fileStorage.isCompressedFileContent()) {
+            if (fileStorage.isCompressedFileContent() && fileStorage.getFileCompressed() != null
+                    && !FileContentTypesEnum.WEBP.getContentType().equals(fileStorage.getFileCompressed()
+                    .getCompressedFileContentType())) {
                 bytesFile = FileUtil.descompressZipFileContent(bytesFile);
             }
 
             //Verificar se o hash do arquivo de download está conforme o armazenado no upload ;)
             var hashFileDownload = FileUtil.hashConteudoBytes(bytesFile);
             var hashFileEntity = fileStorage.getHashFileBytes();
-            if (fileStorage.isCompressedFileContent() && fileStorage.getFileCompressed()!=null &&
-                    fileStorage.getFileCompressed().getCompressedHashFileBytes()!=null &&
-                    !fileStorage.getFileCompressed().getCompressedHashFileBytes().isEmpty()) {
+            if (fileStorage.isCompressedFileContent() && fileStorage.getFileCompressed()!=null
+                    && FileContentTypesEnum.WEBP.getContentType().equals(fileStorage.getFileCompressed()
+                    .getCompressedFileContentType())) {
                 hashFileEntity = fileStorage.getFileCompressed().getCompressedHashFileBytes();
             }
             if (!hashFileEntity.equals(hashFileDownload))
                 log.warn("Arquivo [{}] com HASH diferente, esse arquivo pode ter sido manipulado no Storage!",
                         pathFileStorage);
+            //TODO adicionar na mensagem o Id ServerStorage onde o arquivo está ;)
 
             fileStorage.setFileContent(bytesFile);
 
@@ -199,6 +205,7 @@ public class FileStorageService {
             int lengthBytesCompressed = 0;
             String fileCompressionInformation = "";
             String contentTypeFile = file.getContentType();
+            String nameFileCompressed = "";
             String hashFileBytesCompressed = "";
             String contentTypeFileCompressed = "";
             double percentualFileCompressed = 0;
@@ -219,14 +226,14 @@ public class FileStorageService {
                 try {
                     bytesFile = FileUtil.compressZipFileContent(nomeFisicoArquivo, bytesFile);
                     lengthBytesCompressed = bytesFile.length;
-                    nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo, FileContentTypesEnum.ZIP.getExtension());
+                    nameFileCompressed = FileUtil.changeFileNameExtension(nomeFisicoArquivo, FileContentTypesEnum.ZIP.getExtension());
                     percentualFileCompressed = 100.0 - ((double) lengthBytesCompressed / lengthBytes * 100);
                     fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.ZIP.getContentType() +
                             " [compressão de: " + HelperFormat.formatPercent(percentualFileCompressed) + "]";
                     isFileCompressedContent = true;
                     //Como a conversão foi bem sucedida precisamos gerar o HASH dos bytes do arquivo comprimido.
                     hashFileBytesCompressed = FileUtil.hashConteudoBytes(bytesFile);
-                    contentTypeFileCompressed = FileContentTypesEnum.ZIP.getContentType();
+                    contentTypeFileCompressed = contentTypeFile; //Como o arquivo é descompactado, manter o memso.
                 } catch (Exception error) {
                     log.error("Erro ao realizar compressão do arquivo.", error);
                 }
@@ -240,8 +247,9 @@ public class FileStorageService {
                     byte[] bytesFileWebp = FileUtil.convertImagemToWebp(bytesFile, quality_compressed_webp);
                     if (bytesFileWebp.length != 0 && bytesFileWebp.length < lengthBytes) {
                         lengthBytesCompressed = bytesFileWebp.length;
-                        nomeFisicoArquivo = FileUtil.changeFileNameExtension(nomeFisicoArquivo,
+                        nameFileCompressed = FileUtil.changeFileNameExtension(nomeFisicoArquivo,
                                 FileContentTypesEnum.WEBP.getExtension());
+                        nomeFisicoArquivo = nameFileCompressed; //Manter o nome.
                         percentualFileCompressed = 100.0 - ((double) bytesFileWebp.length / lengthBytes * 100);
                         fileCompressionInformation = contentTypeFile + " >> " + FileContentTypesEnum.
                                 WEBP.getContentType() + " [quality: " + quality_compressed_webp + ", compressão de: " +
@@ -271,6 +279,7 @@ public class FileStorageService {
             //Informações da compressão do arquivo...
             if (isFileCompressedContent) {
                 var fileStorageCompressedEntity = new FileStorageCompressed();
+                fileStorageCompressedEntity.setCompressedFileFisicalName(nameFileCompressed);
                 fileStorageCompressedEntity.setCompressedFileLength(lengthBytesCompressed);
                 fileStorageCompressedEntity.setCompressedFileContentType(contentTypeFileCompressed);
                 fileStorageCompressedEntity.setCompressionFileInformation(fileCompressionInformation);

@@ -4,12 +4,16 @@ import br.com.devd2.meshstorageserver.entites.ServerStorage;
 import br.com.devd2.meshstorageserver.entites.ServerStorageMetrics;
 import br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum;
 import br.com.devd2.meshstorageserver.repositories.ServerStorageRepository;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,6 +30,14 @@ public class ServerStorageCache {
     private double weight_request_last_minute;
     @Value("${weight-errors-last-request:0}")
     private double weight_errors_last_request;
+
+    //Chave de cache para recuperar o Score, se existir.
+    public record MetricKeyScore(String id,
+            long free, long total, long resp, int req, int err) {}
+    private Cache<MetricKeyScore, Double> cacheScore = Caffeine.newBuilder()
+            .expireAfterWrite(Duration.ofMinutes(5)) //5 Minutos no cache
+            .maximumSize(10_000)
+            .build();
 
     public ServerStorageCache(ServerStorageRepository serverStorageRepository) {
         this.serverStorageRepository = serverStorageRepository;
@@ -171,29 +183,53 @@ public class ServerStorageCache {
         int maxRequestLastMinute = listMetricsAvaliableStorages.stream()
                 .mapToInt(ServerStorageMetrics::getRequestLastMinute).max().orElse(0);
 
-        var score = calcScore(storage.getMetrics(), maxResponseTime, maxRequestLastMinute);
-        log.info("ServerStorage: {} => Score: {}", storage.getIdServerStorageClient(), score);
-        return score;
+        var metrics = storage.getMetrics();
+
+        var keyMetrics = new MetricKeyScore(storage.getIdServerStorageClient(),
+                metrics.getFreeSpace(), metrics.getTotalSpace(),
+                metrics.getResponseTime(), metrics.getRequestLastMinute(), metrics.getErrosLastRequest());
+
+        Double scoreDouble = null;
+        scoreDouble = cacheScore.get(keyMetrics, k ->
+                calcScore(storage.getMetrics(), maxResponseTime, maxRequestLastMinute));
+
+        if (log.isDebugEnabled())
+            log.debug("ServerStorage: {} => Score: {}", storage.getIdServerStorageClient(), scoreDouble);
+
+        return scoreDouble == null ? 0 : scoreDouble;
 
     }
 
     /**
      * Responsável por calcular o Score
-     * @param storageMetrics - Métricas do Server Storage
-     * @param maxResponseTime - Tempo máximo de requisição de todos os Server Storages ativos.
-     * @param maxRequestLastMinute - Quantidade máxima de requisições nos últimos 10 minutos.
+     * @param metrics - Métricas do Server Storage
+     * @param maxRespTime - Tempo máximo de requisição de todos os Server Storages ativos.
+     * @param maxReqsMinute - Quantidade máxima de requisições nos últimos 10 minutos.
      * @return Score calculado.
      */
-    private double calcScore(ServerStorageMetrics storageMetrics, long maxResponseTime, int maxRequestLastMinute) {
-        double freeSpace  = storageMetrics.getTotalSpace() !=0 ?
-                ((double) storageMetrics.getFreeSpace() / storageMetrics.getTotalSpace()) : 0; // 0‑1
-        double respTime   = maxResponseTime != 0 ?
-                ((double) storageMetrics.getResponseTime() / maxResponseTime) : 0;             // 0‑1 (quanto MAIOR = pior)
-        double reqsMinute = maxRequestLastMinute != 0 ?
-                ((double) storageMetrics.getRequestLastMinute() / maxRequestLastMinute) : 0;   // 0‑1
-        double errsMinute = storageMetrics.getErrosLastRequest();                              // 0‑1
-        return  ((weight_free_space * freeSpace) - (weight_response_time * respTime) -
-                (weight_request_last_minute * reqsMinute) - (weight_errors_last_request * errsMinute));
+    private double calcScore(ServerStorageMetrics metrics, long maxRespTime, int maxReqsMinute) {
+
+        int maxErrsMinute = metrics.getErrosLastRequest();
+        /* Normaliza cada métrica para 0..1 (quanto maior, melhor) */
+        double free   = ratio(metrics.getFreeSpace(), metrics.getTotalSpace());     // ↑ bom
+        double rtGood = 1.0 - ratio(metrics.getResponseTime(),      maxRespTime);   // ↓ bom
+        double load   = 1.0 - ratio(metrics.getRequestLastMinute(), maxReqsMinute); // ↓ bom
+        double errs   = 1.0 - ratio(metrics.getErrosLastRequest(),  maxErrsMinute); // ↓ bom
+
+        /* pesos (soma = 1.0) */
+        double score =  weight_free_space           * free +
+                        weight_response_time        * rtGood +
+                        weight_request_last_minute  * load +
+                        weight_errors_last_request  * errs;
+
+        /* Garante dentro de 0..1, caso algum valor extrapole */
+        return Math.max(0, Math.min(1, score));
+
+    }
+
+    /** calcula razão protegendo divisão por zero  */
+    private static double ratio(long part, long total) {
+        return total == 0 ? 0.0 : (double) part / total; // 0‥1
     }
 
 }
