@@ -1,6 +1,5 @@
-﻿@page
-@using meshstorage_frontend.Models.ViewModels
-@model meshstorage_frontend.Pages.Dashboard
+﻿@using meshstorage_frontend.Models.ViewModels
+@model meshstorage_frontend.Models.ViewModels.DashboardModel
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -8,28 +7,28 @@
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-md-6">
             @{
-                Html.RenderPartial("Shared/_InfoCard", 
+                await Html.RenderPartialAsync("_InfoCardPartial", 
                     new InfoCardViewModel("Total Storages", Model.TotalStorage, "dashboard", 
                         Model.Status, "Total geral de armazenamento."));
             }
         </div>
         <div class="col-xl-3 col-md-6">
             @{
-                Html.RenderPartial("Shared/_InfoCard", 
+                await Html.RenderPartialAsync("_InfoCardPartial", 
                     new InfoCardViewModel("Storages Conectados", Model.ConnectedClients.ToString(), "storage", 
                         Model.Status, "Quantidade de Storages conectados na solução."));
             }
         </div>
         <div class="col-xl-3 col-md-6">
             @{
-                Html.RenderPartial("Shared/_InfoCard", 
+                await Html.RenderPartialAsync("_InfoCardPartial", 
                     new InfoCardViewModel("Total Arquivos", Model.TotalFiles.ToString(), "description", 
                         Model.Status, "Total de arquivos registrados somando todos os Storages."));
             }
         </div>
         <div class="col-xl-3 col-md-6">
             @{
-                Html.RenderPartial("Shared/_InfoCard", 
+                await Html.RenderPartialAsync("_InfoCardPartial", 
                     new InfoCardViewModel("Saúde so Sistema", Model.Health, "monitor_heart", 
                         Model.Status, Model.MessageStatus));
             }

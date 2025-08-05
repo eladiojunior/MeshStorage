@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using meshstorage_frontend.Models.External;
+﻿using meshstorage_frontend.Models.External;
 using meshstorage_frontend.Models.ViewModels;
 
 namespace meshstorage_frontend.Helper;
@@ -9,15 +7,15 @@ public class MapperHelper
 {
     private static int FormatMbtoGb(int valueMb)
     {
-        return (int)Math.Round((decimal)((valueMb / 1024) * 10), 0);
+        return (int)Math.Round((decimal)(valueMb / 1024 * 10), 0);
     }
 
     public static SystemStatusViewModel MapperSystemStatus(SystemStatusApiResponse? response)
     {
-        if (response == null)
-            return null;
-
         var model = new SystemStatusViewModel();
+        if (response == null)
+            return model;
+
         var totalSpase = response.TotalSpaceStorages;
         var totalFreed = response.TotalFreeStorages;
         var totalUsed = totalSpase - totalFreed;
