@@ -1,17 +1,14 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using meshstorage_dashboard.Models;
+using meshstorage_frontend.Models;
+using meshstorage_frontend.Helper;
 
-namespace meshstorage_dashboard.Controllers;
+namespace meshstorage_frontend.Controllers;
 
-public class HomeController : Controller
+public class HomeController : DefaultController
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
-    {
-        _logger = logger;
-    }
+    public HomeController(RazorViewToStringRenderer renderer, ILogger<HomeController> logger) : 
+        base(renderer, logger) { }
 
     public IActionResult Index()
     {
@@ -23,4 +20,5 @@ public class HomeController : Controller
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
+    
 }

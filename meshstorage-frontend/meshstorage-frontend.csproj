@@ -10,4 +10,8 @@
         <FileVersion>1.0.0</FileVersion>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="wwwroot\agent\" />
+    </ItemGroup>
+
 </Project>

@@ -36,10 +36,21 @@
     </div>
     <div class="row g-4">
         <div class="col-lg-6">
-            <div class="div-lista-storages">Carregando lista de storages...</div>
+            <div class="lista-storages">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Carregando lista de storages...</span>
+                </div>
+            </div>
         </div>
         <div class="col-lg-6">
-            <div class="div-lista-aplicacoes">Carregando lista de aplicações...</div>
+            <div class="lista-aplicacoes">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Carregando lista de aplicações...</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+@section Scripts {
+    <script src="~/js/view.dashboard.index.js" asp-append-version="true"></script>
+}

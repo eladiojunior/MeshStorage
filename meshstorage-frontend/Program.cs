@@ -1,3 +1,4 @@
+using meshstorage_frontend.Helper;
 using meshstorage_frontend.Services;
 using meshstorage_frontend.Settings;
 
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<IApiService, ApiService>();
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
+builder.Services.AddScoped<RazorViewToStringRenderer>();
 
 var app = builder.Build();
 

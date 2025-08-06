@@ -1,19 +1,22 @@
-﻿using meshstorage_frontend.Models.ViewModels;
+﻿using meshstorage_frontend.Helper;
+using meshstorage_frontend.Models.ViewModels;
 using meshstorage_frontend.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace meshstorage_dashboard.Controllers;
+namespace meshstorage_frontend.Controllers;
 
-public class DashboardController : Controller
+public class DashboardController : DefaultController
 {
     private readonly IApiService _apiService;
 
-    public DashboardController(IApiService apiService)
+    public DashboardController(IApiService apiService, 
+        RazorViewToStringRenderer renderer, ILogger<HomeController> logger) : base(renderer, logger)
     {
         _apiService = apiService;
     }
     
-    // GET
+    // GET: Dashboard/Index ou Dashboard/
+    [HttpGet]
     public IActionResult Index()
     {
         var model = new DashboardModel();
@@ -25,6 +28,36 @@ public class DashboardController : Controller
         model.MessageStatus = systemStatus.MessageStatus;
         model.Status = systemStatus.Status;;
         return View(model);
+    }
+
+    // GET: Dashboard/ListAllStorages
+    [HttpGet]
+    public ActionResult ListAllStorages()
+    {
+        try
+        {
+            var storages = _apiService.getStorages().Result;
+            return JsonResultSucesso(RenderRazorViewToString("_InfoStorageCardPartial", storages), "Sucesso");
+        }
+        catch (Exception error)
+        {
+            return JsonResultErro(TratarErroNegocio(error, $"ListAllStorage()"));
+        }
+    }
+    
+    // GET: Dashboard/ListAllApplications
+    [HttpGet]
+    public ActionResult ListAllApplications()
+    {
+        try
+        {
+            var applications = _apiService.getApplications().Result;
+            return JsonResultSucesso(RenderRazorViewToString("_InfoApplicationCardPartial", applications), "Sucesso");
+        }
+        catch (Exception error)
+        {
+            return JsonResultErro(TratarErroNegocio(error, $"ListAllApplications()"));
+        }
     }
     
 }

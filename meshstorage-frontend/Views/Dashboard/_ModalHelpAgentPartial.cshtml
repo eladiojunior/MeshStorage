@@ -1,0 +1,98 @@
+﻿<div class="modal fade" id="modalHelpAgentStorage" data-backdrop="static" data-keyboard="false" tabindex="-1"
+     aria-labelledby="agentHelpLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="agentHelpLabel">Ativando um Servidor de Armazenamento</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <section class="mb-4">
+          <h6 class="fw-bold">Como ativar o Agente em um Servidor de Armazenamento</h6>
+          <p class="mb-0">
+            O <strong>Agent (cliente)</strong> liga o seu file-server ao MeshStorage. Ele se conecta ao WebSocket do
+            servidor central, anuncia o espaço disponível e passa a receber/entregar arquivos sob demanda.
+          </p>
+        </section>
+        <section class="mb-4">
+          <h6 class="fw-bold">Passo 1 - Baixar o Agent (cliente)</h6>
+          <ol class="mb-0">
+            <li>Acesse <kbd>Configurações ▸ Downloads</kbd> no dashboard.</li>
+            <li>Faça download de <code>meshstorage-client.zip</code>.</li>
+            <li>Salve o arquivo no servidor que será o armazenamento.</li>
+            <li>Não se esqueça de descompactar, precisamos do arquivo <code>.jar</code>.</li>
+          </ol>
+        </section>
+        <section class="mb-4">
+          <h6 class="fw-bold">Passo 2 - Criar pasta do Agent <small class="text-muted">(opcional)</small></h6>
+          <pre class="bg-light rounded p-2 mb-0">
+            <code>
+            # Windows
+            C:\&gt; mkdir D:\storages\mystorage
+
+            # Linux
+            $ sudo mkdir -p /srv/storages/mystorage
+            $ sudo chown $USER /srv/storages/mystorage
+            </code>
+          </pre>
+        </section>
+        <section class="mb-4">
+          <h6 class="fw-bold">Passo 3 - Executar o Agent</h6>
+          <pre class="bg-light rounded p-2">
+            <code>
+              java -jar meshstorage-client.jar 
+                -url-websocket-server=ws://&lt;HOST&gt;:3001/server-storage-websocket 
+                -server-name=&lt;HOSTNAME&gt; 
+                -storage-name=&lt;STORAGE_X&gt; 
+                -storage-path=&lt;ABSOLUTE_PATH&gt;
+            </code>
+          </pre>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead class="table-light">
+              <tr>
+                <th>Parâmetro</th>
+                <th>Descrição</th>
+                <th>Exemplo</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>-url-websocket-server</code></td>
+                <td>Endereço WS do servidor</td>
+                <td><code>ws://10.0.0.1:3001/...</code></td>
+              </tr>
+              <tr>
+                <td><code>-server-name</code></td>
+                <td>Alias do file-server</td>
+                <td><code>filesrv-01</code></td>
+              </tr>
+              <tr>
+                <td><code>-storage-name</code></td>
+                <td>Identificador do storage</td>
+                <td><code>STORAGE1</code></td>
+              </tr>
+              <tr>
+                <td><code>-storage-path</code></td>
+                <td>Pasta/unidade para arquivos</td>
+                <td><code>/srv/storages/data</code></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small text-muted mb-0">Dica: prefira hostnames fixos para facilitar mudanças de rede.</p>
+        </section>
+        <section class="mb-4">
+          <h6 class="fw-bold">Passo 4 - Confirmar conexão</h6>
+          <ol class="mb-0">
+            <li>Acesse <kbd>Dashboard</kbd>.</li>
+            <li>Verifique o status <span class="badge bg-success">Online</span> e as métricas.</li>
+          </ol>
+        </section>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" data-bs-dismiss="modal">Entendi!</button>
+      </div>
+    </div>
+  </div>
+</div>

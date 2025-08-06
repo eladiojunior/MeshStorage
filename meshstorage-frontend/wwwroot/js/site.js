@@ -1,4 +1,22 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿Global = {
+    ExibirMensagem: function (msg, hasErro) {
 
-// Write your JavaScript code.
+        if (!msg || msg === "") return;
+        var alert = $(".mensagens .alert");
+        if (alert.length > 0) {
+            var msgAlert = msg;
+            if ((Object.prototype.toString.call(msg) === '[object Array]')) {
+                msgAlert = "";
+                for (var i = 0; i < msg.length; i++) {
+                    if (msgAlert !== "") msgAlert += '<br/>';
+                    msgAlert += msg[i];
+                }
+            }
+            alert.html(msgAlert);
+            alert.removeClass("alert-danger").removeClass("alert-info");
+            alert.addClass(hasErro ? "alert-danger" : "alert-info");
+            $(".mensagens").show();
+            $("html,body").scrollTop(0);
+        }
+    },
+}

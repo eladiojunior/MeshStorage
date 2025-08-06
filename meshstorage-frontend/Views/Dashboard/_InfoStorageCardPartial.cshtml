@@ -1,0 +1,49 @@
+﻿@model List<meshstorage_frontend.Models.ViewModels.StorageViewModel>
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="alert">
+        <p>Nenhum servidor de armazenamento disponível.</p> 
+        <hr>
+        <p class="mb-0">
+            <a href="#" data-bs-toggle="modal" data-bs-target="#modalHelpAgentStorage" class="alert-link">
+                Clique aqui
+            </a> e saiba como ativar um servidor de armazenamento.
+        </p>
+    </div>
+    @await Html.PartialAsync("_ModalHelpAgentPartial")
+    return;
+}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Storages Conectados</h5>
+        <span class="badge bg-secondary" style="font-size: 1.2em">@Model.Count</span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+        @foreach (var item in Model)
+        {
+            <div class="col-12">
+                <div class="border rounded p-3 @(item.IsOffline ? "bg-offline" : "")">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h4 class="mb-1">@item.Name</h4>
+                            <small class="text-muted">IP: @item.IpAddress - SO: @item.OsName</small>
+                        </div>
+                        <span class="badge @item.StatusBgClasses">@item.StatusLabel</span>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Total @item.StorageCapacity.ToString("D") GB e @item.StorageUsed.ToString("D") GB usados</span>
+                        <span>@item.StorageUsage</span>
+                    </div>
+                    <div class="progress storage-progress">
+                        <div
+                            class="progress-bar @item.StatusBgProgressBarClasses"
+                            style="width: @item.StorageUsageProgressBar">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        </div>
+    </div>
+</div>

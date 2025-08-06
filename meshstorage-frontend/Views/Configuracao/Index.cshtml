@@ -1,0 +1,177 @@
+﻿@{
+  ViewBag.Title = "Configurações";
+}
+
+<h2>Por que você precisa de um Storage Agent no MeshStorage?</h2>
+MeshStorage distribui arquivos entre vários servidores (file-servers) interligados.
+O <strong>Agent (client)</strong> é o serviço leve que roda em cada file-server e faz essa ponte com o servidor central.
+<div class="table-responsive">
+  <table class="table table-sm align-middle">
+    <thead class="table-light">
+    <tr>
+      <th>O que o Agent faz</th>
+      <th>Por que é importante?</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>1. Envia informações da capacidade e saúde do servidor de armazenamento.</td>
+      <td>O servidor central só consegue escolher onde gravar (ou recuperar) um arquivo se souber, em tempo real, quais
+        nós estão online e quanto espaço possuem.
+      </td>
+    </tr>
+    <tr>
+      <td>2. Recebe instruções de upload/download via WebSocket</td>
+      <td>Mantém uma conexão persistente, sem polling, permitindo transferências iniciadas pelo servidor com baixa
+        latência.
+      </td>
+    </tr>
+    <tr>
+      <td>3. Transfere os bytes do arquivo, particionado.</td>
+      <td>Toda transferência é particionada (pacote), usa protocolo binário eficiente, pode comprimir antes de salvar.
+      </td>
+    </tr>
+    <tr>
+      <td>4. Replica e valida dados</td>
+      <td>Replicação do arquivo em outro servidor de armazenamento, garantindo alta disponibilidade: se um nó falha,
+        outro já tem o arquivo.
+      </td>
+    </tr>
+    <tr>
+      <td>5. Reporta métricas e logs</td>
+      <td>Permite que o dashboard exiba taxa de acerto/erro, tempo de resposta e histórico de cada servidor de
+        armazenamento.
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+<div class="alert alert-primary d-flex align-items-center" role="alert">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+       class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+    <path
+      d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+  </svg>
+  <div>
+    <strong>Em resumo:</strong> sem o Agent, o servidor central não consegue ver, escolher nem transferir arquivos
+    para o seu servidor de armazenamento; com ele, você transforma qualquer máquina (Windows, Linux ou macOS) em um nó
+    utilização do MeshStorage em poucos segundos.
+  </div>
+</div>
+
+<h2>Ativar o Agent em um Servidor de Armazenamento</h2>
+<section class="mb-4">
+  <h6 class="fw-bold">Como ativar o Agente em um Servidor de Armazenamento</h6>
+  <p class="mb-0">
+    O <strong>Agent (cliente)</strong> liga o seu file-server ao MeshStorage. Ele se conecta ao WebSocket do
+    servidor central, anuncia o espaço disponível e passa a receber/entregar arquivos sob demanda.
+  </p>
+</section>
+<section class="mb-4">
+  <h6 class="fw-bold">Passo 1 - Baixar o Agent (cliente)</h6>
+  <ol class="mb-0">
+    <li>
+      Faça download de
+      <a href="agent/meshstorage-client.zip" title="Download do agent" target="_blank">
+        <code>meshstorage-client.zip</code>
+      </a>
+    </li>
+    <li>Salve o arquivo no servidor que será o armazenamento.</li>
+    <li>Não se esqueça de descompactar, precisamos do arquivo <code>.jar</code>.</li>
+  </ol>
+</section>
+<section class="mb-4">
+  <h6 class="fw-bold">Passo 2 - Criar pasta do Agent <small class="text-muted">(opcional)</small></h6>
+  <pre class="bg-light rounded p-2 mb-0">
+            <code>
+            # Windows
+            C:\&gt; mkdir D:\storages\mystorage
+
+            # Linux
+            $ sudo mkdir -p /srv/storages/mystorage
+            $ sudo chown $USER /srv/storages/mystorage
+            </code>
+          </pre>
+</section>
+<section class="mb-4">
+  <h6 class="fw-bold">Passo 3 - Executar o Agent</h6>
+  <pre class="bg-light rounded p-2">
+            <code>
+              java -jar meshstorage-client.jar 
+                -url-websocket-server=ws://&lt;HOST&gt;:3001/server-storage-websocket 
+                -server-name=&lt;HOSTNAME&gt; 
+                -storage-name=&lt;STORAGE_X&gt; 
+                -storage-path=&lt;ABSOLUTE_PATH&gt;
+            </code>
+          </pre>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead class="table-light">
+      <tr>
+        <th>Parâmetro</th>
+        <th>Descrição</th>
+        <th>Exemplo</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><code>-url-websocket-server</code></td>
+        <td>Endereço WS do servidor</td>
+        <td><code>ws://10.0.0.1:3001/...</code></td>
+      </tr>
+      <tr>
+        <td><code>-server-name</code></td>
+        <td>Alias do file-server</td>
+        <td><code>filesrv-01</code></td>
+      </tr>
+      <tr>
+        <td><code>-storage-name</code></td>
+        <td>Identificador do storage</td>
+        <td><code>STORAGE1</code></td>
+      </tr>
+      <tr>
+        <td><code>-storage-path</code></td>
+        <td>Pasta/unidade para arquivos</td>
+        <td><code>/srv/storages/data</code></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small text-muted mb-0">Dica: prefira hostnames fixos para facilitar mudanças de rede.</p>
+</section>
+<section class="mb-4">
+  <h6 class="fw-bold">Passo 4 - Confirmar conexão</h6>
+  <ol class="mb-0">
+    <li>Acesse <kbd>Dashboard</kbd>.</li>
+    <li>Verifique o status <span class="badge bg-success">Online</span> e as métricas.</li>
+  </ol>
+</section>
+
+<!-- FAQ ----------------------------------------------------------->
+<section>
+  <h6 class="fw-bold">Perguntas frequentes</h6>
+  <div class="accordion accordion-flush" id="faqAgent">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq1">
+          Posso rodar vários servidores de armazenamento no mesmo host?
+        </button>
+      </h2>
+      <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAgent">
+        <div class="accordion-body">Sim. Inicie outra instância do Agent com
+          <code>-storage-name</code> e <code>-storage-path</code> diferentes.
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#faq2">
+          É necessário abrir portas no firewall?
+        </button>
+      </h2>
+      <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAgent">
+        <div class="accordion-body">Apenas saída TCP para a porta configurada (padrão <code>3001</code>).</div>
+      </div>
+    </div>
+  </div>
+</section>

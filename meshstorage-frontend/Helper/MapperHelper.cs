@@ -5,9 +5,9 @@ namespace meshstorage_frontend.Helper;
 
 public class MapperHelper
 {
-    private static int FormatMbtoGb(int valueMb)
+    private static int FormatMbtoGb(long valueMb)
     {
-        return (int)Math.Round((decimal)(valueMb / 1024 * 10), 0);
+        return (int)Math.Round((decimal)(valueMb / 1024), 0);
     }
 
     public static SystemStatusViewModel MapperSystemStatus(SystemStatusApiResponse? response)
@@ -88,9 +88,8 @@ public class MapperHelper
         model.OsName = response.OsServer;
         model.StorageCapacity = FormatMbtoGb(response.TotalSpace);
         model.StorageUsed = FormatMbtoGb(used);
-        model.FileCount = 0;
-        model.Status = response.Available ? "active" : "offline";
-        model.LastConnected = response.DateTimeAvailable;
+        model.FileCount = response.TotalFiles;
+        model.Status = response.StatusCode == 1 ? "active" : "offline";
         
         return model;
     }

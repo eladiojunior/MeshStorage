@@ -1,0 +1,54 @@
+﻿@model List<meshstorage_frontend.Models.ViewModels.ApplicationViewModel>
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="alert">
+        <p>Nenhuma aplicação configurada para receber arquivos disponível.</p>
+        <hr>
+        <p class="mb-0">
+            <a class="alert-link" asp-action="New" asp-controller="Application">Clique aqui
+            </a> para registrar uma aplicação.
+        </p>
+    </div>
+    return;
+}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Aplicações</h5>
+        <span class="badge bg-secondary" style="font-size: 1.2em">@Model.Count</span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            @foreach (var item in Model)
+            {
+                <div class="col-12">
+                    <div class="app-item border rounded p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <div
+                                        class="rounded p-2 bg-primary bg-opacity-10 text-primary div-with-icon">
+                                        <span class="material-icons">@item.Icon</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">@item.Name</h6>
+                                    <small class="text-muted">@item.FileCount arquivos</small>
+                                </div>
+                            </div>
+                            <div class="d-flex">
+                                <button class="btn btn-sm btn-outline-primary me-2 btn-with-icon"
+                                        title="Localizar arquivo na aplicação.">
+                                    <span class="material-icons">search</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-with-icon"
+                                        title="Alterar configuração da aplicação.">
+                                    <span class="material-icons">edit</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
