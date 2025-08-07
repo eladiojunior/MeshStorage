@@ -1,0 +1,57 @@
+[
+  {
+    "applicationName": "APP1",
+    "applicationDescription": "Aplicação 01 de Teste - Com Config Sem OCR",
+    "allowedFileTypes": [
+      "text/plain",
+      "application/pdf",
+      "text/csv",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "maximumFileSizeMB": 10,
+    "compressedFileContentToZip": true,
+    "convertImageFileToWebp": true,
+    "applyOcrFileContent": false,
+    "allowDuplicateFile": true,
+    "requiresFileReplication": true
+  },
+  {
+    "applicationName": "APP2",
+    "applicationDescription": "Aplicação 02 de Teste - Sem Config - PDF e Imagens",
+    "allowedFileTypes": [
+      "application/pdf",
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "maximumFileSizeMB": 5,
+    "compressedFileContentToZip": false,
+    "convertImageFileToWebp": false,
+    "applyOcrFileContent": false,
+    "allowDuplicateFile": false,
+    "requiresFileReplication": false
+  },
+  {
+    "applicationName": "APP3",
+    "applicationDescription": "Aplicação 03 de Teste - Com Config/OCR - PDF e Imagens",
+    "allowedFileTypes": [
+      "application/pdf",
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "maximumFileSizeMB": 3,
+    "compressedFileContentToZip": true,
+    "convertImageFileToWebp": true,
+    "applyOcrFileContent": true,
+    "allowDuplicateFile": true,
+    "requiresFileReplication": true
+  }
+]

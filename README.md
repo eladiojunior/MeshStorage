@@ -14,11 +14,11 @@ O MeshStorage consiste em:
 
 ## 🎯 Recursos Principais
 
-✅ Distribuição automática de arquivos entre file servers.
-✅ Monitoramento de espaço livre e disponibilidade dos file servers.
-✅ Balanceamento dinâmico baseado em capacidade de armazenamento.
-✅ Comunicação híbrida (WebSockets + REST API).
-✅ Alta disponibilidade e escalabilidade.
+- ✅ Distribuição automática de arquivos entre file servers.
+- ✅ Monitoramento de espaço livre e disponibilidade dos file servers.
+- ✅ Balanceamento dinâmico baseado em capacidade de armazenamento.
+- ✅ Comunicação híbrida (WebSockets + REST API).
+- ✅ Alta disponibilidade e escalabilidade.
 
 ## 🏗️ Arquitetura
 
@@ -30,6 +30,12 @@ O MeshStorage consiste em:
 - Java 17+
 - Spring Boot 3+
 - Banco de dados (MySQL ou H2/PostgreSQL no DEV)
+- Modelagem do banco de dados (DBDesigner)
+  - [Modelo Físico (XML do DBDesigner)](documentos/modelo_meshstorage.xml)
+  - [Imagem Modelo Físico](documentos/modelo_meshstorage.png)
+  - Scripts:
+    - [CREATE Tables - MySQL](documentos/script_create_dbmeshstorage.sql)
+    - [DROP Tables - MySQL](documentos/script_drop_tables_dbmeshstorage.sql)
 - WebSockets e REST API habilitados
 
 ### 🔹 **Passo 1: Clonar o repositório**
@@ -85,10 +91,10 @@ http://localhost:3000/
 
 #### Cabeçalhos de identificação de usuário
 
-| Header            | Obrig? | Exemplo         | Observação                                                    |
-|-------------------|--------|-----------------|---------------------------------------------------------------|
-| X‑User‑Name        | não¹   | `eladio.junior` | Preenchido automaticamente no Gateway caso JWT possua `sub`.  |
-| X‑Access‑Channel   | não    | `Mobile`        | `{Site, Mobile, Chat}` – ajuda na segmentação de relatórios.  |
+| Header            | Obrig? | Exemplo         | Observação                                                   |
+|-------------------|--------|-----------------|--------------------------------------------------------------|
+| X‑User‑Name        | não¹   | `eladio.junior` | Preenchido automaticamente no caso JWT possua `sub`.         |
+| X‑Access‑Channel   | não    | `Mobile`        | `{Site, Mobile, Chat}` – ajuda na segmentação de relatórios. |
 
 ¹ Se o usuário é autenticado via JWT/Spring Security, o filtro extrai o `Principal` quando o header vem vazio.
 
