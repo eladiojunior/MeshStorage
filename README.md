@@ -27,8 +27,18 @@ O MeshStorage consiste em:
 ## 📦 Instalação e Configuração
 
 ### 🔹 **Requisitos**
-- Java 17+
-- Spring Boot 3+
+- Backend/Client
+  - Java 17+
+  - Spring Boot 3+
+  - WebSockets e REST API habilitados
+  - Projetos:
+    - [meshstorage-client](meshstorage-client)
+    - [meshstorage-common](meshstorage-common)
+    - [meshstorage-server](meshstorage-server)
+- Frontend
+  - .NET8 MVC com Razor
+  - Projeto:
+    - [meshstorage-frontend](meshstorage-frontend)
 - Banco de dados (MySQL ou H2/PostgreSQL no DEV)
 - Modelagem do banco de dados (DBDesigner)
   - [Modelo Físico (XML do DBDesigner)](documentos/modelo_meshstorage.xml)
@@ -36,7 +46,6 @@ O MeshStorage consiste em:
   - Scripts:
     - [CREATE Tables - MySQL](documentos/script_create_dbmeshstorage.sql)
     - [DROP Tables - MySQL](documentos/script_drop_tables_dbmeshstorage.sql)
-- WebSockets e REST API habilitados
 
 ### 🔹 **Passo 1: Clonar o repositório**
 ```sh
