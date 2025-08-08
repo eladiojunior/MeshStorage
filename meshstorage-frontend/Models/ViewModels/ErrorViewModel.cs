@@ -1,4 +1,4 @@
-namespace meshstorage_frontend.Models;
+namespace meshstorage_frontend.Models.ViewModels;
 
 public class ErrorViewModel
 {

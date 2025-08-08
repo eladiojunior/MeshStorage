@@ -1,0 +1,61 @@
+﻿@model meshstorage_frontend.Models.ViewModels.CreateApplicationViewModel
+@{
+    ViewBag.Title = "Registrar nova aplicação";
+}
+<h2>Registrar nova Aplicação</h2>
+<form asp-action="Registre" asp-controller="Application" method="post">
+    <div class="form-group">
+        <label asp-for="ApplicationName"></label>
+        <input asp-for="ApplicationName" class="form-control" />
+        <span asp-validation-for="ApplicationName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="ApplicationDescription"></label>
+        <textarea asp-for="ApplicationDescription" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+        <label asp-for="MaximumFileSizeMB" class="form-label"></label>
+        <input asp-for="MaximumFileSizeMB" type="range" class="form-range" min="1" max="20">
+        <span asp-validation-for="MaximumFileSizeMB" class="text-danger"></span>
+    </div>
+    <div style="width: 150px">
+        <div class="mb-3">
+            <input type="text" class="form-control filtro-lista" placeholder="Buscar...">
+        </div>
+        <div id="listaItens" class="list-group overflow-auto">
+            @foreach(var item in Model.ListFileContentType)
+            {
+                <label class="list-group-item">
+                    <input asp-for="AllowedFileTypes" class="form-check-input me-1" type="checkbox" value="">
+                    @item.
+                </label>
+            }
+        </div>
+    </div>
+    <div class="form-check form-switch">
+        <input asp-for="CompressedFileContentToZip" class="form-check-input" type="checkbox" checked/>
+        <label asp-for="CompressedFileContentToZip" class="form-check-label"></label>
+    </div>
+    <div class="form-check form-switch">
+        <input asp-for="ConvertImageFileToWebp" class="form-check-input" type="checkbox" checked/>
+        <label asp-for="ConvertImageFileToWebp" class="form-check-label"></label>
+    </div>
+    <div class="form-check form-switch">
+        <input asp-for="ApplyOcrFileContent" class="form-check-input" type="checkbox"/>
+        <label asp-for="ApplyOcrFileContent" class="form-check-label"></label>
+    </div>
+    <div class="form-check form-switch">
+        <input asp-for="AllowDuplicateFile" class="form-check-input" type="checkbox" />
+        <label asp-for="AllowDuplicateFile" class="form-check-label"></label>
+    </div>
+    <div class="form-check form-switch">
+        <input asp-for="RequiresFileReplication" class="form-check-input" type="checkbox"/>
+        <label asp-for="RequiresFileReplication" class="form-check-label"></label>
+    </div>
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <button type="button" asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">Voltar</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

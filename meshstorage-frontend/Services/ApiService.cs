@@ -69,4 +69,16 @@ public class ApiService : IApiService
         var response = JsonSerializer.Deserialize<ApplicationApiResponse[]>(json, _jsonSerializerOptions);
         return Task.FromResult(MapperHelper.MapperApplication(response));
     }
+
+    public Task<List<FileContentTypeViewModel>> getAllContentTypes()
+    {
+        var json = Request("/api/v1/file/listContentTypes").Result;
+        var response = JsonSerializer.Deserialize<FileContentTypeApiResponse[]>(json, _jsonSerializerOptions);
+        return Task.FromResult(MapperHelper.MapperFileContentType(response));
+    }
+
+    public void registreApplication(CreateApplicationViewModel model)
+    {
+        throw new NotImplementedException();
+    }
 }

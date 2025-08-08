@@ -107,4 +107,34 @@ public class MapperHelper
        
         return model;
     }
+
+    public static List<FileContentTypeViewModel> MapperFileContentType(FileContentTypeApiResponse[]? response)
+    {
+        if (response == null)
+            return null;
+        var listModels = new List<FileContentTypeViewModel>();
+        foreach (var item in response)
+        {
+            var itemModel = MapperFileContentType(item);
+            if (itemModel != null)
+                listModels.Add(itemModel);
+        }
+        return listModels;
+    }
+    
+    private static FileContentTypeViewModel MapperFileContentType(FileContentTypeApiResponse? response)
+    {
+        if (response == null)
+            return null;
+
+        var model = new FileContentTypeViewModel();
+        model.Code = response.Code;
+        model.NameEnum = response.NameEnum;
+        model.Extension = response.Extension;
+        model.Description = response.Description;
+        model.ContentType = response.ContentType;
+       
+        return model;
+    }
+    
 }

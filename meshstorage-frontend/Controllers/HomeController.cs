@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using meshstorage_frontend.Models;
+using meshstorage_frontend.Models.ViewModels;
 using meshstorage_frontend.Helper;
 
 namespace meshstorage_frontend.Controllers;
