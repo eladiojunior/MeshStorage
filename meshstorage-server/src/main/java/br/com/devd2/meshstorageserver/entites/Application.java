@@ -20,10 +20,17 @@ public class Application {
     private Long id;
 
     /**
-     * Nome simples sem espaços, máximo 10 caracteres
+     * Sigla da aplicação sem espaços, máximo 10 caracteres
      */
-    @Column(name = "NM_APPLICATION", length = 10, nullable = false)
+    @Column(name = "CD_APPLICATION", length = 10, nullable = false)
+    private String applicationCode;
+
+    /**
+     * Nome da aplicação, máximo 50 caracteres
+     */
+    @Column(name = "NM_APPLICATION", length = 50, nullable = false)
     private String applicationName;
+
     /**
      * Descrição da aplicação.
      */

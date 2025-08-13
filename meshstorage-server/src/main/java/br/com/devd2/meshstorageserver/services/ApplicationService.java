@@ -27,7 +27,7 @@ public class ApplicationService {
      * @return Application ou nulo se não existir;
      */
     public Application findByName(String applicationName) {
-        Optional<Application> application = applicationRepository.findByApplicationName(applicationName);
+        Optional<Application> application = applicationRepository.findByApplicationCode(applicationName);
         return application.orElse(null);
     }
 
@@ -41,11 +41,12 @@ public class ApplicationService {
 
         verificarRegrasNegocio(request);
 
-        var application = applicationRepository.findByApplicationName(request.getApplicationName()).orElse(null);
+        var application = applicationRepository.findByApplicationCode(request.getApplicationCode()).orElse(null);
         if (application != null)
-            throw new ApiBusinessException(String.format("Existe uma aplicação [%1s] registrada com esse nome, não é permitido.", application.getApplicationName()));
+            throw new ApiBusinessException(String.format("Existe uma aplicação [%1s] registrada com essa sigla, não é permitido.", application.getApplicationCode()));
 
         application = new Application();
+        application.setApplicationCode(request.getApplicationCode());
         application.setApplicationName(request.getApplicationName());
         application.setApplicationDescription(request.getApplicationDescription());
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
@@ -81,13 +82,14 @@ public class ApplicationService {
         if (application == null)
             throw new ApiBusinessException(String.format("Aplicação com o Id [%1s] não encontrado.", idApplication));
 
-        if (!application.getApplicationName().equalsIgnoreCase(request.getApplicationName()))
-        {//Verificar se na atualizar não está utilizando um nome já existente.
-            var application_exist_name = applicationRepository.findByApplicationName(request.getApplicationName()).orElse(null);
-            if (application_exist_name != null && !application_exist_name.getId().equals(idApplication))
-                throw new ApiBusinessException(String.format("Existe uma aplicação [%1s] registrada com esse nome, não é permitido.", request.getApplicationName()));
+        if (!application.getApplicationCode().equalsIgnoreCase(request.getApplicationCode()))
+        {//Verificar se na atualizar não está utilizando uma sigla já existente.
+            var application_exist_code = applicationRepository.findByApplicationCode(request.getApplicationCode()).orElse(null);
+            if (application_exist_code != null && !application_exist_code.getId().equals(idApplication))
+                throw new ApiBusinessException(String.format("Existe uma aplicação [%1s] registrada com essa sigla, não é permitido.", request.getApplicationCode()));
         }
 
+        application.setApplicationCode(request.getApplicationCode());
         application.setApplicationName(request.getApplicationName());
         application.setApplicationDescription(request.getApplicationDescription());
         application.setAllowedFileTypes(String.join(";", request.getAllowedFileTypes()));
@@ -110,6 +112,8 @@ public class ApplicationService {
     private static void verificarRegrasNegocio(ApplicationRequest request) throws ApiBusinessException {
         if (request == null)
             throw new ApiBusinessException("Informações da aplicação não pode ser nulo.");
+        if (request.getApplicationCode() == null || request.getApplicationCode().isEmpty())
+            throw new ApiBusinessException("Sigla da aplicação não pode ser nulo ou vazio.");
         if (request.getApplicationName() == null || request.getApplicationName().isEmpty())
             throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
         if (request.getAllowedFileTypes() == null || request.getAllowedFileTypes().length == 0)
@@ -158,16 +162,16 @@ public class ApplicationService {
     }
 
     /**
-     * Recupera uma aplicação pelo seu nome.
-     * @param applicationName - Nome da aplicação a ser recuperada.
+     * Recupera uma aplicação pelo sua Sigla.
+     * @param applicationCode - Sigla da aplicação a ser recuperada.
      * @return Objeto Application carregado ou nulo se não encontrar.
      */
-    public Application getApplicationByName(String applicationName) throws ApiBusinessException {
+    public Application getApplicationByCode(String applicationCode) throws ApiBusinessException {
 
-        if (applicationName == null || applicationName.isEmpty())
-            throw new ApiBusinessException("Nome da Aplicação não pode ser nulo ou vazia.");
+        if (applicationCode == null || applicationCode.isEmpty())
+            throw new ApiBusinessException("Sigla da Aplicação não pode ser nulo ou vazia.");
 
-        return applicationRepository.findByApplicationName(applicationName).orElse(null);
+        return applicationRepository.findByApplicationCode(applicationCode).orElse(null);
 
     }
 

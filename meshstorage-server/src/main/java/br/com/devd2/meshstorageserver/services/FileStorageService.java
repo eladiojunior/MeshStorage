@@ -160,7 +160,7 @@ public class FileStorageService {
         if (applicationName == null || applicationName.isEmpty())
             throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
 
-        var application = applicationService.getApplicationByName(applicationName);
+        var application = applicationService.getApplicationByCode(applicationName);
         if (application == null)
             throw new ApiBusinessException("Aplicação não identificada pelo seu nome ("+applicationName+"), obrigatório.");
 
@@ -268,7 +268,7 @@ public class FileStorageService {
             var fileStorageEntity = new FileStorage();
             fileStorageEntity.setApplication(application);
             fileStorageEntity.setIdFile(UUID.randomUUID().toString());
-            fileStorageEntity.setApplicationStorageFolder(application.getApplicationName());
+            fileStorageEntity.setApplicationStorageFolder(application.getApplicationCode());
             fileStorageEntity.setFileLogicName(file.getOriginalFilename());
             fileStorageEntity.setFileFisicalName(nomeFisicoArquivo);
             fileStorageEntity.setFileLength(lengthBytes);
@@ -433,7 +433,7 @@ public class FileStorageService {
         if (applicationName == null || applicationName.isEmpty())
             throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
 
-        var application = applicationService.getApplicationByName(applicationName);
+        var application = applicationService.getApplicationByCode(applicationName);
         if (application == null)
             throw new ApiBusinessException("Aplicação não identificada pelo seu nome ("+applicationName+"), obrigatório.");
 

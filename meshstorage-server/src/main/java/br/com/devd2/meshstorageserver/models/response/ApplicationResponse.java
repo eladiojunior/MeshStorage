@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public class ApplicationResponse {
     private Long id;
     private String applicationName;
+    private String applicationCode;
     private String applicationDescription;
     private long maximumFileSize;
     private String[] allowedFileTypes;

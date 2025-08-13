@@ -6,9 +6,13 @@ import lombok.Data;
 @Data
 public class ApplicationRequest {
 
-    @NotBlank(message = "Nome da aplicação é obrigatório.")
+    @NotBlank(message = "Sigla da aplicação obrigatória.")
+    private String applicationCode;
+
+    @NotBlank(message = "Nome da aplicação obrigatório.")
     private String applicationName;
 
+    @NotBlank(message = "Descrição da aplicação obrigatória.")
     private String applicationDescription;
 
     private String[] allowedFileTypes = new String[] {"application/pdf", "image/jpeg", "image/gif"};

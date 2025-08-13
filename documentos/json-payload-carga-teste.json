@@ -1,6 +1,7 @@
 [
   {
-    "applicationName": "APP1",
+    "applicationCode": "APP1",
+    "applicationName": "Aplicação 01",
     "applicationDescription": "Aplicação 01 de Teste - Com Config Sem OCR",
     "allowedFileTypes": [
       "text/plain",
@@ -21,7 +22,8 @@
     "requiresFileReplication": true
   },
   {
-    "applicationName": "APP2",
+    "applicationCode": "APP2",
+    "applicationName": "Aplicação 02",
     "applicationDescription": "Aplicação 02 de Teste - Sem Config - PDF e Imagens",
     "allowedFileTypes": [
       "application/pdf",
@@ -38,7 +40,8 @@
     "requiresFileReplication": false
   },
   {
-    "applicationName": "APP3",
+    "applicationCode": "APP3",
+    "applicationName": "Aplicação 03",
     "applicationDescription": "Aplicação 03 de Teste - Com Config/OCR - PDF e Imagens",
     "allowedFileTypes": [
       "application/pdf",
