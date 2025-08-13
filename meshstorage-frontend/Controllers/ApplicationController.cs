@@ -17,13 +17,20 @@ public class ApplicationController : DefaultController
 
     // GET Application/Create
     [HttpGet]
-    public IActionResult Create()
+   public IActionResult Create()
     {
         var model = new CreateApplicationViewModel();
-        model.ListFileContentType = ListContentTypes();
         return View(model);
     }
 
+    // GET Application/ListFileContentTypes
+    [HttpGet]
+    public IActionResult ListFileContentTypes()
+    {
+        var listFileContentTypes = ListContentTypes();
+        return JsonResultSucesso(listFileContentTypes, "Sucesso");
+    }
+        
     // POST Application/Registre
     [HttpPost]
     public IActionResult Registre(CreateApplicationViewModel model)

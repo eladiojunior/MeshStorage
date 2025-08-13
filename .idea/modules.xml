@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/MeshStorage.iml" filepath="$PROJECT_DIR$/MeshStorage.iml" />
-      <module fileurl="file://$PROJECT_DIR$/meshstorage-common/meshstorage-common.iml" filepath="$PROJECT_DIR$/meshstorage-common/meshstorage-common.iml" />
     </modules>
   </component>
 </project>
