@@ -189,6 +189,7 @@ public class HelperMapper {
         ApplicationResponse response = new ApplicationResponse();
         response.setId(application.getId());
         response.setApplicationCode(application.getApplicationCode());
+        response.setApplicationName(application.getApplicationName());
         response.setApplicationDescription(application.getApplicationDescription());
         response.setMaximumFileSize(application.getMaximumFileSizeMB());
         response.setAllowedFileTypes(application.getAllowedFileTypes().split(";"));

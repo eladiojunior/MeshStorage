@@ -1,0 +1,43 @@
+﻿@model meshstorage_frontend.Models.ViewModels.ApplicationViewModel
+<div class="modal fade" id="modalAllowedFileTypes_@Model.Code" data-backdrop="static" data-keyboard="false" tabindex="-1"
+     aria-labelledby="agentHelpLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="agentHelpLabel">Tipos de arquivos permitidos</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <section class="mb-4">
+          <h6 class="fw-bold">Neste aplicação (@Model.Code) os tipos de arquivos (content type) permitidos são:</h6>
+        </section>
+        <section class="mb-4">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead class="table-light">
+              <tr>
+                <th>Tipo (ContentType)</th>
+                <th>Extensão</th>
+                <th>Descrição</th>
+              </tr>
+              </thead>
+              <tbody>
+              @foreach (var item in Model.AllowedFileTypes)
+              {
+                <tr>
+                  <td><code>@item.ContentType</code></td>
+                  <td>@item.Extension</td>
+                  <td>@item.Description</td>
+                </tr>
+              }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" data-bs-dismiss="modal">Entendi!</button>
+      </div>
+    </div>
+  </div>
+</div>

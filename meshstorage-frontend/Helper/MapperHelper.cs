@@ -1,5 +1,6 @@
 ﻿using meshstorage_frontend.Models.External;
 using meshstorage_frontend.Models.ViewModels;
+using meshstorage_frontend.Services;
 
 namespace meshstorage_frontend.Helper;
 
@@ -100,12 +101,30 @@ public class MapperHelper
 
         var model = new ApplicationViewModel();
         model.Id = response.Id;
+        model.Code = response.ApplicationCode;
         model.Name = response.ApplicationName;
         model.Description = response.ApplicationDescription;
         model.Icon = "apps";
-        model.FileCount = response.TotalFiles;
-       
+        model.MaximumFileSize = response.MaximumFileSize;
+        model.CompressedFileContentToZip = response.CompressedFileContentToZip;
+        model.ConvertImageFileToWebp = response.ConvertImageFileToWebp;
+        model.ApplyOcrFileContent = response.ApplyOcrFileContent;
+        model.AllowDuplicateFile = response.AllowDuplicateFile;
+        model.RequiresFileReplication = response.RequiresFileReplication;
+        model.TotalFiles = response.TotalFiles;
+        model.AllowedFileTypes = MapperAllowedFileTypes(response.AllowedFileTypes);
         return model;
+    }
+
+    /// <summary>
+    /// Mapear lista de ContentType em objeto de FileContentType para apresentar na aplicação.
+    /// </summary>
+    /// <param name="responseAllowedFileTypes">Lista de ContentType simples (string).</param>
+    /// <returns></returns>
+    private static List<FileContentTypeViewModel> MapperAllowedFileTypes(string[] responseAllowedFileTypes)
+    {
+        
+        throw new NotImplementedException();
     }
 
     public static List<FileContentTypeViewModel> MapperFileContentType(FileContentTypeApiResponse[]? response)

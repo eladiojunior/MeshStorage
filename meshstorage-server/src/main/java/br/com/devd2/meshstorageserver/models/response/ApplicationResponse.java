@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 @Data
 public class ApplicationResponse {
     private Long id;
-    private String applicationName;
     private String applicationCode;
+    private String applicationName;
     private String applicationDescription;
     private long maximumFileSize;
     private String[] allowedFileTypes;

@@ -1,8 +1,9 @@
 namespace meshstorage_frontend.Models.ViewModels;
 
-public class ErrorViewModel
+public class ErrorViewModel(string? code, string message)
 {
-    public string? RequestId { get; set; }
+    public string? Code { get; set; } = code;
+    public string? Message { get; set; } = message;
 
-    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    public bool ShowRequestId => !string.IsNullOrEmpty(Code);
 }

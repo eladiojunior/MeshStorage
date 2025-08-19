@@ -44,15 +44,8 @@ public class ApiService : IApiService
     public Task<SystemStatusViewModel> getSystemStatus()
     {
         SystemStatusApiResponse response = null;
-        try
-        {
-            var json = Request("/api/v1/system/status").Result;
-            response = JsonSerializer.Deserialize<SystemStatusApiResponse>(json, _jsonSerializerOptions);
-        }
-        catch (Exception erro)
-        {
-            Console.WriteLine(erro.Message);
-        }
+        var json = Request("/api/v1/system/status").Result;
+        response = JsonSerializer.Deserialize<SystemStatusApiResponse>(json, _jsonSerializerOptions);
         return Task.FromResult(MapperHelper.MapperSystemStatus(response));
     }
 

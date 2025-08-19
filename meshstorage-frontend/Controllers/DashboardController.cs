@@ -19,15 +19,22 @@ public class DashboardController : DefaultController
     [HttpGet]
     public IActionResult Index()
     {
-        var model = new DashboardModel();
-        var systemStatus = _apiService.getSystemStatus().Result;
-        model.TotalStorage = systemStatus.TotalStorage;
-        model.ConnectedClients = systemStatus.ConnectedClients;
-        model.TotalFiles = systemStatus.TotalFiles;
-        model.Health = systemStatus.Health;
-        model.MessageStatus = systemStatus.MessageStatus;
-        model.Status = systemStatus.Status;;
-        return View(model);
+        try
+        {
+            var model = new DashboardModel();
+            var systemStatus = _apiService.getSystemStatus().Result;
+            model.TotalStorage = systemStatus.TotalStorage;
+            model.ConnectedClients = systemStatus.ConnectedClients;
+            model.TotalFiles = systemStatus.TotalFiles;
+            model.Health = systemStatus.Health;
+            model.MessageStatus = systemStatus.MessageStatus;
+            model.Status = systemStatus.Status;
+            return View(model);
+        }
+        catch (Exception error)
+        {
+            return View("Error", new ErrorViewModel(null, error.Message));
+        }
     }
 
     // GET: Dashboard/ListAllStorages

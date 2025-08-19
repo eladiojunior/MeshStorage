@@ -21,30 +21,63 @@
             @foreach (var item in Model)
             {
                 <div class="col-12">
-                    <div class="app-item border rounded p-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <div
-                                        class="rounded p-2 bg-primary bg-opacity-10 text-primary div-with-icon">
-                                        <span class="material-icons">@item.Icon</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">@item.Name</h6>
-                                    <small class="text-muted">@item.FileCount arquivos</small>
+                    <div class="border rounded p-3">
+                        <div class="d-flex justify-content-start align-items-start mb-2">
+                            <div class="me-3">
+                                <div class="rounded p-2 bg-primary bg-opacity-10 text-primary div-with-icon">
+                                    <span class="material-icons">@item.Icon</span>
                                 </div>
                             </div>
-                            <div class="d-flex">
-                                <button class="btn btn-sm btn-outline-primary me-2 btn-with-icon"
-                                        title="Localizar arquivo na aplicação.">
-                                    <span class="material-icons">search</span>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger btn-with-icon"
-                                        title="Alterar configuração da aplicação.">
-                                    <span class="material-icons">edit</span>
-                                </button>
+                            <div>
+                                <h4 class="mb-1">@item.Code - @item.Name</h4>
+                                <small class="text-muted">@item.Description</small>
                             </div>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Tamanho máximo dos arquivos (em Megabyte)</span>
+                            <span><strong>@item.MaximumFileSize.ToString("D") MB</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Armazenar arquivo comprimido (em .ZIP)</span>
+                            <span><strong>@(item.CompressedFileContentToZip?"Sim":"Não")</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Converter imagens para WebP</span>
+                            <span><strong>@(item.ConvertImageFileToWebp?"Sim":"Não")</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Aplicar OCR no arquivo enviado</span>
+                            <span><strong>@(item.ApplyOcrFileContent?"Sim":"Não")</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Não permitir arquivo duplicado</span>
+                            <span><strong>@(item.AllowDuplicateFile?"Sim":"Não")</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Replicar arquivo em outro armazenamento</span>
+                            <span><strong>@(item.RequiresFileReplication?"Sim":"Não")</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Tipo de arquivos (content type) permitidos</span>
+                            <span><strong>@item.AllowedFileTypes.Count.ToString("D")</strong></span>
+                            <a href="#" data-bs-toggle="modal" title="Lista de tipos de arquivos permitidos" 
+                               data-bs-target="#modalAllowedFileTypes_@item.Code">
+                                <span class="material-icons">toc</span>
+                            </a>
+                            @await Html.PartialAsync("_ModalAllowedFileTypesPartial", item)
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-2 mt-2">
+                            <span><strong>@item.TotalFiles.ToString("D")</strong> arquivos registrados na aplicação</span>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-sm btn-outline-primary me-2 btn-with-icon"
+                                    title="Localizar arquivo na aplicação.">
+                                <span class="material-icons">search</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger btn-with-icon"
+                                    title="Alterar configuração da aplicação.">
+                                <span class="material-icons">edit</span>
+                            </button>
                         </div>
                     </div>
                 </div>
