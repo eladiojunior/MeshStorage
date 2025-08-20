@@ -5,7 +5,7 @@
         <p>Nenhuma aplicação configurada para receber arquivos disponível.</p>
         <hr>
         <p class="mb-0">
-            <a class="alert-link" asp-action="New" asp-controller="Application">Clique aqui
+            <a class="alert-link" asp-action="Create" asp-controller="Application">Clique aqui
             </a> para registrar uma aplicação.
         </p>
     </div>
@@ -33,48 +33,60 @@
                                 <small class="text-muted">@item.Description</small>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Tamanho máximo dos arquivos (em Megabyte)</span>
-                            <span><strong>@item.MaximumFileSize.ToString("D") MB</strong></span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Armazenar arquivo comprimido (em .ZIP)</span>
-                            <span><strong>@(item.CompressedFileContentToZip?"Sim":"Não")</strong></span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Converter imagens para WebP</span>
-                            <span><strong>@(item.ConvertImageFileToWebp?"Sim":"Não")</strong></span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Aplicar OCR no arquivo enviado</span>
-                            <span><strong>@(item.ApplyOcrFileContent?"Sim":"Não")</strong></span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Não permitir arquivo duplicado</span>
-                            <span><strong>@(item.AllowDuplicateFile?"Sim":"Não")</strong></span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Replicar arquivo em outro armazenamento</span>
-                            <span><strong>@(item.RequiresFileReplication?"Sim":"Não")</strong></span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Tipo de arquivos (content type) permitidos</span>
-                            <span><strong>@item.AllowedFileTypes.Count.ToString("D")</strong></span>
-                            <a href="#" data-bs-toggle="modal" title="Lista de tipos de arquivos permitidos" 
-                               data-bs-target="#modalAllowedFileTypes_@item.Code">
-                                <span class="material-icons">toc</span>
-                            </a>
-                            @await Html.PartialAsync("_ModalAllowedFileTypesPartial", item)
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted mb-2 mt-2">
-                            <span><strong>@item.TotalFiles.ToString("D")</strong> arquivos registrados na aplicação</span>
+
+                        <div class="accordion mb-3" id="accordionApp_@item.Code">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingApp_@item.Code">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapseApp_@item.Code" aria-expanded="true" aria-controls="collapseApp_@item.Code">
+                                        <span><strong>@item.TotalFiles.ToString("D")</strong> arquivos registrados na aplicação</span>
+                                    </button>
+                                </h2>
+                                <div id="collapseApp_@item.Code" class="accordion-collapse collapse" aria-labelledby="headingApp_@item.Code" data-bs-parent="#accordionApp_@item.Code">
+                                    <div class="accordion-body p-2">
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>Tamanho máximo dos arquivos (em Megabyte)</span>
+                                            <span><strong>@item.MaximumFileSize.ToString("D") MB</strong></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>Armazenar arquivo comprimido (em .ZIP)</span>
+                                            <span><strong>@(item.CompressedFileContentToZip?"Sim":"Não")</strong></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>Converter imagens para WebP</span>
+                                            <span><strong>@(item.ConvertImageFileToWebp?"Sim":"Não")</strong></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>Aplicar OCR no arquivo enviado</span>
+                                            <span><strong>@(item.ApplyOcrFileContent?"Sim":"Não")</strong></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>Não permitir arquivo duplicado</span>
+                                            <span><strong>@(item.AllowDuplicateFile?"Sim":"Não")</strong></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>Replicar arquivo em outro armazenamento</span>
+                                            <span><strong>@(item.RequiresFileReplication?"Sim":"Não")</strong></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                            <span>Tipo de arquivos (content type) permitidos</span>
+                                            <span><strong>@item.AllowedFileTypes.Count.ToString("D")</strong></span>
+                                            <a href="#" data-bs-toggle="modal" title="Lista de tipos de arquivos permitidos"
+                                               data-bs-target="#modalAllowedFileTypes_@item.Code">
+                                                <span class="material-icons">toc</span>
+                                            </a>
+                                            @await Html.PartialAsync("_ModalAllowedFileTypesPartial", item)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button class="btn btn-sm btn-outline-primary me-2 btn-with-icon"
+                            <button class="btn btn-sm btn-outline-secondary me-2 btn-with-icon"
                                     title="Localizar arquivo na aplicação.">
                                 <span class="material-icons">search</span>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger btn-with-icon"
+                            <button class="btn btn-sm btn-outline-secondary btn-with-icon"
                                     title="Alterar configuração da aplicação.">
                                 <span class="material-icons">edit</span>
                             </button>

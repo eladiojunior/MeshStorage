@@ -40,6 +40,7 @@ public class ApplicationController : DefaultController
 
         try
         {
+            
             _apiService.registreApplication(model);
 
         }

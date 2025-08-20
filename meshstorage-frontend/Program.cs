@@ -1,6 +1,8 @@
 using meshstorage_frontend.Helper;
 using meshstorage_frontend.Services;
+using meshstorage_frontend.Services.Cache;
 using meshstorage_frontend.Settings;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<IApiService, ApiService>();
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 builder.Services.AddScoped<RazorViewToStringRenderer>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ICacheHelper, CacheHelper>();
+builder.Services.AddSingleton<MapperHelper>();
 
 var app = builder.Build();
 

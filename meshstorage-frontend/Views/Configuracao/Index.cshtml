@@ -1,6 +1,11 @@
 ﻿@{
   ViewBag.Title = "Configurações";
 }
+<div class="mt-5 mb-5 text-center">
+  <a class="btn btn-lg btn-success d-inline-flex" title="Download do agent" href="agent/meshstorage-client.zip" target="_blank">
+    <span class="me-2">Download Agent</span><span class="material-icons" style="font-size: 30px;">arrow_circle_down</span>
+  </a>
+</div>
 
 <h2>Por que você precisa de um Storage Agent no MeshStorage?</h2>
 MeshStorage distribui arquivos entre vários servidores (file-servers) interligados.
@@ -97,7 +102,7 @@ O <strong>Agent (client)</strong> é o serviço leve que roda em cada file-serve
   <h6 class="fw-bold">Passo 3 - Executar o Agent</h6>
   <pre class="bg-light rounded p-2">
             <code>
-              java -jar meshstorage-client.jar 
+              java -jar meshstorage-client-1.0.0.jar 
                 -url-websocket-server=ws://&lt;HOST&gt;:3001/server-storage-websocket 
                 -server-name=&lt;HOSTNAME&gt; 
                 -storage-name=&lt;STORAGE_X&gt; 
@@ -108,9 +113,9 @@ O <strong>Agent (client)</strong> é o serviço leve que roda em cada file-serve
     <table class="table table-sm align-middle">
       <thead class="table-light">
       <tr>
-        <th>Parâmetro</th>
-        <th>Descrição</th>
-        <th>Exemplo</th>
+        <th class="col-3">Parâmetro</th>
+        <th class="col-5">Descrição</th>
+        <th class="col-4">Exemplo</th>
       </tr>
       </thead>
       <tbody>

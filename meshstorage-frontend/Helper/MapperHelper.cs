@@ -1,17 +1,19 @@
 ﻿using meshstorage_frontend.Models.External;
+using meshstorage_frontend.Models.External.Request;
+using meshstorage_frontend.Models.External.Response;
 using meshstorage_frontend.Models.ViewModels;
-using meshstorage_frontend.Services;
 
 namespace meshstorage_frontend.Helper;
 
 public class MapperHelper
 {
-    private static int FormatMbtoGb(long valueMb)
+
+    private int FormatMbtoGb(long valueMb)
     {
         return (int)Math.Round((decimal)(valueMb / 1024), 0);
     }
 
-    public static SystemStatusViewModel MapperSystemStatus(SystemStatusApiResponse? response)
+    public SystemStatusViewModel MapperSystemStatus(SystemStatusApiResponse? response)
     {
         var model = new SystemStatusViewModel();
         if (response == null)
@@ -44,7 +46,7 @@ public class MapperHelper
         return model;
     }
 
-    public static List<StorageViewModel> MapperStorage(StorageApiResponse[]? response)
+    public List<StorageViewModel> MapperStorage(StorageApiResponse[]? response)
     {
         if (response == null)
             return null;
@@ -58,21 +60,22 @@ public class MapperHelper
         return listModels;
     }
 
-    public static List<ApplicationViewModel> MapperApplication(ApplicationApiResponse[]? response)
+    public List<ApplicationViewModel> MapperApplication(ApplicationApiResponse[]? response,
+        List<FileContentTypeViewModel> allContentTypes)
     {
         if (response == null)
             return null;
         var listModels = new List<ApplicationViewModel>();
         foreach (var item in response)
         {
-            var itemModel = MapperApplication(item);
+            var itemModel = MapperApplication(item, allContentTypes);
             if (itemModel != null)
                 listModels.Add(itemModel);
         }
         return listModels;
     }
     
-    private static StorageViewModel MapperStorage(StorageApiResponse? response)
+    private StorageViewModel MapperStorage(StorageApiResponse? response)
     {
         if (response == null)
             return null;
@@ -94,7 +97,30 @@ public class MapperHelper
         
         return model;
     }
-    private static ApplicationViewModel MapperApplication(ApplicationApiResponse? response)
+
+    public CreateApplicationApiRequest MapperApplication(CreateApplicationViewModel? model)
+    {
+        var request = new CreateApplicationApiRequest();
+        if (model == null)
+            return request;
+        
+        request.ApplicationCode = model.ApplicationCode;
+        request.ApplicationName = model.ApplicationName;
+        request.ApplicationDescription = model.ApplicationDescription;
+        request.MaximumFileSize = model.MaximumFileSizeMB;
+        request.AllowedFileTypes = model.AllowedFileTypes.Split(";");
+        request.CompressedFileContentToZip = model.CompressedFileContentToZip;
+        request.ConvertImageFileToWebp = model.ConvertImageFileToWebp;
+        request.ApplyOcrFileContent = model.ApplyOcrFileContent;
+        request.AllowDuplicateFile = model.AllowDuplicateFile;
+        request.RequiresFileReplication = model.RequiresFileReplication;
+        
+        return request;
+        
+    }
+
+    public ApplicationViewModel MapperApplication(ApplicationApiResponse? response, 
+        List<FileContentTypeViewModel> allContentTypes)
     {
         if (response == null)
             return null;
@@ -112,7 +138,7 @@ public class MapperHelper
         model.AllowDuplicateFile = response.AllowDuplicateFile;
         model.RequiresFileReplication = response.RequiresFileReplication;
         model.TotalFiles = response.TotalFiles;
-        model.AllowedFileTypes = MapperAllowedFileTypes(response.AllowedFileTypes);
+        model.AllowedFileTypes = MapperAllowedFileTypes(response.AllowedFileTypes, allContentTypes);
         return model;
     }
 
@@ -121,13 +147,21 @@ public class MapperHelper
     /// </summary>
     /// <param name="responseAllowedFileTypes">Lista de ContentType simples (string).</param>
     /// <returns></returns>
-    private static List<FileContentTypeViewModel> MapperAllowedFileTypes(string[] responseAllowedFileTypes)
+    private List<FileContentTypeViewModel> MapperAllowedFileTypes(string[] responseAllowedFileTypes, 
+        List<FileContentTypeViewModel> allContentTypes)
     {
-        
-        throw new NotImplementedException();
+        var result = new List<FileContentTypeViewModel>();
+        foreach (var contentType in responseAllowedFileTypes)
+        {
+            var item = allContentTypes
+                .FirstOrDefault(f => f.ContentType.Equals(contentType));
+            if (item != null && !result.Contains(item))
+                result.Add(item);
+        }
+        return result;
     }
 
-    public static List<FileContentTypeViewModel> MapperFileContentType(FileContentTypeApiResponse[]? response)
+    public List<FileContentTypeViewModel> MapperFileContentType(FileContentTypeApiResponse[]? response)
     {
         if (response == null)
             return null;
@@ -141,7 +175,7 @@ public class MapperHelper
         return listModels;
     }
     
-    private static FileContentTypeViewModel MapperFileContentType(FileContentTypeApiResponse? response)
+    private FileContentTypeViewModel MapperFileContentType(FileContentTypeApiResponse? response)
     {
         if (response == null)
             return null;

@@ -9,5 +9,5 @@ public interface IApiService
     Task<List<StorageViewModel>> getStorages();
     Task<List<ApplicationViewModel>> getApplications();
     Task<List<FileContentTypeViewModel>> getAllContentTypes();
-    void registreApplication(CreateApplicationViewModel model);
+    Task<ApplicationViewModel> registreApplication(CreateApplicationViewModel model);
 }

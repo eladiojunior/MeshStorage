@@ -6,7 +6,12 @@
         <img class="dark:invert" src="logo.png" alt="MeshStorage Logo" width="450" height="150"/>
         <div class="items-center justify-center">
             <h3>Arquivos sempre presentes, espaço sempre inteligente.</h3>
-            <a class="btn btn-primary mt-5" asp-action="Index" asp-controller="Dashboard" title="Acessar Dashboard">Dashboard</a>
+            <div class="mt-5">
+                <a class="btn btn-primary" asp-action="Index" asp-controller="Dashboard" title="Acessar Dashboard">Dashboard</a>
+                <a class="btn btn-secondary d-inline-flex" title="Download do agent" href="agent/meshstorage-client.zip" target="_blank">
+                    <span class="me-2">Download Agent</span><span class="material-icons">arrow_circle_down</span>
+                </a>
+            </div>
         </div>
     </div>
 </div>
