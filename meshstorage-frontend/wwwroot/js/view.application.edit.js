@@ -1,10 +1,10 @@
 ﻿let listFileContentType = [];
 let listContentTypeSelected = [];
-Application_Create = {
-    InitCreate: function () {
-        Application_Create.ListContentTypes();
-        Application_Create.MaxFileSize();
-        Application_Create.InitFilterContentType();
+Application_Edit = {
+    InitEdit: function () {
+        Application_Edit.ListContentTypes();
+        Application_Edit.MaxFileSize();
+        Application_Edit.InitFilterContentType();
     },
     ListContentTypes: function () {
         $.ajax({
@@ -18,8 +18,8 @@ Application_Create = {
                     return;
                 }
                 listFileContentType = result.Model;
-                Application_Create.LoadListContentTypeSelected();
-                Application_Create.LoadListContentType();
+                Application_Edit.LoadListContentTypeSelected();
+                Application_Edit.LoadListContentType();
             }, error: function (XMLHttpRequest, textStatus, errorThrown) {
                 alert(errorThrown);
             }
@@ -31,7 +31,7 @@ Application_Create = {
         listContentTypeSelected = textContentTypes.split(';');
         $("div.lista-itens-selected").empty();
         listContentTypeSelected.forEach(item=> {
-            Application_Create.LoadContentTypeSelected(item);
+            Application_Edit.LoadContentTypeSelected(item);
         });
     },
     LoadListContentTypeSelected: function () {
@@ -46,7 +46,7 @@ Application_Create = {
         $inputAllowedFileTypes.val(listContentTypeSelected.join(';'));
         $spanCountContentType.text(listContentTypeSelected.length+'');
         listContentTypeSelected.forEach(item=> {
-            Application_Create.LoadContentTypeSelected(item);
+            Application_Edit.LoadContentTypeSelected(item);
         });
     },
     LoadContentTypeSelected: function (contentType) {
@@ -73,7 +73,7 @@ Application_Create = {
                 if (itemContentType === contentType)
                     $(this).removeClass('visually-hidden');
             });
-            Application_Create.LoadListContentTypeSelected();
+            Application_Edit.LoadListContentTypeSelected();
         });  
     },
     LoadListContentType: function (filter) {
@@ -102,24 +102,30 @@ Application_Create = {
             if (!contentType.trim()) return;
             listContentTypeSelected.push(contentType);
             $(this).addClass('visually-hidden');
-            Application_Create.LoadListContentTypeSelected();
+            Application_Edit.LoadListContentTypeSelected();
         });
     },
     MaxFileSize: function () {
-        $("#MaximumFileSizeMB").on('change', function (){
+        const $fieldMaxFileSizeMB = $("#MaximumFileSizeMB");
+        const $spanMaxFileSizeMB = $("span.maximum-file-size");
+        //atualizar o texto recuperado.
+        const maxFile = $fieldMaxFileSizeMB.val() + " MB";
+        $spanMaxFileSizeMB.text(maxFile);
+        //Criar evento para atualizar quando mudar...
+        $fieldMaxFileSizeMB.on('change', function (){
             let result = $(this).val() + " MB";
-            $("span.maximum-file-size").text(result);
+            $spanMaxFileSizeMB.text(result);
         });
     },
     InitFilterContentType: function () {
         $("input.filtro-lista").on('keyup', function (event) {
             const value = $(this).val();
             const filter = value.toLowerCase();
-            Application_Create.LoadListContentType(filter);
+            Application_Edit.LoadListContentType(filter);
         });
     }
 }
 $(function () {
-    Application_Create.InitCreate();
-    Application_Create.LoadListContentTypeSelectedByInput();
+    Application_Edit.InitEdit();
+    Application_Edit.LoadListContentTypeSelectedByInput();
 });

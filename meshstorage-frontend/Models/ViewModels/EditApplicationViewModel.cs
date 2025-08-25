@@ -3,8 +3,10 @@ using meshstorage_frontend.Helper;
 
 namespace meshstorage_frontend.Models.ViewModels;
 
-public class CreateApplicationViewModel
+public class EditApplicationViewModel
 {
+    public long IdApplication { get; set; }
+    
     [Display(Name = "Sigla da aplicação")]
     [Required(ErrorMessage = "Sigla obrigatória.")]
     [MaxLength(10, ErrorMessage = "Informe no máximo 10 caracteres sem espaço.")]

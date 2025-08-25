@@ -24,9 +24,9 @@ public class StorageViewModel
     {
         get
         {
-            var statusLegenda = (Status.Equals("active") ? "Ativo - Online" : 
+            var statusLegenda = (Status.Equals("active") ? "Online" : 
                 Status.Equals("warning") ? "Atenção" : 
-                IsOffline ? "Desativado" : "Erro");
+                IsOffline ? "Offline" : "Erro");
             return statusLegenda;
         }
     }

@@ -85,6 +85,36 @@ public class ApiService : IApiService
         
     }
     
+    private async Task<string> RequestPut<T>(string endpoint, T payload, string? apiKey = null)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Put, endpoint);
+        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+        if (!string.IsNullOrEmpty(apiKey))
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
+        // Serializa o objeto para JSON e adiciona no body
+        var json = System.Text.Json.JsonSerializer.Serialize(payload);
+        request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+        using var response = await _httpClient.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadAsStringAsync();
+        
+        //Tratar erro na retorno da API.
+        var error = await response.Content.ReadAsStringAsync();
+        if (response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.InternalServerError)
+        {
+            var responseErro = JsonSerializer.Deserialize<ErroApiResponse>(error, _jsonSerializerOptions);
+            if (responseErro != null)
+                throw new ApiBusinessException(responseErro.Code, responseErro.Menssage);
+        }
+        //Lançar erro genérico...
+        throw new Exception($"API error: {(int)response.StatusCode} - {error}");
+        
+    }
+    
     public Task<SystemStatusViewModel> getSystemStatus()
     {
         SystemStatusApiResponse? response = null;
@@ -107,6 +137,13 @@ public class ApiService : IApiService
         return Task.FromResult(_mapper.MapperApplication(response, getAllContentTypes().Result));
     }
 
+    public Task<ApplicationViewModel?> getApplication(long idApplication)
+    {
+        var json = RequestGet("/api/v1/application/getById/"+idApplication).Result;
+        var response = JsonSerializer.Deserialize<ApplicationApiResponse>(json, _jsonSerializerOptions);
+        return Task.FromResult(_mapper.MapperApplication(response, getAllContentTypes().Result));
+    }
+
     public Task<List<FileContentTypeViewModel>> getAllContentTypes()
     {
         var result = _cache.ListCache(
@@ -120,7 +157,7 @@ public class ApiService : IApiService
         return Task.FromResult(result.ToList());
     }
 
-    public Task<ApplicationViewModel> registreApplication(CreateApplicationViewModel model)
+    public Task<ApplicationViewModel?> registreApplication(CreateApplicationViewModel model)
     {
         var request = _mapper.MapperApplication(model);
         var json = RequestPost("/api/v1/application/register", request).Result;
@@ -129,4 +166,17 @@ public class ApiService : IApiService
 
     }
 
+    public Task<ApplicationViewModel?> editApplication(EditApplicationViewModel model)
+    {
+        var request = _mapper.MapperApplication(model);
+        var json = RequestPut("/api/v1/application/update/"+model.IdApplication, request).Result;
+        var response = JsonSerializer.Deserialize<ApplicationApiResponse>(json, _jsonSerializerOptions);
+        return Task.FromResult(_mapper.MapperApplication(response, getAllContentTypes().Result));
+    }
+
+    public Task<ListFilesApplicationViewModel> listFilesApplication(string codeApplication, int pageNumber, 
+        int recordsPerPage, bool isFilesSentForBackup, bool isFilesRemoved)
+    {
+        throw new NotImplementedException();
+    }
 }

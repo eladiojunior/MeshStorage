@@ -118,8 +118,28 @@ public class MapperHelper
         return request;
         
     }
-
-    public ApplicationViewModel MapperApplication(ApplicationApiResponse? response, 
+    public UpdateApplicationApiRequest MapperApplication(EditApplicationViewModel? model)
+    {
+        var request = new UpdateApplicationApiRequest();
+        if (model == null)
+            return request;
+        
+        request.ApplicationCode = model.ApplicationCode;
+        request.ApplicationName = model.ApplicationName;
+        request.ApplicationDescription = model.ApplicationDescription;
+        request.MaximumFileSize = model.MaximumFileSizeMB;
+        request.AllowedFileTypes = model.AllowedFileTypes.Split(";");
+        request.CompressedFileContentToZip = model.CompressedFileContentToZip;
+        request.ConvertImageFileToWebp = model.ConvertImageFileToWebp;
+        request.ApplyOcrFileContent = model.ApplyOcrFileContent;
+        request.AllowDuplicateFile = model.AllowDuplicateFile;
+        request.RequiresFileReplication = model.RequiresFileReplication;
+        
+        return request;
+        
+    }
+    
+    public ApplicationViewModel? MapperApplication(ApplicationApiResponse? response, 
         List<FileContentTypeViewModel> allContentTypes)
     {
         if (response == null)

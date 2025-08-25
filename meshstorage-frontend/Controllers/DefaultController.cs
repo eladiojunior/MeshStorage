@@ -120,5 +120,22 @@ public class DefaultController : Controller
         _logger.LogError("Error: {}", erro.Message);
         return $"{(string.IsNullOrEmpty(localErro) ? localErro + ": " : "")} Erro inesperado na requisição.";
     }
+
+    /// <summary>
+    /// Controle de Redirect com registro de mensagem de sucesso ou erro na TempData para recuperação na
+    /// interface (View) que receberá a requisição.
+    /// </summary>
+    /// <param name="actionName">Nome da Action acionada.</param>
+    /// <param name="controllerName">Nome da Controller acionada</param>
+    /// <param name="hasError">Flag para apresentar mensagem de erro ou sucesso.</param>
+    /// <param name="message">Mensagem a se apresentada</param>
+    /// <returns></returns>
+    internal RedirectToActionResult RedirectToActionByMessage(string? actionName, 
+        string? controllerName, bool hasError, string message)
+    {
+        if (hasError) TempData["MessageError"] = message;
+        else TempData["MessageSuccess"] = message;
+        return RedirectToAction(actionName, controllerName);
+    }
     
 }

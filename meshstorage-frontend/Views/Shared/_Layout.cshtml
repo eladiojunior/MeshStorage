@@ -43,6 +43,7 @@
 
 <main role="main">
     @Html.ValidationSummary()
+    @await Html.PartialAsync("_MessageRedirectPartial")
     @RenderBody()
 </main>
 <script>
