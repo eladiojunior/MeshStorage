@@ -79,7 +79,7 @@ public class ApplicationController {
 
     @Operation(summary = "Listar aplicações", description = "Lista todas as aplicações para armazenamento de arquivos físicos.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista dos ServerStorage com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApplicationResponse[].class))}),
+            @ApiResponse(responseCode = "200", description = "Lista das aplicações com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApplicationResponse[].class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/list")
@@ -94,6 +94,42 @@ public class ApplicationController {
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }
 
+    }
+
+    @Operation(summary = "Obter aplicação", description = "Recupera uma aplicação pelo seu identificador.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Aplicação recuperada com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApplicationResponse[].class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/getById/{idApplication}")
+    public ResponseEntity<?> getApplicationById(@PathVariable Long idApplication) {
+        try {
+            var application = applicationService.getApplicationById(idApplication);
+            var response = HelperMapper.ConvertToResponse(application);
+            return ResponseEntity.ok(response);
+        } catch (Exception error) {
+            var message = "Erro ao obter uma aplicação pelo seu identificador: " + idApplication;
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+    }
+
+    @Operation(summary = "Obter aplicação", description = "Recupera uma aplicação pelo sua sigla.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Aplicação recuperada com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ApplicationResponse[].class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/getByCode/{codeApplication}")
+    public ResponseEntity<?> getApplicationBySigla(@PathVariable String codeApplication) {
+        try {
+            var application = applicationService.getApplicationByCode(codeApplication);
+            var response = HelperMapper.ConvertToResponse(application);
+            return ResponseEntity.ok(response);
+        } catch (Exception error) {
+            var message = "Erro ao obter uma aplicação pela sua sigla: " + codeApplication;
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
     }
 
     @Operation(summary = "Remover Aplicação", description = "Remover (logicamente) uma aplicação do processo de armazemanto de arquivos físicos.")

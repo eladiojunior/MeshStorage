@@ -43,12 +43,12 @@ public class FileStorageController {
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @PostMapping(value="/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadFile(
-            @RequestParam("applicationName") String applicationName,
+            @RequestParam("applicationCode") String applicationCode,
             @RequestParam("file") MultipartFile file) {
 
         try {
 
-            var fileStorage = fileStorageService.registerFile(applicationName, file);
+            var fileStorage = fileStorageService.registerFile(applicationCode, file);
             var response = HelperMapper.ConvertToResponse(fileStorage);
             return ResponseEntity.ok(response);
 
@@ -110,14 +110,14 @@ public class FileStorageController {
 
     }
 
-    @Operation(summary = "Lista de arquivos do ServerStorage", description = "Lista os arquivos de uma aplicação (nome) de forma paginada.")
+    @Operation(summary = "Lista de arquivos do ServerStorage", description = "Lista os arquivos de uma aplicação (sigla) de forma paginada.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de arquivos recuperados da aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ListFileStorageResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/list")
-    public ResponseEntity<?> list (@RequestParam("applicationName")
-                                       @Parameter(description = "Nome da aplicação responsável pelos arquivos") String applicationName,
+    public ResponseEntity<?> list (@RequestParam("applicationCode")
+                                       @Parameter(description = "Sigla da aplicação responsável pelos arquivos") String applicationCode,
                                    @RequestParam(name = "pageNumber", defaultValue = "1")
                                        @Parameter(description = "Número da página da paginação") int pageNumber,
                                    @RequestParam(name = "recordsPerPage", defaultValue = "15")
@@ -127,7 +127,7 @@ public class FileStorageController {
                                    @RequestParam(name = "isFilesRemoved", defaultValue = "false")
                                        @Parameter(description = "Filtro de arquivos removidos do armazenamento") boolean isFilesRemoved) {
         try {
-            var list = fileStorageService.listFilesByApplicationName(applicationName, pageNumber, recordsPerPage, isFilesSentForBackup, isFilesRemoved);
+            var list = fileStorageService.listFilesByApplicationCode(applicationCode, pageNumber, recordsPerPage, isFilesSentForBackup, isFilesRemoved);
             return ResponseEntity.ok(list);
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));

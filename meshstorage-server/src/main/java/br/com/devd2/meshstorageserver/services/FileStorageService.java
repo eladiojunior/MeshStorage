@@ -150,19 +150,19 @@ public class FileStorageService {
 
     /**
      * Registra um arquivo em um Storage disponível e guarda as informações em banco.
-     * @param applicationName - Nome da aplicação que está utilizando.
+     * @param applicationCode - Sigla da aplicação que está utilizando.
      * @param file - Informações do arquivo.
      * @return Arquivo armazenado conforme solicitação.
      * @throws ApiBusinessException - Erro de negócio.
      */
-    public FileStorage registerFile(String applicationName, MultipartFile file) throws ApiBusinessException {
+    public FileStorage registerFile(String applicationCode, MultipartFile file) throws ApiBusinessException {
 
-        if (applicationName == null || applicationName.isEmpty())
-            throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
+        if (applicationCode == null || applicationCode.isEmpty())
+            throw new ApiBusinessException("Sigla da aplicação não pode ser nulo ou vazio.");
 
-        var application = applicationService.getApplicationByCode(applicationName);
+        var application = applicationService.getApplicationByCode(applicationCode);
         if (application == null)
-            throw new ApiBusinessException("Aplicação não identificada pelo seu nome ("+applicationName+"), obrigatório.");
+            throw new ApiBusinessException("Aplicação não identificada pela sigla ("+applicationCode+"), obrigatório.");
 
         if (file == null || file.isEmpty())
             throw new ApiBusinessException("Arquivo físico não pode ser nulo ou vazio.");
@@ -421,21 +421,21 @@ public class FileStorageService {
 
     /**
      * Recupera a lista de arquivos de uma aplicação (nome) de forma painada.
-     * @param applicationName - Nome da aplicação para recuperação dos arquivos.
+     * @param applicationCode - Nome da aplicação para recuperação dos arquivos.
      * @param pageNumber - Número da página da paginação
      * @param recordsPerPage - Número de registros por página.
      * @param isFilesSentForBackup - indicador de filtro dos arquivos enviados para o backup, armazenamento de longo prazo.
      * @param isFilesRemoved - indicado de filtro dos arquivos removidos do armazenamento.
      * @return Instancia com a lista de arquivos da aplicação.
      */
-    public ListFileStorageResponse listFilesByApplicationName(String applicationName, int pageNumber, int recordsPerPage, boolean isFilesSentForBackup, boolean isFilesRemoved) throws ApiBusinessException {
+    public ListFileStorageResponse listFilesByApplicationCode(String applicationCode, int pageNumber, int recordsPerPage, boolean isFilesSentForBackup, boolean isFilesRemoved) throws ApiBusinessException {
 
-        if (applicationName == null || applicationName.isEmpty())
-            throw new ApiBusinessException("Nome da aplicação não pode ser nulo ou vazio.");
+        if (applicationCode == null || applicationCode.isEmpty())
+            throw new ApiBusinessException("Sigla da aplicação não pode ser nulo ou vazio.");
 
-        var application = applicationService.getApplicationByCode(applicationName);
+        var application = applicationService.getApplicationByCode(applicationCode);
         if (application == null)
-            throw new ApiBusinessException("Aplicação não identificada pelo seu nome ("+applicationName+"), obrigatório.");
+            throw new ApiBusinessException("Aplicação não identificada pela sigla ("+applicationCode+"), obrigatório.");
 
         if (pageNumber == 0) pageNumber = 1;
         if (recordsPerPage == 0) recordsPerPage = 15;

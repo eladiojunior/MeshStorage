@@ -1,0 +1,53 @@
+Caso esteja utilizando um docker em outra máquina será necessário instalar o Docker-Cli, eu estava no Windows e
+utilizei o comando no PowerShell:
+/> winget install --id=Docker.DockerCLI -e
+
+Crie um contexto na sua máquina local para o Docker na outra máquina:
+/> docker context create linux-docker --description "Docker rodando no Linux" --docker "host=ssh://{usuario}@192.168.1.21"
+--> Para acesso SSH precisa da senha do {usuario} para abrir conexão.
+Ativar o contexto criado:
+/> docker context use linux-docker
+
+Confira a versão do Docker (remoto) e se está realmente instalado o Docker-CLI localmente:
+/> docker version
+Resultado:
+-----------------------------------------------------------------------------------
+Client:
+ Version:           28.3.3
+ API version:       1.51
+ Go version:        go1.24.5
+ Git commit:        980b856
+ Built:             Fri Jul 25 11:36:03 2025
+ OS/Arch:           windows/amd64
+ Context:           linux-docker
+
+Server:
+ Engine:
+  Version:          28.1.1+1
+  API version:      1.49 (minimum version 1.24)
+  Go version:       go1.23.8
+  Git commit:       01f442b
+  Built:            Fri Jun 13 16:12:14 2025
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          v1.7.27
+  GitCommit:        05044ec0a9a75232cad458027ca83437aae3f4da
+ runc:
+  Version:          1.2.6
+  GitCommit:
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+-----------------------------------------------------------------------------------
+
+Para realizar o processo de Build/Deploy no Docker
+
+1. Acesse a pasta da solução MeshStore:
+/> docker build -t meshstorage-server-1.0.0 .
+
+2. Para facilitar o start do meshstorage-server, criei um arquivo docker-compose.yml.
+Acesse a pasta do meshstorage-server e execute o comando:
+/> docker-compose up -d
+
+Deve funcionar...

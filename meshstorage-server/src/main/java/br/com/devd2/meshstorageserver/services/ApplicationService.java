@@ -135,6 +135,17 @@ public class ApplicationService {
         return applicationRepository.findAll();
     }
 
+    /**
+     * Obter aplicação pelo seu identificador.
+     * @param idApplication Identificador da aplicação.
+     * @return Aplicação do ID.
+     * @throws ApiBusinessException Erro de negócio.
+     */
+    public Application getApplicationById(Long idApplication) throws ApiBusinessException {
+        if (idApplication == null || idApplication == 0)
+            throw new ApiBusinessException("Identificador da Aplicação não pode ser nulo ou zero.");
+        return applicationRepository.findById(idApplication).orElse(null);
+    }
 
     /**
      * Atualizar a quantidade de arquivo registrado na Aplicação, upload.
