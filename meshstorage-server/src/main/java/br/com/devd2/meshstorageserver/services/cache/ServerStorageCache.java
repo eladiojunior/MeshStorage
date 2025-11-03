@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,13 +21,13 @@ public class ServerStorageCache {
     private final ServerStorageRepository serverStorageRepository;
     private final Map<String, ServerStorage> mapServerStorageCache = new ConcurrentHashMap<>();
 
-    @Value("${weight-free-space:0}")
+    @Value("${mesh.file.weight-free-space:0}")
     private double weight_free_space;
-    @Value("${weight-response-time:0}")
+    @Value("${mesh.file.weight-response-time:0}")
     private double weight_response_time;
-    @Value("${weight-request-last-minute:0}")
+    @Value("${mesh.file.weight-request-last-minute:0}")
     private double weight_request_last_minute;
-    @Value("${weight-errors-last-request:0}")
+    @Value("${mesh.file.weight-errors-last-request:0}")
     private double weight_errors_last_request;
 
     //Chave de cache para recuperar o Score, se existir.
@@ -189,7 +188,7 @@ public class ServerStorageCache {
                 metrics.getFreeSpace(), metrics.getTotalSpace(),
                 metrics.getResponseTime(), metrics.getRequestLastMinute(), metrics.getErrosLastRequest());
 
-        Double scoreDouble = null;
+        Double scoreDouble;
         scoreDouble = cacheScore.get(keyMetrics, k ->
                 calcScore(storage.getMetrics(), maxResponseTime, maxRequestLastMinute));
 

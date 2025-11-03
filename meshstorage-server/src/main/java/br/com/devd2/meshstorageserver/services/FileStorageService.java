@@ -17,6 +17,7 @@ import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperFormat;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.helper.HelperServer;
+import br.com.devd2.meshstorageserver.models.FileUploadModel;
 import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
@@ -32,6 +33,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -55,10 +57,10 @@ public class FileStorageService {
     private final WebSocketMessaging webSocketMessaging;
     private final QrCodeService qrCodeService;
 
-    @Value("${acesso-file-url:\"\"}")
+    @Value("${mesh.download.access-file-url:\"\"}")
     private String url_file_acess;
 
-    @Value("${quality-compressed-webp:0.85f}")
+    @Value("${mesh.file.quality-compressed-webp:0.85f}")
     private float quality_compressed_webp;
 
     public FileStorageService(ApplicationService applicationService, FileStorageRepository fileStorageRepository,
@@ -151,11 +153,27 @@ public class FileStorageService {
     /**
      * Registra um arquivo em um Storage disponível e guarda as informações em banco.
      * @param applicationCode - Sigla da aplicação que está utilizando.
-     * @param file - Informações do arquivo.
+     * @param file - @{@link MultipartFile} Informações do arquivo.
      * @return Arquivo armazenado conforme solicitação.
      * @throws ApiBusinessException - Erro de negócio.
      */
     public FileStorage registerFile(String applicationCode, MultipartFile file) throws ApiBusinessException {
+        try {
+            var fileModel = new FileUploadModel(file.getOriginalFilename(), file.getContentType(), file.getBytes());
+            return registerFile(applicationCode, fileModel);
+        } catch (Exception error) {
+            throw new ApiBusinessException(error.getMessage());
+        }
+    }
+
+    /**
+     * Registra um arquivo em um Storage disponível e guarda as informações em banco.
+     * @param applicationCode - Sigla da aplicação que está utilizando.
+     * @param file - @{@link FileUploadModel} Informações do arquivo.
+     * @return Arquivo armazenado conforme solicitação.
+     * @throws ApiBusinessException - Erro de negócio.
+     */
+    public FileStorage registerFile(String applicationCode, FileUploadModel file) throws ApiBusinessException {
 
         if (applicationCode == null || applicationCode.isEmpty())
             throw new ApiBusinessException("Sigla da aplicação não pode ser nulo ou vazio.");

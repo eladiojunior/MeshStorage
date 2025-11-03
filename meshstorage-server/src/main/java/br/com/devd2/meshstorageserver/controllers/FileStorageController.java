@@ -3,11 +3,11 @@ package br.com.devd2.meshstorageserver.controllers;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
-import br.com.devd2.meshstorageserver.models.response.ErrorResponse;
-import br.com.devd2.meshstorageserver.models.response.FileStorageResponse;
-import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
-import br.com.devd2.meshstorageserver.models.response.QrCodeFileResponse;
+import br.com.devd2.meshstorageserver.models.request.FinalizeUploadRequest;
+import br.com.devd2.meshstorageserver.models.request.InitUploadRequest;
+import br.com.devd2.meshstorageserver.models.response.*;
 import br.com.devd2.meshstorageserver.services.FileStorageService;
+import br.com.devd2.meshstorageserver.services.UploadChunkService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,9 +32,12 @@ import java.util.Arrays;
 @Tag(name = "FileStorage", description = "Operações de armazenamento de arquivos.")
 public class FileStorageController {
     private final FileStorageService fileStorageService;
+    private final UploadChunkService fileStorageUploadChunkService;
 
-    public FileStorageController(FileStorageService fileStorageService) {
+    public FileStorageController(FileStorageService fileStorageService,
+                                 UploadChunkService fileStorageUploadChunkService) {
         this.fileStorageService = fileStorageService;
+        this.fileStorageUploadChunkService = fileStorageUploadChunkService;
     }
 
     @Operation(summary = "Registrar um arquivo em um ServerStorage", description = "Registrar um arquivo no ServerStorage.")
@@ -43,8 +47,10 @@ public class FileStorageController {
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @PostMapping(value="/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadFile(
-            @RequestParam("applicationCode") String applicationCode,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("applicationCode")
+                @Parameter(description = "Sigla do sistema responsável pelo upload.") String applicationCode,
+            @RequestParam("file")
+                @Parameter(description = "Informações do arquivo (bytes) para upload.") MultipartFile file) {
 
         try {
 
@@ -68,7 +74,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/download/{idFile}")
-    public ResponseEntity<?> download(
+    public ResponseEntity<?> downloadFile(
             @PathVariable String idFile) {
         try {
             FileStorage file = fileStorageService.getFile(idFile);
@@ -95,7 +101,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @DeleteMapping("/delete/{idFile}")
-    public ResponseEntity<?> delete (@PathVariable String idFile) {
+    public ResponseEntity<?> deleteFile (@PathVariable String idFile) {
         try {
             var fileStorage = fileStorageService.deleteFile(idFile);
             var response = HelperMapper.ConvertToResponse(fileStorage);
@@ -116,7 +122,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/list")
-    public ResponseEntity<?> list (@RequestParam("applicationCode")
+    public ResponseEntity<?> listFiles (@RequestParam("applicationCode")
                                        @Parameter(description = "Sigla da aplicação responsável pelos arquivos") String applicationCode,
                                    @RequestParam(name = "pageNumber", defaultValue = "1")
                                        @Parameter(description = "Número da página da paginação") int pageNumber,
@@ -145,7 +151,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/listStatusCode")
-    public ResponseEntity<?> list_statusCode () {
+    public ResponseEntity<?> listStatusCode () {
         try {
             var list = fileStorageService.listStatusCodeFiles();
             return ResponseEntity.ok(list);
@@ -162,7 +168,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/listContentTypes")
-    public ResponseEntity<?> list_contentTypes () {
+    public ResponseEntity<?> listContentTypes () {
         try {
             var list = fileStorageService.listContentTypesFiles();
             return ResponseEntity.ok(list);
@@ -179,7 +185,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/qrcode/{idFile}")
-    public ResponseEntity<?> qr_code(@PathVariable String idFile,
+    public ResponseEntity<?> qrCodeFile(@PathVariable String idFile,
                                      @RequestParam(name="tokenExpirationTime", defaultValue="0")
                                         @Parameter(description = "Tempo de expiração do token de acesso (em minutos), se 0 nunca expira.") Long tokenExpirationTime,
                                      @RequestParam(name="maximumAccessestoken", defaultValue="0")
@@ -202,7 +208,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/link/{token}")
-    public ResponseEntity<?> download_link(@PathVariable("token")
+    public ResponseEntity<?> downloadLinkFile(@PathVariable("token")
                                            @Parameter(description = "Token (chave acesso) ao arquivo para download") String token) {
         try {
             FileStorage file = fileStorageService.getFileByToken(token);
@@ -222,5 +228,74 @@ public class FileStorageController {
         }
 
     }
+
+    @Operation(summary = "Inicia upload de arquivo em bloco", description = "Inicia upload de arquivo em blocos para armazenamento.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Registro do processo de upload em bloco", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = InitUploadResponse.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @PostMapping(path = "/uploadInChunk/init", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> uploadInitFile(@RequestBody @Valid InitUploadRequest request) {
+        try {
+            var result = fileStorageUploadChunkService.init(request);
+            return ResponseEntity.ok(result);
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao iniciar upload enviando blocos do arquivo para o Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+    }
+
+    @Operation(summary = "Envio de bloco do arquivo", description = "Envio do bloco do arquivo para armazenamento.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Bloco do upload do arquivo", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SuccessResponse.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @PostMapping(path = "/uploadInChunk/chunk", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadChunkFile(
+            @RequestParam(name="uploadId")
+                @Parameter(description = "Identificador do upload em andamento.") String uploadId,
+            @RequestParam("index")
+                @Parameter(description = "Index do bloco do upload em andamento.") int index,
+            @RequestParam("total")
+                @Parameter(description = "Total de blocos do upload em andamento.") long total,
+            @RequestPart("chunk")
+                @Parameter(description = "Informações do bloco do arquivo (bytes) do upload em andamento.") MultipartFile chunk
+    ) {
+
+        try (var in = chunk.getInputStream()) {
+            fileStorageUploadChunkService.receiveChunk(uploadId, index, total, in, chunk.getSize());
+            return ResponseEntity.ok(new SuccessResponse("Bloco "+index+" de "+total+" recebido com sucesso."));
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao receber bloco do upload do arquivo.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+
+    }
+
+    @Operation(summary = "Finaliza upload em bloco do arquivo", description = "Finaliza o processo de upload do arquivo em bloco para armazenamento.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Bloco do upload do arquivo", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = FinalizeUploadResponse.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @PostMapping(path = "/uploadInChunk/finalize", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> uploadFinalizeFile(@RequestBody @Valid FinalizeUploadRequest request) throws Exception {
+        try {
+            var result = fileStorageUploadChunkService.finalizeUpload(request.uploadId());
+            return ResponseEntity.ok(result);
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao finalizar upload em blocos do arquivo para o Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+    }
+
 
 }

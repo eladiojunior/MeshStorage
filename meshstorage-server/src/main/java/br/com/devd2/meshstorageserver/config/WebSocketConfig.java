@@ -12,7 +12,7 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Value("${limit-mb}")
+    @Value("${mesh.upload.limit-mb}")
     private int limitFilesMB;
 
     @Override

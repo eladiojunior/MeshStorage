@@ -15,24 +15,34 @@ spring:
     properties:
       hibernate:
         dialect: ${DB_JPA_DIALECT}
-    show-sql: ${DB_JPA_SHOW_SQL}   # true = imprime SQL no console
+    show-sql: ${DB_JPA_SHOW_SQL}        # true = imprime SQL no console
 
   servlet:
     multipart:
-      max-file-size: ${limit-mb}MB
-      max-request-size: ${limit-mb}MB
+      enabled: true
+      file-size-threshold: 1KB                                # força gravar em disco
+      location: ${mesh.upload.location-uploads}               # onde cairão temporários
+      max-file-size: ${mesh.upload.limit-mb}MB                # por arquivo (chunk ou não)
+      max-request-size: ${mesh.upload.limit-mb}MB             # por requisição
 
-# Configuração do tamanho máximo em MB=Megabytes do upload de arquivos
-limit-mb: ${LIMIT_MAX_UPLOADFILE_MB}
-# Configuração da URL de acesso ao arquivo utilizando um QR Code ou Link com o token
-acesso-file-url: ${ACESSO_ARQUIVO_URL}
-# Configuração da qualidade na compressão das imagens (PNG, JPG, GIF, TIFF, BMP) em WebP.
-quality-compressed-webp: ${QUALITY_COMPRESSED_WEBP}
-# Configuração dos PESOS para cálculo do Score para o melhor Storage
-weight-free-space: ${WEIGHT_FREE_SPACE}                   # Espaço disponível no Storage.
-weight-response-time: ${WEIGHT_RESPONSE_TIME}             # Tempo de resposta do upload no Storage.
-weight-request-last-minute: ${WEIGHT_REQUEST_LAST_MINUTE} # Número uploads no último minuto para o Storage.
-weight-errors-last-request: ${WEIGHT_ERRORS_LAST_REQUEST} # Número de erros nas últimas 10 requisições para Storage.
+# Configurações da solução MeshStorage
+mesh:
+  upload:
+    limit-mb: ${UPLOAD_LIMIT_MAX_MB}                          # Tamanho máximo em MB=Megabytes do upload de arquivos
+    location-uploads: ${UPLOAD_LOCATION_UPLOADS}              # Local (TEMP) dos arquivos de upload.
+    chunk-size: ${UPLOAD_CHUNK_SIZE_BYTES}                    # 1048576 bytes = 1MB padrão
+    staging-dir: ${UPLOAD_STAGING_DIR}                        # Local dos blocos de arquivos do upload.
+    session-ttl-minutes: ${UPLOAD_SESSION_TTL_MINUTES}        # Tempo de vida da sessão de upload.
+    max-concurrent-chunks: ${UPLOAD_MAX_CONCURRENT_CHUNK}     # Limita quantos blocos o servidor processa em paralelo (evita estourar memória/IO).
+  file:
+    quality-compressed-webp: ${QUALITY_COMPRESSED_WEBP}       # Qualidade na compressão das imagens (PNG, JPG, GIF, TIFF, BMP) em WebP.
+    # Configuração dos PESOS para cálculo do Score para o melhor Storage
+    weight-free-space: ${WEIGHT_FREE_SPACE}                   # Espaço disponível no Storage.
+    weight-response-time: ${WEIGHT_RESPONSE_TIME}             # Tempo de resposta do upload no Storage.
+    weight-request-last-minute: ${WEIGHT_REQUEST_LAST_MINUTE} # Número uploads no último minuto para o Storage.
+    weight-errors-last-request: ${WEIGHT_ERRORS_LAST_REQUEST} # Número de erros nas últimas 10 requisições para Storage.
+  download:
+    access-file-url: ${ACCESS_FILE_URL}                       # URL de acesso ao arquivo utilizando um QR Code ou Link com o token
 
 # Configuração do swagger para apresentar a documentação da API
 springdoc:

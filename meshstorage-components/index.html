@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MeshStorage - Components</title>
+    <link rel="icon" type="image/png" href="/imgs/logo-smart.png"/>
+    <link rel="stylesheet" href="/css/style.css">
+    <script type="module" src="/src/upload/upload.ts"></script>
+</head>
+<body>
+<div>
+    <div class="logo">
+        <img src="/imgs/logo.png" width="300px" alt="MeshStorage logo"/>
+    </div>
+    <h1>Componentes - Upload</h1>
+    <p>Exemplo de utilização do componente Upload do MeshStorage para enviar arquivos grandes, para esse exemplo utilizamos:</p>
+    <ul>
+        <li>Arquivo de no máximo de <strong>50 Megabyte</strong> (52.428.800 Bytes)</li>
+        <li>Arquivo será dividido em partes de <strong>100 Kilobyte</strong> (100.000 Bytes)</li>
+        <li>Arquivo com a extensão <strong>.pdf, .png, .jpg, .jpeg e .webp</strong> serão permitidos</li>
+        <li>Testando com a ApplicationCode <strong>APP3</strong>, precisa estar registrada no MeshStorage</li>
+        <li>
+            API de Upload local: <strong>http://localhost:3001/api/v1</strong>
+            <ul>
+                <li>Endpoint: /file/uploadInChunk/init</li>
+                <li>Endpoint: /file/uploadInChunk/chunk</li>
+                <li>Endpoint: /file/uploadInChunk/finalize</li>
+            </ul>
+        </li>
+    </ul>
+    <div class="card">
+        <meshstorage-upload
+                app-code="APP3"
+                api-upload="http://localhost:3001/api/v1"
+                chunk-size="100000"
+                max-bytes="52428800"
+                accept=".pdf,.png,.jpg,.jpeg,.webp"
+                choose-label="Selecionar"
+                start-label="Enviar"
+                cancel-label="Cancelar"></meshstorage-upload>
+    </div>
+</div>
+<script>
+    const el = document.querySelector('meshstorage-upload');
+    el.addEventListener('uploadprogress', e => console.log('progress', e.detail));
+    el.addEventListener('uploadcomplete', e => console.log('complete', e.detail));
+    el.addEventListener('uploaderror', e => console.warn('error', e.detail));
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 15px;
+  min-width: 320px;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+.logo {
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    will-change: filter;
+    transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #1c65a2);
+}
+
+.card {
+  padding: 15px;
+}
