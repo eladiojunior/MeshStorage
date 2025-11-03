@@ -253,7 +253,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "200", description = "Bloco do upload do arquivo", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SuccessResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @PostMapping(path = "/uploadInChunk/chunk", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(path = "/uploadInChunk/chunk", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadChunkFile(
             @RequestParam(name="uploadId")
                 @Parameter(description = "Identificador do upload em andamento.") String uploadId,

@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="/imgs/logo-smart.png"/>
     <link rel="stylesheet" href="/css/style.css">
     <script type="module" src="/src/upload/upload.ts"></script>
+    <script type="module" src="/src/upload/upload-multiple.ts"></script>
 </head>
 <body>
 <div>
@@ -16,36 +17,59 @@
     <h1>Componentes - Upload</h1>
     <p>Exemplo de utilização do componente Upload do MeshStorage para enviar arquivos grandes, para esse exemplo utilizamos:</p>
     <ul>
-        <li>Arquivo de no máximo de <strong>50 Megabyte</strong> (52.428.800 Bytes)</li>
-        <li>Arquivo será dividido em partes de <strong>100 Kilobyte</strong> (100.000 Bytes)</li>
-        <li>Arquivo com a extensão <strong>.pdf, .png, .jpg, .jpeg e .webp</strong> serão permitidos</li>
         <li>Testando com a ApplicationCode <strong>APP3</strong>, precisa estar registrada no MeshStorage</li>
-        <li>
-            API de Upload local: <strong>http://localhost:3001/api/v1</strong>
-            <ul>
-                <li>Endpoint: /file/uploadInChunk/init</li>
-                <li>Endpoint: /file/uploadInChunk/chunk</li>
-                <li>Endpoint: /file/uploadInChunk/finalize</li>
-            </ul>
-        </li>
+        <li>Arquivo de no máximo de <strong>50 Megabyte</strong> (52.428.800 Bytes)</li>
+        <li>Arquivo com a extensão <strong>.pdf, .png, .jpg, .jpeg e .webp</strong> serão permitidos</li>
+        <li>API de Upload local: <strong>http://localhost:3001/api/v1</strong> </li>
     </ul>
     <div class="card">
         <meshstorage-upload
-                app-code="APP3"
-                api-upload="http://localhost:3001/api/v1"
-                chunk-size="100000"
-                max-bytes="52428800"
-                accept=".pdf,.png,.jpg,.jpeg,.webp"
-                choose-label="Selecionar"
-                start-label="Enviar"
-                cancel-label="Cancelar"></meshstorage-upload>
+            app-code="APP3"
+            api-url-upload="http://localhost:3001/api/v1"
+            api-token-jwt=""
+            max-file-size="52428800"
+            accept=".pdf,.png,.jpg,.jpeg,.webp">
+        </meshstorage-upload>
     </div>
 </div>
 <script>
-    const el = document.querySelector('meshstorage-upload');
-    el.addEventListener('uploadprogress', e => console.log('progress', e.detail));
-    el.addEventListener('uploadcomplete', e => console.log('complete', e.detail));
-    el.addEventListener('uploaderror', e => console.warn('error', e.detail));
+    const el_upload = document.querySelector('meshstorage-upload');
+    el_upload.addEventListener('upload-start', e => console.log('start', e.detail));
+    el_upload.addEventListener('upload-progress', e => console.log('progress', e.detail));
+    el_upload.addEventListener('upload-complete', e => console.log('complete', e.detail));
+    el_upload.addEventListener('upload-cancel', e => console.warn('cancel', e.detail));
+    el_upload.addEventListener('upload-error', e => console.error('error', e.detail));
+</script>
+<h1>Componentes - Upload Multiple</h1>
+<p>Exemplo de utilização do componente Upload do MeshStorage para enviar vários arquivos grandes em concorrência, para esse exemplo utilizamos:</p>
+<ul>
+    <li>Testando com a ApplicationCode <strong>APP3</strong>, precisa estar registrada no MeshStorage</li>
+    <li>Total máximo de upload de <strong>50 Megabyte</strong> (52.428.800 bytes)</li>
+    <li>Tamanho máximo dos arquivo de upload de <strong>2 Megabyte</strong> (2.097.152 bytes)</li>
+    <li>Arquivo com a extensão <strong>.pdf, .png, .jpg, .jpeg e .webp</strong> serão permitidos</li>
+    <li>API de Upload local: <strong>http://localhost:3001/api/v1</strong> </li>
+</ul>
+<div class="card">
+    <meshstorage-upload-multiple
+        app-code="APP3"
+        api-url-upload="http://localhost:3001/api/v1"
+        api-token-jwt=""
+        max-file-size="2097152"
+        accept=".pdf,.png,.jpg,.jpeg,.webp"
+        max-file-count="5"
+        max-total-files-size="52428800"
+        max-concurrent-upload="2">
+    </meshstorage-upload-multiple>
+</div>
+<script>
+    const el_uploadmultiple = document.querySelector('meshstorage-upload-multiple');
+    el_uploadmultiple.addEventListener('upload-file-start', e => console.log('start', e.detail));
+    el_uploadmultiple.addEventListener('upload-file-progress', e => console.log('progress', e.detail));
+    el_uploadmultiple.addEventListener('upload-file-complete', e => console.log('complete', e.detail));
+    el_uploadmultiple.addEventListener('upload-file-error', e => console.error('error', e.detail));
+    el_uploadmultiple.addEventListener('upload-file-rejected', e => console.warn('rejected', e.detail));
+    el_uploadmultiple.addEventListener('upload-file-cancelled', e => console.warn('cancelled', e.detail));
+    el_uploadmultiple.addEventListener('upload-all-complete', e => console.log('all-complete', 'Uploads completos.'));
 </script>
 </body>
 </html>

@@ -1,9 +1,11 @@
 class Upload extends HTMLElement {
     static get observedAttributes() {
         return [
-            'app-code', 'api-upload', 'token-jwt',
-            'chunk-size', 'max-bytes', 'accept',
-            'choose-label', 'start-label', 'cancel-label'
+            'app-code',
+            'api-url-upload',
+            'api-token-jwt', //opcional
+            'accept',
+            'max-file-size'
         ];
     }
     private root: ShadowRoot;
@@ -16,8 +18,9 @@ class Upload extends HTMLElement {
     private file: File | null = null;
     private abortCtrl: AbortController | null = null;
     private uploadId: string | null = null;
-    private chunkSize = 1024 * 1024; // 1MB
-    private maxBytes = 20 * 1024 * 1024; // 20MB
+    private maxFileSizeBytes = 10 * 1024 * 1024; // 10MB
+
+    private CHUNK_SIZE: number = 1024 * 100;                    // 100 KB por bloco de envio
 
     constructor() {
         super();
@@ -58,24 +61,18 @@ class Upload extends HTMLElement {
     }
 
     connectedCallback() {
-        this.input = this.root.querySelector('#file-upload')!;
-        this.fileNameLbl = this.root.querySelector('#file-name-upload')!;
-        this.startBtn = this.root.querySelector('button.upload.start')!;
-        this.cancelBtn = this.root.querySelector('button.upload.cancel')!;
-        const chooseBtn = this.root.querySelector('button.upload.choose')!;
-        this.progress = this.root.querySelector('progress.upload')!;
-        this.statusEl = this.root.querySelector('.upload-status')!;
-
-        chooseBtn.textContent = this.getAttr('choose-label', 'Selecionar');
-        this.startBtn.textContent = this.getAttr('start-label', 'Enviar');
-        this.cancelBtn.textContent = this.getAttr('cancel-label', 'Cancelar');
+        this.input = <HTMLInputElement>this.root.querySelector('#file-upload')!;
+        this.fileNameLbl = <HTMLLabelElement>this.root.querySelector('#file-name-upload')!;
+        this.startBtn = <HTMLButtonElement>this.root.querySelector('button.upload.start')!;
+        this.cancelBtn = <HTMLButtonElement>this.root.querySelector('button.upload.cancel')!;
+        const chooseBtn = <HTMLButtonElement>this.root.querySelector('button.upload.choose')!;
+        this.progress = <HTMLProgressElement>this.root.querySelector('progress.upload')!;
+        this.statusEl = <HTMLDivElement>this.root.querySelector('.upload-status')!;
 
         const accept = this.getAttribute('accept');
         if (accept) this.input.accept = accept;
-        const cs = this.getAttribute('chunk-size');
-        if (cs) this.chunkSize = parseInt(cs, 10) || this.chunkSize;
-        const mb = this.getAttribute('max-bytes');
-        if (mb) this.maxBytes = parseInt(mb, 10) || this.maxBytes;
+        const maxFileSize = this.getAttribute('max-file-size');
+        if (maxFileSize) this.maxFileSizeBytes = parseInt(maxFileSize, 10) || this.maxFileSizeBytes;
 
         this.startBtn.disabled = true;
         this.cancelBtn.disabled = true;
@@ -89,8 +86,8 @@ class Upload extends HTMLElement {
                 this.startBtn.disabled = true;
                 return;
             }
-            if (this.file.size > this.maxBytes) {
-                this.setStatus(`Arquivo excede o limite de <strong>${this.human(this.maxBytes)}</strong>.`, true);
+            if (this.file.size > this.maxFileSizeBytes) {
+                this.setStatus(`Arquivo excede o limite de <strong>${this.bytesToSizeXB(this.maxFileSizeBytes)}</strong>.`, true);
                 this.startBtn.disabled = true;
                 return;
             }
@@ -100,7 +97,7 @@ class Upload extends HTMLElement {
                 return;
             }
             this.fileNameLbl.textContent = `Selecionado: ${this.file.name}`;
-            this.setStatus(`Pronto para envio, tamanho do arquivo: <strong>${this.human(this.file.size)}</strong>.`);
+            this.setStatus(`Pronto para envio, tamanho do arquivo: <strong>${this.bytesToSizeXB(this.file.size)}</strong>.`);
             this.startBtn.disabled = false;
         });
 
@@ -131,7 +128,7 @@ class Upload extends HTMLElement {
         return list.some(a => a === ext || a === type || (a.endsWith('/*') && type.startsWith(a.slice(0, -1))));
     }
 
-    private human(bytes: number) {
+    private bytesToSizeXB(bytes: number) {
         const u = ['B', 'KB', 'MB', 'GB'];
         let i = 0;
         let n = bytes;
@@ -151,30 +148,29 @@ class Upload extends HTMLElement {
         this.abortCtrl = new AbortController();
 
         const appCode = this.reqAttr('app-code');
-        const apiUploadInChunk = this.reqAttr('api-upload');
-        const tokenJwtAuth = this.getAttribute('token-jwt');
+        const apiUploadInChunk = this.reqAttr('api-url-upload');
+        const tokenJwtAuth = this.getAttribute('api-token-jwt');
 
         const endpointInit      = apiUploadInChunk + '/file/uploadInChunk/init';
         const endpointChunk     = apiUploadInChunk + '/file/uploadInChunk/chunk';
         const endpointFinalize  = apiUploadInChunk + '/file/uploadInChunk/finalize';
 
-        const totalChunks = Math.ceil(this.file.size / this.chunkSize);
         const initPayload = {
             applicationCode: appCode,
             fileName: this.file.name,
             contentType: this.file.type || 'application/octet-stream',
-            size: this.file.size,
+            fileSize: this.file.size,
             checksumSha256: ''
         };
 
         const headersInitFin: Record<string, string> = {
             'Content-Type': 'application/json',
             ...(tokenJwtAuth?.trim()
-            ? { Authorization: `Bearer ${tokenJwtAuth.trim()}` } : {})
+            ? { Authorization: `Bearer ${tokenJwtAuth?.trim()}` } : {})
         };
         const headersChunk: Record<string, string> = {
             ...(tokenJwtAuth?.trim()
-                ? { Authorization: `Bearer ${tokenJwtAuth.trim()}` } : {})
+                ? { Authorization: `Bearer ${tokenJwtAuth?.trim()}` } : {})
         };
 
         const initResp = await fetch(endpointInit, {
@@ -192,27 +188,28 @@ class Upload extends HTMLElement {
             }
             throw new Error(`Falha no init do upload em bloco: ${initResp.status}`);
         }
-        const initData = await initResp.json();
-        this.uploadId = initData.uploadId;
-
-        this.dispatch('uploadstart', {fileName: this.file.name, size: this.file.size, totalChunks});
+        const { uploadId, chunkSize } = await initResp.json();
+        this.uploadId = uploadId;
+        const cs = Number(chunkSize) || this.CHUNK_SIZE;
+        this.dispatch('upload-start', {fileName: this.file.name, size: this.file.size, cs});
 
         let sent = 0;
-        for (let index = 0; index < totalChunks; index++) {
-            if (!this.abortCtrl) throw new Error('Upload cancelado');
+        for (let index = 0; index < chunkSize; index++) {
+            if (!this.abortCtrl)
+                throw new Error('Upload cancelado');
 
-            const start = index * this.chunkSize;
-            const end = Math.min(start + this.chunkSize, this.file.size);
+            const start = index * chunkSize;
+            const end = Math.min(start + cs, this.file.size);
             const blob = this.file.slice(start, end);
 
             const form = new FormData();
             form.append('uploadId', this.uploadId!);
             form.append('index', String(index));
-            form.append('total', String(totalChunks));
+            form.append('total', String(cs));
             form.append('chunk', blob, this.file.name);
 
             const chunkResp = await fetch(endpointChunk, {
-                method: 'POST',
+                method: 'PUT',
                 headers: headersChunk,
                 body: form,
                 signal: this.abortCtrl.signal
@@ -229,10 +226,9 @@ class Upload extends HTMLElement {
             sent += (end - start);
             const percent = Math.floor((sent / this.file.size) * 100);
             this.progress.value = percent;
-            this.setStatus(`Enviado ${percent}% (${this.human(sent)} de ${this.human(this.file.size)})`);
-            this.dispatch('uploadprogress', {loadedBytes: sent, totalBytes: this.file.size, percent});
+            this.setStatus(`Enviado ${percent}% (${this.bytesToSizeXB(sent)} de ${this.bytesToSizeXB(this.file.size)})`);
+            this.dispatch('upload-progress', {loadedBytes: sent, totalBytes: this.file.size, percent});
         }
-
         const finResp = await fetch(endpointFinalize, {
             method: 'POST',
             headers: headersInitFin,
@@ -253,11 +249,10 @@ class Upload extends HTMLElement {
         this.progress.value = 100;
         this.setStatus('Upload concluído com sucesso.');
         this.cancelBtn.disabled = true;
-        this.dispatch('uploadcomplete', finData);
+        this.dispatch('upload-complete', finData);
         this.abortCtrl = null;
         this.uploadId = null;
         this.startBtn.disabled = true;
-
     }
 
     private cancelUpload() {
@@ -265,7 +260,7 @@ class Upload extends HTMLElement {
             this.abortCtrl.abort();
             this.abortCtrl = null;
             this.setStatus('Upload cancelado.');
-            this.dispatch('uploaderror', {message: 'cancelled'});
+            this.dispatch('upload-cancel', {message: 'cancelled'});
         }
         this.startBtn.disabled = false;
         this.cancelBtn.disabled = true;
@@ -280,10 +275,11 @@ class Upload extends HTMLElement {
     private fail(e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         this.setStatus(`Erro: ${msg}`, true);
-        this.dispatch('uploaderror', {message: msg});
+        this.dispatch('upload-error', {message: msg});
         this.startBtn.disabled = false;
         this.cancelBtn.disabled = true;
     }
+
 }
 customElements.define('meshstorage-upload', Upload);
 export {};

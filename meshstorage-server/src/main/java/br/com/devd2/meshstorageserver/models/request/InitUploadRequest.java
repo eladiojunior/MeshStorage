@@ -4,6 +4,6 @@ public record InitUploadRequest(
         String applicationCode,
         String fileName,
         String contentType,
-        long size,
+        long fileSize,
         String checksumSha256 // opcional
 ) {}

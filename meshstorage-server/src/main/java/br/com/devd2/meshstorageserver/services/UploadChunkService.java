@@ -62,7 +62,7 @@ public class UploadChunkService {
         if (bestStorage == null)
             throw new ApiBusinessException("Nenhum servidor de armazenamento registrado ou disponível no momento.");
 
-        if (request.size() <= 0)
+        if (request.fileSize() <= 0)
             throw new ApiBusinessException("Tamanho (em Bytes) do arquivo vazio ou inválido.");
 
         if (request.applicationCode() == null || request.applicationCode().isEmpty())
@@ -75,19 +75,19 @@ public class UploadChunkService {
         if (!FileUtil.hasTypeFileValid(application.getAllowedFileTypes().split(";"), request.contentType()))
             throw new ApiBusinessException("Arquivo com tipo ["+request.contentType()+"] diferente do permitido para aplicação (Tipos="+application.getAllowedFileTypes()+").");
 
-        var sizeFileMB = FileUtil.sizeInMB((int)request.size());
+        var sizeFileMB = FileUtil.sizeInMB((int)request.fileSize());
         if (sizeFileMB > application.getMaximumFileSizeMB())
             throw new ApiBusinessException("Arquivo com tamnho de ["+sizeFileMB+"MB], maior que o permitido para aplicação (Max="+application.getMaximumFileSizeMB()+"MB).");
 
-        long total = (request.size() + chunkSize - 1) / chunkSize;
+        long total = (request.fileSize() + chunkSize - 1) / chunkSize;
         String uploadId = UUID.randomUUID().toString();
         Path staging = stagingDir.resolve(uploadId + ".part");
         // Cria arquivo estágio (vazio). Pré-alocar é opcional (pode usar setLength).
         try (RandomAccessFile raf = new RandomAccessFile(staging.toFile(), "rw")) {
-            raf.setLength(request.size());
+            raf.setLength(request.fileSize());
         }
         UploadSessionModel sessionModel = new UploadSessionModel(
-                uploadId, request.applicationCode(), request.fileName(), request.contentType(), request.size(),
+                uploadId, request.applicationCode(), request.fileName(), request.contentType(), request.fileSize(),
                 chunkSize, total, staging, request.checksumSha256()
         );
         sessions.put(uploadId, sessionModel);
