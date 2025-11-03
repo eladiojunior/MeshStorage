@@ -1,0 +1,12 @@
+target/
+bin/
+obj/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
