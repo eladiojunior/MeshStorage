@@ -29,7 +29,7 @@ class Upload extends HTMLElement {
         <style>
             .upload-card { border:1px solid #ddd; border-radius:12px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,.04); }
             .upload-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-            .upload-grow { flex:1; min-width:200px; }
+            .upload-grow { flex:1; min-width:250px; }
             input[type=file].upload { display: none; }
             button.upload {
                 border:none; border-radius:10px; padding:10px 14px; cursor:pointer;
@@ -48,9 +48,9 @@ class Upload extends HTMLElement {
             <span id="file-name-upload" class="upload-file-name" 
                 aria-describedby="file-upload">Nenhum arquivo selecionado</span>
           </div>
-          <button class="upload choose"></button>
-          <button class="upload start"></button>
-          <button class="upload cancel secondary"></button>
+          <button class="upload choose">Selecionar</button>
+          <button class="upload start">Enviar</button>
+          <button class="upload cancel secondary">Cancelar</button>
         </div>
         <div class="upload-row" style="margin-top:12px">
           <progress class="upload" max="100" value="0" aria-label="Progresso do upload"></progress>

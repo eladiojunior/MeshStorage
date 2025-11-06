@@ -1,45 +1,3 @@
-const sheet = new CSSStyleSheet();
-sheet.replaceSync(`
-    :root {
-        ; ; ;
-        ; ;
-        --msu-radius:14px; --msu-pad:14px;
-    }
-    * { box-sizing: border-box; }
-    .msu-container{ background:#fff; color:#151515; border:1px solid #e5e7eb;
-    border-radius: 14px; padding:22px; max-width:880px; margin:24px auto; }
-    .msu-header h2{ margin:0 0 4px; font-size:1.2rem; }
-    .msu-sub{ margin:0; color:#6b7280; font-size:0.95rem; }
-    .msu-actions{ display:flex; gap:12px; margin:16px 0; }
-    .msu-btn{ border:1px solid #e5e7eb; background:#f9fafb; padding:8px 14px; border-radius:10px; cursor:pointer; }
-    .msu-btn-primary{ background:#2563eb; color:#fff; border-color:transparent; }
-    .msu-btn-ghost{ background:transparent; }
-    .msu-btn:focus{ outline:2px solid #2563eb; outline-offset:2px; }
-    .msu-drop{ border:2px dashed #e5e7eb; border-radius: 14px; padding:20px; text-align:center; }
-    .msu-drop:focus{ outline:2px solid #2563eb; outline-offset:2px; }
-    .msu-drop__icon{ font-size:26px; margin-bottom:6px; }
-    .msu-muted{ color:#6b7280; }
-    .msu-total{ display:flex; align-items:center; gap:10px; margin:16px 0; }
-    .msu-total progress{ width:100%; height:14px; }
-    .msu-list{ display:flex; flex-direction:column; gap:10px; }
-    .msu-empty{ padding:16px; background:#f9fafb; border:1px dashed #e5e7eb; border-radius:10px; text-align:center; color:#6b7280;}
-    .msu-item{ display:grid; grid-template-columns: 1fr 120px 100px 110px auto; gap:12px;
-    align-items:center; border:1px solid #e5e7eb; border-radius:12px; padding:12px; }
-    .msu-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .msu-meta{ color:#6b7280; font-size:0.9rem; }
-    .msu-bar progress{ width:100%; height:10px; }
-    .msu-status{ font-size:0.9rem; }
-    .msu-status--ok{ color:#059669; }
-    .msu-status--error{ color:#b91c1c; }
-    .msu-status--running{ color:#b45309; }
-    .msu-actions-row{ display:flex; gap:6px; justify-content:flex-end; }
-    .msu-action{ border:1px solid #e5e7eb; padding:6px 10px; border-radius:8px; background:#fff; cursor:pointer; }
-    .msu-action--danger{ border-color:#b91c1c; color:#b91c1c; }
-    @media (max-width:720px){
-      .msu-item{ grid-template-columns: 1fr; gap:8px; }
-      .msu-actions-row{ justify-content:flex-start; }
-    }
-`);
 type UploadTaskState = 'queued' | 'running' | 'complete' | 'error' | 'cancelled';
 interface UploadTask {
     id: string;
@@ -79,15 +37,47 @@ class UploadMultiple extends HTMLElement {
     private maxConcurrent: number = this.MAX_CONCURRENT_UPLOAD;
 
     private root: ShadowRoot;
-    private input!: HTMLInputElement;
+    private messages!: HTMLDivElement;
+    private list_uploads!: HTMLDivElement;
     private queue: UploadTask[] = [];
     private running = 0;
 
     constructor() {
         super();
         this.root = this.attachShadow({mode: 'open'});
-        this.root.adoptedStyleSheets = [sheet];
         this.root.innerHTML = `
+        <style>
+            * { box-sizing: border-box; }
+            .msu-container{ background:#fff; color:#151515; border:1px solid #e5e7eb;
+            border-radius: 14px; padding:22px; max-width:880px; margin:24px auto; }
+            .msu-header h2{ margin:0 0 4px; font-size:1.2rem; }
+            .msu-sub{ margin:0; color:#6b7280; font-size:0.95rem; }
+            .msu-actions{ display:flex; gap:12px; margin:16px 0; }
+            .msu-btn{ border:1px solid #e5e7eb; background:#f9fafb; padding:8px 14px; border-radius:10px; cursor:pointer; }
+            .msu-btn-primary{ background:#1c65a2; color:#fff; border-color:transparent; }
+            .msu-btn-ghost{ background:transparent; }
+            .msu-btn:focus{ outline:2px solid #2563eb; outline-offset:2px; }
+            .msu-drop{ border:2px dashed #e5e7eb; border-radius: 14px; padding:20px; text-align:center; }
+            .msu-drop:focus{ outline:2px solid #2563eb; outline-offset:2px; }
+            .msu-drop__icon{ font-size:26px; margin-bottom:6px; }
+            .msu-muted{ color:#6b7280; }
+            .msu-total{ display:flex; align-items:center; gap:10px; margin:16px 0; }
+            .msu-total progress{ width:100%; height:25px; }
+            .msu-list{ display:flex; flex-direction:column; gap:10px; }
+            .msu-message{ padding:16px; background:#f9fafb; border:1px dashed #e5e7eb; border-radius:10px; text-align:center; color:#6b7280;}
+            .msu-item{ display:grid; grid-template-columns: 1fr 120px 100px 110px auto; gap:12px;
+            align-items:center; border:1px solid #e5e7eb; border-radius:12px; padding:12px; }
+            .msu-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            .msu-meta{ color:#6b7280; font-size:0.9rem; }
+            .msu-bar progress{ width:100%; height:25px; }
+            .msu-status{ font-size:0.9rem; }
+            .msu-status--ok{ color:#059669; }
+            .msu-status--error{ color:#b91c1c; }
+            .msu-status--running{ color:#b45309; }
+            .msu-actions-row{ display:flex; gap:6px; justify-content:flex-end; }
+            .msu-action{ border:1px solid #e5e7eb; padding:6px 10px; border-radius:8px; background:#fff; cursor:pointer; }
+            .msu-action--danger{ border-color:#b91c1c; color:#b91c1c; }        
+        </style>
         <section class="msu-container" aria-labelledby="msu_title">
             <header class="msu-header">
                 <h2 id="msu_title">Enviar arquivos</h2>
@@ -105,17 +95,17 @@ class UploadMultiple extends HTMLElement {
             <div id="msu_drop" class="msu-drop" tabindex="0" role="button" aria-label="Solte seus arquivos aqui">
                 <div class="msu-drop__icon" aria-hidden="true">⬆️</div>
                 <div class="msu-drop__text">
-                    Arraste & solte aqui <span class="msu-muted">ou clique em “Selecionar arquivos”</span>
+                    <span class="msu-muted">Arraste & solte aqui ou clique em “Selecionar arquivos”</span>
                 </div>
             </div>
             <!-- total progress -->
             <div class="msu-total" aria-live="polite">
-                <progress id="msu_total_bar" max="100" value="0" aria-label="Progresso total"></progress>
+                <progress id="msu_total_bar" class="" max="100" value="0" aria-label="Progresso total"></progress>
                 <span id="msu_total_label">0%</span>
             </div>
             <!-- lista -->
             <div id="msu_list" class="msu-list" role="list" aria-live="polite" aria-busy="false">
-                <div id="msu_empty" class="msu-empty">Nenhum arquivo selecionado ainda.</div>
+                <div id="msu_message" class="msu-message">Nenhum arquivo selecionado ainda.</div>
             </div>
         </section>
     `;
@@ -131,12 +121,43 @@ class UploadMultiple extends HTMLElement {
         this.maxFileSize = this.attrNum('max-file-size') ?? this.MAX_FILE_SIZE;
         this.maxFileCount = this.attrNum('max-file-count') ?? this.MAX_FILE_COUNT;
         this.maxConcurrent = this.attrNum('max-concurrent-upload') ?? this.MAX_CONCURRENT_UPLOAD;
-        this.input = <HTMLInputElement>this.root.querySelector('input[type=file]')!;
-        this.input.addEventListener('change', () => this.onFilesSelected());
-        if (this.accept) this.input.accept = this.accept;
-        const cancelAllBtn = <HTMLButtonElement>this.root.querySelector('#msu_cancel_all');
+
+        const inputFile = this.selector<HTMLInputElement>('#msu_input');
+        inputFile.addEventListener('change', () => {
+            const files = Array.from(inputFile.files ?? []);
+            this.onFilesSelected(files);
+        });
+        if (this.accept)
+            inputFile.accept = this.accept;
+
+        const cancelAllBtn = this.selector<HTMLButtonElement>('#msu_cancel_all');
         cancelAllBtn.addEventListener('click', () => this.onCancelAllClick());
 
+        this.messages = this.selector<HTMLDivElement>('#msu_message');
+        this.list_uploads = this.selector<HTMLDivElement>('#msu_list');
+
+        const drop = this.selector<HTMLDivElement>('#msu_drop');
+        ;['dragenter','dragover'].forEach(evt =>
+            drop.addEventListener(evt, (e: { preventDefault: () => void; })  => {
+                e.preventDefault(); drop.classList.add('is-over');
+            })
+        );
+        ;['dragleave','drop'].forEach(evt =>
+            drop.addEventListener(evt, (e: { preventDefault: () => void; }) => {
+                e.preventDefault(); drop.classList.remove('is-over');
+            })
+        );
+        drop.addEventListener('drop', (e)=>{
+            const files = Array.from(e.dataTransfer?.files || []);
+            this.onFilesSelected(files);
+        });
+        drop.addEventListener('click', ()=> inputFile.click());
+    }
+
+    private selector<T extends Element>(sel: string): T {
+        const el = this.root.querySelector<T>(sel);
+        if (!el) throw new Error(`Elemento não encontrado: ${sel}`);
+        return el;
     }
 
     private attrNum(name: string): number | undefined {
@@ -148,8 +169,9 @@ class UploadMultiple extends HTMLElement {
         this.dispatchEvent(new CustomEvent(evt, { detail }));
     }
 
-    private bytesToSizeXB(bytes: number) {
-        const u = ['B', 'KB', 'MB', 'GB'];
+    private bytesToSizeXB(bytes: number): string {
+        let u: string[];
+        u = ['B', 'KB', 'MB', 'GB'];
         let i = 0;
         let n = bytes;
         while (n >= 1024 && i < u.length - 1) {
@@ -159,48 +181,66 @@ class UploadMultiple extends HTMLElement {
         return `${n.toFixed((i === 0) ? 0 : 1)} ${u[i]}`;
     }
 
-    private onFilesSelected() {
-        const files = Array.from(this.input.files ?? []);
-        if (!files.length) return;
+    private onFilesSelected(files: any) {
+        if (!files.length)
+            return;
         if (files.length > this.maxFileCount) {
-            this.dispatch('upload-file-error', { fileName: 'all-files',
-                error: `Quantidade de arquivos selecionados [${files.length}] 
-                maior que o permitido [${this.maxFileCount}].`});
+            let message = `Quantidade de arquivos selecionados [${files.length}] 
+                maior que o permitido [${this.maxFileCount}].`;
+            this.alert(message);
+            this.dispatch('upload-file-error', { fileName: 'all-files', error: message});
             return;
         }
         let totalFileSize:number = 0;
         for (const file of files)
             totalFileSize = totalFileSize + file.size;
-        if (totalFileSize > this.maxTotalFilesSize) {
-            this.dispatch('upload-file-error', { fileName: 'all-files',
-                error: `Tamanho máximo (em bytes) dos arquivos selecionados 
+        let message = `Tamanho máximo (em bytes) dos arquivos selecionados 
                 [${files.length}]=[${this.bytesToSizeXB(totalFileSize)}] 
-                supera o tamanho máximo permitido [${this.bytesToSizeXB(this.maxTotalFilesSize)}].`});
+                supera o tamanho máximo permitido [${this.bytesToSizeXB(this.maxTotalFilesSize)}].`;
+        if (totalFileSize > this.maxTotalFilesSize) {
+            this.alert(message);
+            this.dispatch('upload-file-error', { fileName: 'all-files', error: message});
             return;
         }
+        const valid = [];
         for (const file of files) {
             if (this.maxFileSize && file.size > this.maxFileSize) {
-                this.dispatch('upload-file-rejected', { fileName: file.name,
-                    reason: `Arquivo com tamanho [${this.bytesToSizeXB(file.size)}] 
-                    maior que o permitido por arquivo [${this.bytesToSizeXB(this.maxFileSize)}].` });
+                let message = `Arquivo com tamanho [${this.bytesToSizeXB(file.size)}] 
+                    maior que o permitido por arquivo [${this.bytesToSizeXB(this.maxFileSize)}].`;
+                this.alert(message);
+                this.dispatch('upload-file-rejected', { fileName: file.name, reason: message });
                 continue;
             }
             if (this.accept && !this.isAccepted(file)) {
-                this.dispatch('upload-file-rejected', { fileName: file.name,
-                    reason: `Arquivo com tipo [${file.type}] diferente dos permitidos [${this.accept}].` });
+                let message = `Arquivo com tipo [${file.type}] diferente dos permitidos [${this.accept}].`;
+                this.alert(message);
+                this.dispatch('upload-file-rejected', { fileName: file.name, reason: message });
                 continue;
             }
             const task: UploadTask = {
                 id: crypto.randomUUID(),
-                file,
-                state: 'queued',
-                sentBytes: 0,
+                file, state: 'queued', sentBytes: 0,
                 totalBytes: file.size,
                 controller: new AbortController(),
             };
             this.queue.push(task);
             this.renderItem(task);
+            valid.push(task);
         }
+
+        if (valid.length) {
+            this.messages.hidden = true;
+            this.pumpQueue().then(() => console.log('processando...'));
+        }
+        this.updateTotalProgress();
+
+    }
+
+    private alert(message: string, hasErro: boolean = true) {
+        if (hasErro)
+            console.error(`[Error]: ${message}`);
+        else
+            console.log(`[Alert]: ${message}`);
     }
 
     private isAccepted(file: File): boolean {
@@ -219,7 +259,7 @@ class UploadMultiple extends HTMLElement {
             this.startTask(next).finally(() => {
                 this.running--;
                 if (!this.queue.some(t => t.state === 'queued' || t.state === 'running')) {
-                    this.dispatch('upload-all-complete');
+                    this.dispatch('upload-all-complete', 'Todos os uploads concluídos');
                 } else {
                     this.pumpQueue();
                 }
@@ -234,7 +274,7 @@ class UploadMultiple extends HTMLElement {
 
         const endpointInit      = `${this.apiBase}/file/uploadInChunk/init`;
         const endpointChunk     = `${this.apiBase}/file/uploadInChunk/chunk`;
-        const endpointFinalize  = `${this.apiBase}/file/uploadInChunk/finalize`;
+        const endpointComplete  = `${this.apiBase}/file/uploadInChunk/complete`;
 
         try {
 
@@ -252,15 +292,7 @@ class UploadMultiple extends HTMLElement {
                 body: JSON.stringify(initPayload),
                 signal: task.controller.signal
             });
-            if (!initResp.ok) {
-                if (initResp.status === 401)
-                    throw new Error(`Falha na autorização do Token: ${initResp.status}`);
-                if (initResp.status === 400) {
-                    const respError = await initResp.json();
-                    throw new Error(`[${respError.codeError}] - ${respError.messageError}`);
-                }
-                throw new Error(`Falha no init do upload em bloco: ${initResp.status}`);
-            }
+            await this.checkRespose(initResp);
             const { uploadId, chunkSize } = await initResp.json();
             task.uploadId = uploadId;
             this.dispatch('upload-file-start', {fileName: task.file.name, uploadId: task.uploadId, chunkSize: chunkSize});
@@ -275,8 +307,6 @@ class UploadMultiple extends HTMLElement {
 
                 const end = Math.min(offset + cs, size);
                 const blob = task.file.slice(offset, end);
-                const buf = await blob.arrayBuffer();
-
                 const form = new FormData();
                 form.append('uploadId', task.uploadId!);
                 form.append('index', String(index));
@@ -289,15 +319,7 @@ class UploadMultiple extends HTMLElement {
                     body: form,
                     signal: task.controller.signal
                 });
-                if (!chunkResp.ok) {
-                    if (chunkResp.status === 401)
-                        throw new Error(`Falha na autorização do Token: ${initResp.status}`);
-                    if (chunkResp.status === 400) {
-                        const respError = await chunkResp.json();
-                        throw new Error(`[${respError.codeError}] - ${respError.messageError}`);
-                    }
-                    throw new Error(`Falha no envio do bloco [${index}] de upload: ${chunkResp.status}`);
-                }
+                await this.checkRespose(chunkResp);
                 offset = end;
                 index++;
                 task.sentBytes = end;
@@ -312,22 +334,13 @@ class UploadMultiple extends HTMLElement {
             }
 
             // FINALIZE upload
-            const finResp = await fetch(endpointFinalize, {
+            const finResp = await fetch(endpointComplete, {
                 method: 'POST',
                 headers: this.authHeaders(),
                 body: JSON.stringify({uploadId: task.uploadId}),
                 signal: task.controller.signal
             });
-            if (!finResp.ok) {
-                if (finResp.status === 401)
-                    throw new Error(`Falha na autorização do Token: ${initResp.status}`);
-                if (finResp.status === 400) {
-                    const respError = await finResp.json();
-                    throw new Error(`[${respError.codeError}] - ${respError.messageError}`);
-                }
-                throw new Error(`Falha ao finalizar upload em bloco: ${finResp.status}`);
-            }
-
+            await this.checkRespose(finResp);
             task.state = 'complete';
             this.updateItem(task);
             this.dispatch('upload-file-complete', { fileName: task.file.name, uploadId: task.uploadId });
@@ -342,6 +355,18 @@ class UploadMultiple extends HTMLElement {
             }
         }
 
+    }
+
+    private async checkRespose(response: Response) {
+        if (response.ok)
+            return;
+        if (response.status === 401)
+            throw new Error(`Falha na autorização do Token: ${response.status}`);
+        if (response.status === 400) {
+            const respError = await response.json();
+            throw new Error(`[${respError.codeError}] - ${respError.messageError}`);
+        }
+        throw new Error(`Falha no upload: ${response.status}`);
     }
 
     private authHeaders(additional?: Record<string,string>) {
@@ -381,39 +406,47 @@ class UploadMultiple extends HTMLElement {
     }
 
     private renderItem(task: UploadTask) {
-        const list = this.root.querySelector('#msu_list')!;
         const row = document.createElement('div');
-        row.className = 'msu__item';
-        row.id = `msu_${task.id}`;
+        row.className='msu-item'; row.id=`row_${task.id}`;
         row.innerHTML = `
-        <div class="msu__name">${task.file.name}</div>
-        <progress class="msu__bar" max="100" value="0"></progress>
-        <span class="msu__label">0%</span>
-        <button class="msu__cancel" type="button">Cancelar</button>
-        `;
-        row.querySelector<HTMLButtonElement>('.msu__cancel')!
-            .addEventListener('click', () => this.cancelTask(task.id));
-        list.appendChild(row);
+        <div class="msu-name" title="${task.file.name}">${task.file.name}</div>
+        <div class="msu-meta">${this.bytesToSizeXB(task.file.size)}</div>
+        <div class="msu-status">Aguardando</div>
+        <div class="msu-bar"><progress max="100" value="0"></progress></div>
+        <div class="msu-actions-row">
+          <button class="msu-action msu-action--danger" type="button">Cancelar</button>
+        </div>`;
+        row.querySelector('button')!.addEventListener('click', ()=> this.cancelTask(task.id));
+        this.list_uploads.appendChild(row);
     }
 
-    private updateItem(task: UploadTask) {
-        const row = this.querySelector(`#msu_${task.id}`) as HTMLElement | null;
+    private updateItem(task: UploadTask){
+        const row = document.getElementById(`row_${task.id}`);
         if (!row) return;
+        const status = row.querySelector('.msu-status') as HTMLElement;
         const bar = row.querySelector('progress') as HTMLProgressElement;
-        const label = row.querySelector('.msu__label') as HTMLElement;
-        let pct = 0;
-        if (task.totalBytes > 0) pct = Math.floor((task.sentBytes / task.totalBytes) * 100);
-        bar.value = pct;
-        label.textContent = `${pct}%`;
-        row.dataset.state = task.state;
+
+        let stateText = 'Aguardando';
+        let cls = 'msu-status';
+
+        if (task.state === 'running')   { stateText = 'Enviando'; cls = 'msu-status msu-status--running'; }
+        if (task.state === 'complete')  { stateText = 'Concluído'; cls = 'msu-status msu-status--ok'; }
+        if (task.state === 'error')     { stateText = 'Erro';      cls = 'msu-status msu-status--error'; }
+        if (task.state === 'cancelled') {stateText = 'Cancelado'; cls = 'msu-status'; }
+
+        status.textContent = stateText;
+        status.className = cls;
+
+        bar.value = task.totalBytes ? Math.floor((task.sentBytes / task.totalBytes) * 100) : 0;
+
     }
 
     private updateTotalProgress() {
         const total = this.queue.reduce((acc, t) => acc + t.totalBytes, 0);
         const sent  = this.queue.reduce((acc, t) => acc + t.sentBytes, 0);
         const pct = total ? Math.floor((sent / total) * 100) : 0;
-        (this.querySelector('.msu__totalbar') as HTMLProgressElement).value = pct;
-        (this.querySelector('.msu__totallabel') as HTMLElement).textContent = `${pct}%`;
+        (this.root.querySelector('.msu__totalbar') as HTMLProgressElement).value = pct;
+        (this.root.querySelector('.msu__totallabel') as HTMLElement).textContent = `${pct}%`;
     }
 
     private reqAttr(name: string) {
