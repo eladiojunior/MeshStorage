@@ -46,69 +46,7 @@ class UploadMultiple extends HTMLElement {
         super();
         this.root = this.attachShadow({mode: 'open'});
         this.root.innerHTML = `
-        <style>
-            * { box-sizing: border-box; }
-            .msu-container{ background:#fff; color:#151515; border:1px solid #e5e7eb;
-            border-radius: 14px; padding:22px; max-width:880px; margin:24px auto; }
-            .msu-header h2{ margin:0 0 4px; font-size:1.2rem; }
-            .msu-sub{ margin:0; color:#6b7280; font-size:0.95rem; }
-            .msu-actions{ display:flex; gap:12px; margin:16px 0; }
-            .msu-btn{ border:1px solid #e5e7eb; background:#f9fafb; padding:8px 14px; border-radius:10px; cursor:pointer; }
-            .msu-btn-primary{ background:#1c65a2; color:#fff; border-color:transparent; }
-            .msu-btn-ghost{ background:transparent; }
-            .msu-btn:focus{ outline:2px solid #2563eb; outline-offset:2px; }
-            .msu-drop{ border:2px dashed #e5e7eb; border-radius: 14px; padding:20px; text-align:center; }
-            .msu-drop:focus{ outline:2px solid #2563eb; outline-offset:2px; }
-            .msu-drop__icon{ font-size:26px; margin-bottom:6px; }
-            .msu-muted{ color:#6b7280; }
-            .msu-total{ display:flex; align-items:center; gap:10px; margin:16px 0; }
-            .msu-total progress{ width:100%; height:25px; }
-            .msu-list{ display:flex; flex-direction:column; gap:10px; }
-            .msu-message{ padding:16px; background:#f9fafb; border:1px dashed #e5e7eb; border-radius:10px; text-align:center; color:#6b7280;}
-            .msu-item{ display:grid; grid-template-columns: 1fr 120px 100px 110px auto; gap:12px;
-            align-items:center; border:1px solid #e5e7eb; border-radius:12px; padding:12px; }
-            .msu-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-            .msu-meta{ color:#6b7280; font-size:0.9rem; }
-            .msu-bar progress{ width:100%; height:25px; }
-            .msu-status{ font-size:0.9rem; }
-            .msu-status--ok{ color:#059669; }
-            .msu-status--error{ color:#b91c1c; }
-            .msu-status--running{ color:#b45309; }
-            .msu-actions-row{ display:flex; gap:6px; justify-content:flex-end; }
-            .msu-action{ border:1px solid #e5e7eb; padding:6px 10px; border-radius:8px; background:#fff; cursor:pointer; }
-            .msu-action--danger{ border-color:#b91c1c; color:#b91c1c; }        
-        </style>
-        <section class="msu-container" aria-labelledby="msu_title">
-            <header class="msu-header">
-                <h2 id="msu_title">Enviar arquivos</h2>
-                <p class="msu-sub">Selecione ou arraste arquivos. Tipos permitidos e limites são validados antes do envio.</p>
-            </header>
-            <!-- ações top -->
-            <div class="msu-actions">
-                <label class="msu-btn msu-btn-primary" aria-label="Selecionar arquivos">
-                    Selecionar arquivos
-                    <input id="msu_input" type="file" hidden multiple />
-                </label>
-                <button id="msu_cancel_all" class="msu-btn msu-btn-ghost" type="button">Cancelar tudo</button>
-            </div>
-            <!-- área de drop -->
-            <div id="msu_drop" class="msu-drop" tabindex="0" role="button" aria-label="Solte seus arquivos aqui">
-                <div class="msu-drop__icon" aria-hidden="true">⬆️</div>
-                <div class="msu-drop__text">
-                    <span class="msu-muted">Arraste & solte aqui ou clique em “Selecionar arquivos”</span>
-                </div>
-            </div>
-            <!-- total progress -->
-            <div class="msu-total" aria-live="polite">
-                <progress id="msu_total_bar" class="" max="100" value="0" aria-label="Progresso total"></progress>
-                <span id="msu_total_label">0%</span>
-            </div>
-            <!-- lista -->
-            <div id="msu_list" class="msu-list" role="list" aria-live="polite" aria-busy="false">
-                <div id="msu_message" class="msu-message">Nenhum arquivo selecionado ainda.</div>
-            </div>
-        </section>
-    `;
+        `;
     }
 
     connectedCallback() {
@@ -158,11 +96,6 @@ class UploadMultiple extends HTMLElement {
         const el = this.root.querySelector<T>(sel);
         if (!el) throw new Error(`Elemento não encontrado: ${sel}`);
         return el;
-    }
-
-    private attrNum(name: string): number | undefined {
-        const value = this.getAttribute(name);
-        return value ? Number(value) : undefined;
     }
 
     private dispatch(evt: string, detail?: any) {
@@ -236,21 +169,6 @@ class UploadMultiple extends HTMLElement {
 
     }
 
-    private alert(message: string, hasErro: boolean = true) {
-        if (hasErro)
-            console.error(`[Error]: ${message}`);
-        else
-            console.log(`[Alert]: ${message}`);
-    }
-
-    private isAccepted(file: File): boolean {
-        const list = this.accept?.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-        if (list == undefined || list.length === 0) return true;
-        const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
-        const type = (file.type || '').toLowerCase();
-        return list.some(a => a === ext || a === type || (a.endsWith('/*') && type.startsWith(a.slice(0, -1))));
-    }
-
     private async pumpQueue() {
         while (this.running < this.maxConcurrent) {
             const next = this.queue.find(t => t.state === 'queued');
@@ -274,7 +192,7 @@ class UploadMultiple extends HTMLElement {
 
         const endpointInit      = `${this.apiBase}/file/uploadInChunk/init`;
         const endpointChunk     = `${this.apiBase}/file/uploadInChunk/chunk`;
-        const endpointComplete  = `${this.apiBase}/file/uploadInChunk/complete`;
+        const endpointComplete  = `${this.apiBase}/file/uploadInChunk/finalize`;
 
         try {
 
@@ -357,26 +275,6 @@ class UploadMultiple extends HTMLElement {
 
     }
 
-    private async checkRespose(response: Response) {
-        if (response.ok)
-            return;
-        if (response.status === 401)
-            throw new Error(`Falha na autorização do Token: ${response.status}`);
-        if (response.status === 400) {
-            const respError = await response.json();
-            throw new Error(`[${respError.codeError}] - ${respError.messageError}`);
-        }
-        throw new Error(`Falha no upload: ${response.status}`);
-    }
-
-    private authHeaders(additional?: Record<string,string>) {
-        const h: Record<string,string> = { ...(additional ?? {}) };
-        if (this.token && this.token.trim()) {
-            h['Authorization'] = this.token;
-        }
-        return h;
-    }
-
     private onCancelAllClick() {
         if (this.queue.length == 0) {
             console.log("Nenhum upload em andamento.");
@@ -449,12 +347,70 @@ class UploadMultiple extends HTMLElement {
         (this.root.querySelector('.msu__totallabel') as HTMLElement).textContent = `${pct}%`;
     }
 
-    private reqAttr(name: string) {
+    private iconForFile(file: File) {
+        const type = (file.type || '').toLowerCase();
+        const ext = this.extension(file.name);
+        const color = '#60a5fa';
+        const svg = (path:any)=> `<svg class="ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill="${color}" d="${path}"/></svg>`;
+        if (type.startsWith('image/'))
+            return null; // terá preview
+        if (type==='application/pdf' || ext==='.pdf') {
+            return svg("M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm1 7V3.5L19.5 9H15Z M8 14h8v2H8v-2Zm0 4h8v2H8v-2Zm0-8h5v2H8V10Z");
+        }
+        if (type.includes('word') || ext==='.doc' || ext==='.docx') {
+            return svg("M4 2h10l6 6v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V9h6.5L12 3.5ZM6.5 12h2l1 5 1-5h2l1 5 1-5h2l-2 8h-2l-1-5-1 5H8.5l-2-8Z");
+        }
+        if (type==='application/zip' || ext==='.zip') {
+            return svg("M7 2h6l4 4v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm6 1.5V7h4.5L13 3.5ZM10 6h2v2h-2V6Zm0 3h2v2h-2V9Zm0 3h2v2h-2v-2Zm0 3h2v3h-2v-3Z");
+        }
+        return svg("M6 2h7l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm6 .5V7h5.5L12 2.5Z");
+    }
+
+    // ------------ Util -------------------
+    private extension(name:string):string{
+        const i=name.lastIndexOf('.'); return i>0 ? name.slice(i).toLowerCase() : ''
+    }
+    private reqAttr(name: string):string {
         const v = this.getAttribute(name);
         if (!v) throw new Error(`Atributo obrigatório ausente: ${name}`);
         return v;
     }
-
+    private async checkRespose(response: Response) {
+        if (response.ok)
+            return;
+        if (response.status === 401)
+            throw new Error(`Falha na autorização do Token: ${response.status}`);
+        if (response.status === 400) {
+            const respError = await response.json();
+            throw new Error(`[${respError.codeError}] - ${respError.messageError}`);
+        }
+        throw new Error(`Falha no upload: ${response.status}`);
+    }
+    private authHeaders(additional?: Record<string,string>) {
+        const h: Record<string,string> = { ...(additional ?? {}) };
+        if (this.token && this.token.trim()) {
+            h['Authorization'] = this.token;
+        }
+        return h;
+    }
+    private alert(message: string, hasErro: boolean = true) {
+        if (hasErro)
+            console.error(`[Error]: ${message}`);
+        else
+            console.log(`[Alert]: ${message}`);
+    }
+    private isAccepted(file: File): boolean {
+        const list = this.accept?.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+        if (list == undefined || list.length === 0) return true;
+        const ext = this.extension(file.name);
+        const type = (file.type || '').toLowerCase();
+        return list.some(a => a === ext || a === type || (a.endsWith('/*') &&
+            type.startsWith(a.slice(0, -1))));
+    }
+    private attrNum(name: string): number | undefined {
+        const value = this.getAttribute(name);
+        return value ? Number(value) : undefined;
+    }
 }
 customElements.define('meshstorage-upload-multiple', UploadMultiple);
 export {};

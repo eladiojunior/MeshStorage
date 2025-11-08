@@ -1,11 +1,11 @@
 package br.com.devd2.meshstorageserver.services;
 
 import br.com.devd2.meshstorage.helper.FileUtil;
+import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.models.FileUploadModel;
 import br.com.devd2.meshstorageserver.models.UploadSessionModel;
 import br.com.devd2.meshstorageserver.models.request.InitUploadRequest;
-import br.com.devd2.meshstorageserver.models.response.FinalizeUploadResponse;
 import br.com.devd2.meshstorageserver.models.response.InitUploadResponse;
 import br.com.devd2.meshstorageserver.props.MeshUploadProps;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -56,7 +56,7 @@ public class UploadChunkService {
      * @return Criação do processo de upload em bloco.
      * @throws Exception - Ero ao registrar processo de upload em bloco.
      */
-    public InitUploadResponse init(InitUploadRequest request) throws Exception {
+    public InitUploadResponse initUpload(InitUploadRequest request) throws Exception {
 
         var bestStorage = serverStorageService.getBestServerStorage();
         if (bestStorage == null)
@@ -94,14 +94,27 @@ public class UploadChunkService {
         return new InitUploadResponse(uploadId, chunkSize, total);
     }
 
+    /**
+     * Realizar o recebimento dos blocos de arquivo para armazenamento no Server Storage, conforme regras da aplicação.
+     * @param uploadId - Identificador do upload em andamento para unir os blocos.
+     * @param index - Index da parte para organizar o recebimento.
+     * @param totalChunks - Total de blocos do arquivo.
+     * @param in - Informações do arquivo para armazenamento.
+     * @param chunkBytes - Tamanho (em bytes) do bloco enviado para união do arquivo.
+     * @throws Exception Erro no processo de recebimento do bloco do upload.
+     */
     public void receiveChunk(String uploadId, int index, long totalChunks, InputStream in, long chunkBytes) throws Exception {
 
         UploadSessionModel sessionModel = sessions.getIfPresent(uploadId);
 
-        if (sessionModel == null) throw new ApiBusinessException("Identificador do upload inválido/expirado");
-        if (totalChunks != sessionModel.getTotalChunks()) throw new ApiBusinessException("Total de blocos divergente.");
-        if (index < 0 || index >= sessionModel.getTotalChunks()) throw new ApiBusinessException("Index do bloco inválido.");
-        if (sessionModel.getReceived().get(index)) return; // idempotência: já recebido
+        if (sessionModel == null)
+            throw new ApiBusinessException("Identificador do upload inválido/expirado");
+        if (totalChunks != sessionModel.getTotalChunks())
+            throw new ApiBusinessException("Total de blocos divergente.");
+        if (index < 0 || index >= sessionModel.getTotalChunks())
+            throw new ApiBusinessException("Index do bloco inválido.");
+        if (sessionModel.getReceived().get(index))
+            return; // idempotência: já recebido
 
         // Tamanho esperado (exceto último chunk)
         long expected = (index == sessionModel.getTotalChunks() - 1)
@@ -116,7 +129,6 @@ public class UploadChunkService {
         try (RandomAccessFile raf = new RandomAccessFile(sessionModel.getStagingFile().toFile(), "rw");
              FileChannel ch = raf.getChannel()) {
             raf.seek(offset);
-            // transfere input -> arquivo em blocos (baixo uso de memória)
             byte[] buf = new byte[64 * 1024];
             int read;
             while ((read = in.read(buf)) != -1) {
@@ -129,11 +141,19 @@ public class UploadChunkService {
         sessionModel.setLastTouch(java.time.Instant.now());
     }
 
-    public FinalizeUploadResponse finalizeUpload(String uploadId) throws Exception {
+    /**
+     * Realiza o processo de finalização do upload em blocos do arquivo.
+     * @param uploadId - Identificador do uplaod do arquivo em bloco.
+     * @return Informações do arquivo armazenado no Server Storage.
+     * @throws Exception Erro no processo de finalização do upload.
+     */
+    public FileStorage finalizeUpload(String uploadId) throws Exception {
 
         UploadSessionModel sessionModel = sessions.getIfPresent(uploadId);
-        if (sessionModel == null) throw new ApiBusinessException("Identificador do upload inválido/expirado");
-        if (!sessionModel.isComplete()) throw new ApiBusinessException("Upload incompleto");
+        if (sessionModel == null)
+            throw new ApiBusinessException("Identificador do upload inválido/expirado");
+        if (!sessionModel.isComplete())
+            throw new ApiBusinessException("Upload incompleto");
 
         // Confere checksum SHA-256 (opcional, se informado)
         if (sessionModel.getExpectedSha256() != null && !sessionModel.getExpectedSha256().isBlank()) {
@@ -159,7 +179,27 @@ public class UploadChunkService {
         }
         // Retirar o identificador do upload da sessão...
         sessions.invalidate(uploadId);
-        return new FinalizeUploadResponse(fileStorage.getIdFile(), "OK");
+        return fileStorage;
+
+    }
+
+    /**
+     * Cancelar o processo de upload em blocos do arquivo se não estiver cancelado.
+     * @param uploadId - Identificador do upload do arquivo em bloco.
+     * @throws Exception Erro no processo de cancelar upload.
+     */
+    public void cancelUpload(String uploadId) throws Exception {
+
+        UploadSessionModel sessionModel = sessions.getIfPresent(uploadId);
+        if (sessionModel == null)
+            return; // Não existente.
+        if (sessionModel.isComplete())
+            return; // Upload finalizado.
+        if (Files.deleteIfExists(sessionModel.getStagingFile())) {
+            log.info("Arquivo temporário [{}] deletado com sucesso.",
+                    sessionModel.getStagingFile().toFile().getPath());
+        }
+        sessions.invalidate(uploadId);
 
     }
 

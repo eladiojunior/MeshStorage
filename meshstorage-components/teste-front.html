@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste</title>
+    <style>
+         :root{
+             --bg:#f7f9fc;
+             --card:#ffffff;
+             --txt:#1f2937;
+             --muted:#6b7280;
+             --brand:#2563eb;          /* azul */
+             --brand-weak:#e0e7ff;
+             --ok:#16a34a;
+             --warn:#f59e0b;
+             --err:#dc2626;
+             --radius:14px;
+             --shadow:0 6px 20px rgba(0,0,0,.06);
+         }
+        body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto;}
+        .wrap{max-width:1100px;margin:40px auto;padding:0 16px;}
+        .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;}
+        .panel h2{margin:0 0 8px;font-size:22px}
+        .hint{color:var(--muted);margin-bottom:16px}
+        .dropzone{
+            border:2px dashed #c7d2fe;border-radius:var(--radius);background:#f8fafc;
+            min-height:150px; display:flex; align-items:center; justify-content:center;
+            text-align:center; padding:26px; transition:.2s ease; cursor:pointer; outline:none;
+        }
+        .dropzone:focus{box-shadow:0 0 0 3px var(--brand-weak);}
+        .dropzone.drag{background:#eef2ff;border-color:var(--brand)}
+        .dropzone .cta{color:#3b82f6;font-weight:600}
+        .dropzone small{display:block;color:var(--muted)}
+        .actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+        .btn{background:var(--brand);color:#fff;border:0;padding:10px 14px;border-radius:12px;cursor:pointer}
+        .btn.secondary{background:#e5e7eb;color:#111827}
+        .btn:disabled{opacity:.5;cursor:not-allowed}
+        input[type=file]{display:none}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:18px}
+        .item{background:var(--card);border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+        .thumb{position:relative;background:#f3f4f6;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center}
+        .thumb img{max-width:100%;max-height:100%;object-fit:cover}
+        .badge{position:absolute;left:8px;top:8px;background:#111827;color:#fff;border-radius:999px;padding:4px 8px;font-size:12px;opacity:.9}
+        .meta{padding:10px 12px}
+        .name{font-size:14px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+        .sub{font-size:12px;color:var(--muted);margin-top:2px}
+        .progress{height:6px;background:#eef2ff;border-radius:999px;overflow:hidden;margin-top:10px}
+        .progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#60a5fa,#2563eb)}
+        .row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px}
+        .pill{font-size:12px;background:#f3f4f6;border-radius:999px;padding:4px 8px;color:#374151}
+        .iconbtn{background:transparent;border:0;padding:6px;border-radius:10px;cursor:pointer}
+        .iconbtn:hover{background:#f3f4f6}
+        .empty{color:var(--muted);text-align:center;padding:24px 8px}
+        .item.error{border-color:var(--err)}
+        .item.error .pill{background:#fee2e2;color:#991b1b}
+        .ico{width:52px;height:52px;opacity:.9}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="panel" role="region" aria-labelledby="ttl">
+        <h2 id="ttl">Enviar arquivos</h2>
+        <p class="hint">Escolha apenas <strong>.DOC, .DOCX, .ODT, .JPG, .PNG, .PDF</strong> até <strong>20 MB</strong> por arquivo.</p>
+        <label class="dropzone" id="drop" tabindex="0" aria-label="Área para arrastar e soltar arquivos">
+            <div>
+                <div style="font-size:18px;margin-bottom:6px;">Arraste e solte aqui</div>
+                <span class="cta">ou clique para selecionar</span>
+                <small>Você pode escolher múltiplos arquivos</small>
+                <input id="fileInput" type="file" multiple accept=".doc,.docx,.odt,.jpg,.jpeg,.png,.pdf,.zip" />
+            </div>
+        </label>
+
+        <div class="actions">
+            <button class="btn" id="sendAll" disabled>Enviar tudo</button>
+            <button class="btn secondary" id="clearAll" disabled>Limpar</button>
+        </div>
+
+        <div class="grid" id="grid" aria-live="polite"></div>
+        <div class="empty" id="empty">Nenhum arquivo selecionado.</div>
+    </div>
+</div>
+</body>
+</html>
