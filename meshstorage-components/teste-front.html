@@ -4,78 +4,128 @@
     <meta charset="UTF-8">
     <title>Teste</title>
     <style>
-         :root{
-             --bg:#f7f9fc;
-             --card:#ffffff;
-             --txt:#1f2937;
-             --muted:#6b7280;
-             --brand:#2563eb;          /* azul */
-             --brand-weak:#e0e7ff;
-             --ok:#16a34a;
-             --warn:#f59e0b;
-             --err:#dc2626;
-             --radius:14px;
-             --shadow:0 6px 20px rgba(0,0,0,.06);
-         }
-        body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto;}
-        .wrap{max-width:1100px;margin:40px auto;padding:0 16px;}
-        .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;}
-        .panel h2{margin:0 0 8px;font-size:22px}
-        .hint{color:var(--muted);margin-bottom:16px}
-        .dropzone{
-            border:2px dashed #c7d2fe;border-radius:var(--radius);background:#f8fafc;
-            min-height:150px; display:flex; align-items:center; justify-content:center;
-            text-align:center; padding:26px; transition:.2s ease; cursor:pointer; outline:none;
+        body{margin:0;background:#f7f9fc;color:#1f2937;font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto;}
+    </style>
+    <style>
+        .msum-wrap {max-width:800px;margin:10px auto;padding:0 16px;}
+        .msum-panel {background:#ffffff;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.06);padding:15px;}
+        .msum-panel .hint{color:#6b7280;margin-top: 0; margin-bottom:15px}
+        .msum-wrap .dropzone{
+            border:2px dashed #3169a3;border-radius:14px;background:#f8fafc;
+            min-height:100px; display:flex; align-items:center; justify-content:center;
+            text-align:center; padding:20px; transition:.2s ease; cursor:pointer; outline:none;
         }
-        .dropzone:focus{box-shadow:0 0 0 3px var(--brand-weak);}
-        .dropzone.drag{background:#eef2ff;border-color:var(--brand)}
-        .dropzone .cta{color:#3b82f6;font-weight:600}
-        .dropzone small{display:block;color:var(--muted)}
-        .actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-        .btn{background:var(--brand);color:#fff;border:0;padding:10px 14px;border-radius:12px;cursor:pointer}
-        .btn.secondary{background:#e5e7eb;color:#111827}
-        .btn:disabled{opacity:.5;cursor:not-allowed}
-        input[type=file]{display:none}
-        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:18px}
-        .item{background:var(--card);border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-        .thumb{position:relative;background:#f3f4f6;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center}
-        .thumb img{max-width:100%;max-height:100%;object-fit:cover}
-        .badge{position:absolute;left:8px;top:8px;background:#111827;color:#fff;border-radius:999px;padding:4px 8px;font-size:12px;opacity:.9}
-        .meta{padding:10px 12px}
-        .name{font-size:14px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-        .sub{font-size:12px;color:var(--muted);margin-top:2px}
-        .progress{height:6px;background:#eef2ff;border-radius:999px;overflow:hidden;margin-top:10px}
-        .progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#60a5fa,#2563eb)}
-        .row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px}
-        .pill{font-size:12px;background:#f3f4f6;border-radius:999px;padding:4px 8px;color:#374151}
-        .iconbtn{background:transparent;border:0;padding:6px;border-radius:10px;cursor:pointer}
-        .iconbtn:hover{background:#f3f4f6}
-        .empty{color:var(--muted);text-align:center;padding:24px 8px}
-        .item.error{border-color:var(--err)}
-        .item.error .pill{background:#fee2e2;color:#991b1b}
-        .ico{width:52px;height:52px;opacity:.9}
+        .msum-wrap .dropzone:focus{box-shadow:0 0 0 3px #e0e7ff;}
+        .msum-wrap .dropzone .drag{background:#eef2ff;border-color:#1c65a2}
+        .msum-wrap .dropzone .title {font-size:18px; margin-bottom:5px;}
+        .msum-wrap .dropzone .subtitle {color:#1c65a2; font-weight:600}
+        .msum-wrap .dropzone small{display:block; color:#6b7280}
+        .msum-wrap .dropzone input[type=file]{display:none}
+        .msum-panel .actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+        .msum-panel .btn{background:#1c65a2;color:#fff;border:0;padding:10px 14px;border-radius:12px;cursor:pointer}
+        .msum-panel .btn.secondary{background:#e5e7eb;color:#111827}
+        .msum-panel .btn:disabled{opacity:.5;cursor:not-allowed}
+        .msum-panel .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:18px}
+        .msum-panel .empty{color:#6b7280;text-align:center;padding:24px 8px}
+        .msum-panel .item.error .pill{background:#fee2e2;color:#991b1b}
+        .msum-panel .item{background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+        .msum-panel .thumb{position:relative;background:#f3f4f6;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center}
+        .msum-panel .thumb img{max-width:100%;max-height:100%;object-fit:cover}
+        .msum-panel .meta{padding:10px 12px}
+        .msum-panel .name{font-size:14px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+        .msum-panel .sub{font-size:10px;color:#6b7280;margin-top:2px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+        .msum-panel .progress{height:6px;background:#eef2ff;border-radius:999px;overflow:hidden;margin-top:10px}
+        .msum-panel .progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#60a5fa,#1c65a2)}
+        .msum-panel .row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px}
+        .msum-panel .pill{font-size:12px;background:#f3f4f6;border-radius:5px;padding:4px 8px;color:#374151}
+        .msum-panel .iconbtn{background:transparent;border:0;padding:6px;border-radius:10px;cursor:pointer}
+        .msum-panel .iconbtn:hover{background:#f3f4f6}
+        .msum-panel .item .error{border-color:#dc2626}
+        .msum-panel .ico{width:52px;height:52px;opacity:.9}
     </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="panel" role="region" aria-labelledby="ttl">
-        <h2 id="ttl">Enviar arquivos</h2>
-        <p class="hint">Escolha apenas <strong>.DOC, .DOCX, .ODT, .JPG, .PNG, .PDF</strong> até <strong>20 MB</strong> por arquivo.</p>
+<div class="msum-wrap">
+    <div class="msum-panel" role="region" aria-labelledby="ttl">
+        <p class="hint">Escolha apenas tipos: <strong>.doc, .docx, .odt, .jpg, .png, .pdf</strong> até <strong>2</strong> arquivos de no máximo <strong>2 MB</strong>.</p>
         <label class="dropzone" id="drop" tabindex="0" aria-label="Área para arrastar e soltar arquivos">
             <div>
-                <div style="font-size:18px;margin-bottom:6px;">Arraste e solte aqui</div>
-                <span class="cta">ou clique para selecionar</span>
+                <div class="title">Arraste e solte aqui</div>
+                <span class="subtitle">ou clique para selecionar</span>
                 <small>Você pode escolher múltiplos arquivos</small>
                 <input id="fileInput" type="file" multiple accept=".doc,.docx,.odt,.jpg,.jpeg,.png,.pdf,.zip" />
             </div>
         </label>
-
         <div class="actions">
             <button class="btn" id="sendAll" disabled>Enviar tudo</button>
             <button class="btn secondary" id="clearAll" disabled>Limpar</button>
         </div>
-
-        <div class="grid" id="grid" aria-live="polite"></div>
+        <div class="grid" id="grid" aria-live="polite">
+            <div class="item">
+                <div class="thumb">
+                    <div>
+                        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="#60a5fa" d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm1 7V3.5L19.5 9H15Z M8 14h8v2H8v-2Zm0 4h8v2H8v-2Zm0-8h5v2H8V10Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="meta">
+                    <div class="name" title="Nome do Arquivo Bem Grandao para Apresentação.ext">Nome do Arquivo Bem Grandao para Apresentação.ext</div>
+                    <div class="sub">100 KB - application/octet-stream</div>
+                    <div class="progress" aria-hidden="true"><span></span></div>
+                    <div class="row">
+                        <span class="pill">Pronto para enviar</span>
+                        <div>
+                            <button class="iconbtn" title="Remover" aria-label="Remover">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="thumb">
+                    <div>
+                        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="#60a5fa" d="M4 2h10l6 6v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V9h6.5L12 3.5ZM6.5 12h2l1 5 1-5h2l1 5 1-5h2l-2 8h-2l-1-5-1 5H8.5l-2-8Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="meta">
+                    <div class="name" title="Nome do Arquivo.docx">Nome do Arquivo.docx</div>
+                    <div class="sub" title="application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                        230 KB - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+                    </div>
+                    <div class="progress" aria-hidden="true"><span></span></div>
+                    <div class="row">
+                        <span class="pill">Pronto para enviar</span>
+                        <div>
+                            <button class="iconbtn" title="Remover" aria-label="Remover">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="thumb">
+                    <div>
+                        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="#60a5fa" d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm1 7V3.5L19.5 9H15Z M8 14h8v2H8v-2Zm0 4h8v2H8v-2Zm0-8h5v2H8V10Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="meta">
+                    <div class="name" title="Nome do Arquivo.zip">Nome do Arquivo.zip</div>
+                    <div class="sub" title="application/zip">
+                        1 MB - application/zip
+                    </div>
+                    <div class="progress" aria-hidden="true"><span></span></div>
+                    <div class="row">
+                        <span class="pill">Pronto para enviar</span>
+                        <div>
+                            <button class="iconbtn" title="Remover" aria-label="Remover">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="empty" id="empty">Nenhum arquivo selecionado.</div>
     </div>
 </div>
