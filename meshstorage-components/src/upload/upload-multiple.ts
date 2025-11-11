@@ -1,4 +1,5 @@
 type UploadTaskState = 'queued' | 'running' | 'complete' | 'error' | 'cancelled';
+type UploadIconType = 'none' | 'success' | 'error';
 interface UploadTask {
     id: string;
     uploadId?: string;
@@ -38,6 +39,7 @@ class UploadMultiple extends HTMLElement {
 
     private root: ShadowRoot;
     private messages!: HTMLDivElement;
+    private message_text!: HTMLSpanElement;
     private list_uploads!: HTMLDivElement;
     private queue: UploadTask[] = [];
     private running = 0;
@@ -48,59 +50,66 @@ class UploadMultiple extends HTMLElement {
         this.root.innerHTML = `
         <style>
             .msum-wrap {max-width:800px;margin:10px auto;padding:0 16px;}
-            .msum-panel {background:#ffffff;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.06);padding:15px;}
-            .msum-panel .hint{color:#6b7280;margin-top: 0; margin-bottom:15px}
-            .msum-wrap .dropzone{
-                border:2px dashed #3169a3;border-radius:14px;background:#f8fafc;
-                min-height:100px; display:flex; align-items:center; justify-content:center;
-                text-align:center; padding:20px; transition:.2s ease; cursor:pointer; outline:none;
-            }
-            .msum-wrap .dropzone:focus{box-shadow:0 0 0 3px #e0e7ff;}
-            .msum-wrap .dropzone .drag{background:#eef2ff;border-color:#1c65a2}
-            .msum-wrap .dropzone .title {font-size:18px; margin-bottom:5px;}
-            .msum-wrap .dropzone .subtitle {color:#1c65a2; font-weight:600}
-            .msum-wrap .dropzone small{display:block; color:#6b7280}
-            .msum-wrap .dropzone input[type=file]{display:none}
-            .msum-panel .actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-            .msum-panel .btn{background:#1c65a2;color:#fff;border:0;padding:10px 14px;border-radius:12px;cursor:pointer}
-            .msum-panel .btn.secondary{background:#e5e7eb;color:#111827}
-            .msum-panel .btn:disabled{opacity:.5;cursor:not-allowed}
-            .msum-panel .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:18px}
-            .msum-panel .empty{color:#6b7280;text-align:center;padding:24px 8px}
-            .msum-panel .item.error .pill{background:#fee2e2;color:#991b1b}
-            .msum-panel .item{background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-            .msum-panel .thumb{position:relative;background:#f3f4f6;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center}
-            .msum-panel .thumb img{max-width:100%;max-height:100%;object-fit:cover}
-            .msum-panel .badge{position:absolute;left:8px;top:8px;background:#111827;color:#fff;border-radius:999px;padding:4px 8px;font-size:12px;opacity:.9}
-            .msum-panel .meta{padding:10px 12px}
-            .msum-panel .name{font-size:14px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-            .msum-panel .sub{font-size:12px;color:#6b7280;margin-top:2px}
-            .msum-panel .progress{height:6px;background:#eef2ff;border-radius:999px;overflow:hidden;margin-top:10px}
-            .msum-panel .progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#60a5fa,#1c65a2)}
-            .msum-panel .row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px}
-            .msum-panel .pill{font-size:12px;background:#f3f4f6;border-radius:999px;padding:4px 8px;color:#374151}
-            .msum-panel .iconbtn{background:transparent;border:0;padding:6px;border-radius:10px;cursor:pointer}
-            .msum-panel .iconbtn:hover{background:#f3f4f6}
-            .msum-panel .item.error{border-color:#dc2626}
-            .msum-panel .ico{width:52px;height:52px;opacity:.9}
+        .msum-panel {background:#ffffff;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.06);padding:15px;}
+        .msum-panel .hint {color:#6b7280;margin-top: 0; margin-bottom:15px}
+        .msum-wrap .dropzone{ border:2px dashed #3169a3;border-radius:14px;background:#f8fafc; min-height:100px; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px; transition:.2s ease; cursor:pointer; outline:none; }
+        .msum-wrap .dropzone:focus {box-shadow:0 0 0 3px #e0e7ff;}
+        .msum-wrap .dropzone .drag {background:#eef2ff;border-color:#1c65a2}
+        .msum-wrap .dropzone .title {font-size:18px; margin-bottom:5px;}
+        .msum-wrap .dropzone .subtitle {color:#1c65a2; font-weight:600}
+        .msum-wrap .dropzone small {display:block; color:#6b7280}
+        .msum-wrap .dropzone input[type=file] {display:none}
+        .msum-panel .actions {display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+        .msum-panel .btn {background:#1c65a2;color:#fff;border:0;padding:10px 14px;border-radius:12px;cursor:pointer}
+        .msum-panel .btn.secondary {background:#e5e7eb;color:#111827}
+        .msum-panel .btn:disabled {opacity:.5;cursor:not-allowed}
+        .msum-panel .grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:18px}
+        .msum-panel .msum-item {background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+        .msum-panel .thumb {position:relative;background:#f3f4f6;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center}
+        .msum-panel .thumb img {max-width:100%;max-height:100%;object-fit:cover}
+        .msum-panel .meta {padding:10px 12px}
+        .msum-panel .name {font-size:14px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+        .msum-panel .sub {font-size:10px;color:#6b7280;margin-top:2px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+        .msum-panel .progress {height:6px;background:#eef2ff;border-radius:5px;overflow:hidden;margin-top:10px}
+        .msum-panel .progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#60a5fa,#1c65a2)}
+        .msum-panel .row {display:flex;gap:8px;align-items:center;justify-content:center;margin-top:5px}
+        .msum-panel .icon-btn {background:transparent;border:0;padding:6px;border-radius:10px;cursor:pointer;display: flex;}
+        .msum-panel .icon-btn:hover{background:#f3f4f6}
+        .msum-panel .image-icon {width:52px;height:52px;opacity:.9;fill: #60a5fa}
+        .msum-panel .thumb.success .image-icon {fill: #259543 }
+        .msum-panel .thumb.error .image-icon {fill: #dc2626 }
+        .msum-panel .alert-icon { position: absolute; right: 8px; bottom: 6px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+        .msum-panel .thumb.error .alert-icon {fill: #dc2626 }
+        .msum-panel .thumb.success .alert-icon {fill: #259543; width: 22px; height: 22px; }
+        .msum-panel .messages {margin-top: 5px; display: flex; align-items: center; justify-content: flex-start;}
+        .msum-panel .messages .icon {width:26px;height:26px;fill: #dc2626}
+        .msum-panel .messages > span {margin-left: 5px;color: #dc2626}
         </style>
         <div class="msum-wrap">
             <div class="msum-panel" role="region" aria-labelledby="ttl">
-                <p class="hint">Escolha apenas tipos: <strong>.doc, .docx, .odt, .jpg, .png, .pdf</strong> até <strong>2</strong> arquivos de no máximo <strong>2 MB</strong>.</p>
-                <label class="dropzone" id="drop" tabindex="0" aria-label="Área para arrastar e soltar arquivos">
+                <p class="hint" id="msum_hint_uploads">Escolha apenas tipos: <strong>.ext</strong> até <strong>X</strong> arquivos de no máximo <strong>X MB</strong>.</p>
+                <label class="dropzone" id="msum_drop_files_upload" tabindex="0" aria-label="Área para arrastar e soltar arquivos">
                     <div>
                         <div class="title">Arraste e solte aqui</div>
                         <span class="subtitle">ou clique para selecionar</span>
                         <small>Você pode escolher múltiplos arquivos</small>
-                        <input id="fileInput" type="file" multiple accept=".doc,.docx,.odt,.jpg,.jpeg,.png,.pdf,.zip" />
+                        <input id="msum_file_upload" type="file" multiple />
                     </div>
                 </label>
-                <div class="actions">
-                    <button class="btn" id="sendAll" disabled>Enviar tudo</button>
-                    <button class="btn secondary" id="clearAll" disabled>Limpar</button>
+                <div id="msum_messages">
+                    <div class="messages">
+                        <div class="icon">
+                            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:none;}</style></defs><title/><g><path d="M16,19a1,1,0,0,1-1-.76l-1.51-6.06A2.5,2.5,0,0,1,14,10a2.56,2.56,0,0,1,4,0,2.5,2.5,0,0,1,.46,2.19L17,18.24A1,1,0,0,1,16,19Zm0-8a.54.54,0,0,0-.44.22.52.52,0,0,0-.1.48L16,13.88l.54-2.18a.52.52,0,0,0-.1-.48A.54.54,0,0,0,16,11Z"/><circle cx="16" cy="21.5" r="1.5"/><path d="M16,29A13,13,0,1,1,29,16,13,13,0,0,1,16,29ZM16,5A11,11,0,1,0,27,16,11,11,0,0,0,16,5Z"/></g><g id="frame"><rect class="cls-1" height="30" width="30"/></g></svg>
+                        </div>
+                        <span id="msum_message_text">{mensagem}</span>
+                    </div>
                 </div>
-                <div class="grid" id="grid" aria-live="polite"></div>
-                <div class="empty" id="empty">Nenhum arquivo selecionado.</div>
+                <div class="actions">
+                    <button class="btn" id="msum_send_all" disabled>Enviar tudo</button>
+                    <button class="btn secondary" id="msum_cancel_all" disabled>Cancelar tudo</button>
+                    <button class="btn secondary" id="msum_clear_all" disabled>Limpar</button>
+                </div>
+                <div class="grid" id="msum_list_uploads" aria-live="polite"></div>
             </div>
         </div>
         `;
@@ -108,16 +117,18 @@ class UploadMultiple extends HTMLElement {
 
     connectedCallback() {
 
-        this.appCode = this.reqAttr('app-code');
-        this.apiBase = this.reqAttr('api-url-upload');
+        //Recuperar os atributos do componente.
+        this.appCode = this.requiredAttribute('app-code');
+        this.apiBase = this.requiredAttribute('api-url-upload');
         this.token = this.getAttribute('api-token-jwt') ?? undefined;
         this.accept = this.getAttribute('accept') ?? this.TYPE_ACCEPT;
-        this.maxTotalFilesSize = this.attrNum('max-total-files-size') ?? this.MAX_TOTAL_FILES_SIZE;
-        this.maxFileSize = this.attrNum('max-file-size') ?? this.MAX_FILE_SIZE;
-        this.maxFileCount = this.attrNum('max-file-count') ?? this.MAX_FILE_COUNT;
-        this.maxConcurrent = this.attrNum('max-concurrent-upload') ?? this.MAX_CONCURRENT_UPLOAD;
+        this.maxTotalFilesSize = this.getAttributeNumber('max-total-files-size') ?? this.MAX_TOTAL_FILES_SIZE;
+        this.maxFileSize = this.getAttributeNumber('max-file-size') ?? this.MAX_FILE_SIZE;
+        this.maxFileCount = this.getAttributeNumber('max-file-count') ?? this.MAX_FILE_COUNT;
+        this.maxConcurrent = this.getAttributeNumber('max-concurrent-upload') ?? this.MAX_CONCURRENT_UPLOAD;
 
-        const inputFile = this.selector<HTMLInputElement>('#msu_input');
+        //Recuperra os campos da interface...
+        const inputFile = this.selectorRoot<HTMLInputElement>('#msum_file_upload');
         inputFile.addEventListener('change', () => {
             const files = Array.from(inputFile.files ?? []);
             this.onFilesSelected(files);
@@ -125,34 +136,51 @@ class UploadMultiple extends HTMLElement {
         if (this.accept)
             inputFile.accept = this.accept;
 
-        const cancelAllBtn = this.selector<HTMLButtonElement>('#msu_cancel_all');
-        cancelAllBtn.addEventListener('click', () => this.onCancelAllClick());
+        const paragHint = this.selectorRoot<HTMLParagraphElement>('#msum_hint_uploads');
+        paragHint.innerHTML = `Escolha apenas tipos: <strong>${this.accept}</strong> até <strong>${this.maxFileCount}</strong> arquivos de no máximo <strong>${this.bytesToSizeXB(this.maxFileSize)}</strong>.`;
 
-        this.messages = this.selector<HTMLDivElement>('#msu_message');
-        this.list_uploads = this.selector<HTMLDivElement>('#msu_list');
+        this.messages = this.selectorRoot<HTMLDivElement>('#msum_messages');
+        this.messages.hidden = true;
+        this.message_text = this.selectorRoot<HTMLSpanElement>('#msum_message_text');
 
-        const drop = this.selector<HTMLDivElement>('#msu_drop');
+        const btn_cancel_all = this.selectorRoot<HTMLButtonElement>('#msum_cancel_all');
+        btn_cancel_all.addEventListener('click', () => this.onCancelAllClick());
+        btn_cancel_all.hidden = true;
+        const btn_send_all = this.selectorRoot<HTMLButtonElement>('#msum_send_all');
+        btn_send_all.addEventListener('click', () => this.onSendAllClick());
+        const btn_clean_all = this.selectorRoot<HTMLButtonElement>('#msum_clear_all');
+        btn_clean_all.addEventListener('click', () => this.onClearAllClick());
+
+        this.list_uploads = this.selectorRoot<HTMLDivElement>('#msum_list_uploads');
+
+        const drop_uploads = this.selectorRoot<HTMLDivElement>('#msum_drop_files_upload');
         ;['dragenter','dragover'].forEach(evt =>
-            drop.addEventListener(evt, (e: { preventDefault: () => void; })  => {
-                e.preventDefault(); drop.classList.add('is-over');
+            drop_uploads.addEventListener(evt, (e: { preventDefault: () => void; })  => {
+                e.preventDefault(); drop_uploads.classList.add('drag');
             })
         );
         ;['dragleave','drop'].forEach(evt =>
-            drop.addEventListener(evt, (e: { preventDefault: () => void; }) => {
-                e.preventDefault(); drop.classList.remove('is-over');
+            drop_uploads.addEventListener(evt, (e: { preventDefault: () => void; }) => {
+                e.preventDefault(); drop_uploads.classList.remove('drag');
             })
         );
-        drop.addEventListener('drop', (e)=>{
+        drop_uploads.addEventListener('drop', (e)=>{
             const files = Array.from(e.dataTransfer?.files || []);
             this.onFilesSelected(files);
         });
-        drop.addEventListener('click', ()=> inputFile.click());
+        drop_uploads.addEventListener('click', ()=> inputFile.click());
+
     }
 
-    private selector<T extends Element>(sel: string): T {
+    private selectorRoot<T extends Element>(sel: string): T {
         const el = this.root.querySelector<T>(sel);
         if (!el) throw new Error(`Elemento não encontrado: ${sel}`);
         return el;
+    }
+    private selectorParent<T extends Element>(el:Element, sel: string): T {
+        const el_child = el.querySelector<T>(sel);
+        if (!el_child) throw new Error(`Elemento não encontrado: ${sel}`);
+        return el_child;
     }
 
     private dispatch(evt: string, detail?: any) {
@@ -332,6 +360,27 @@ class UploadMultiple extends HTMLElement {
 
     }
 
+    private onClearAllClick() {
+        if (this.queue.length == 0) {
+            this.alert("Nenhum upload pendente de envio.", true);
+            return;
+        }
+        for (const t of this.queue)
+            this.removeTask(t.id);
+        this.alert("Removido todos os uploads...");
+    }
+
+
+    private onSendAllClick() {
+        if (this.queue.length == 0) {
+            this.alert("Nenhum upload pendente de envio.", true);
+            return;
+        }
+        for (const t of this.queue)
+            this.sendTask(t.id);
+        this.alert("Reenviando todos os uploads...");
+    }
+
     private onCancelAllClick() {
         if (this.queue.length == 0) {
             console.log("Nenhum upload em andamento.");
@@ -342,37 +391,80 @@ class UploadMultiple extends HTMLElement {
         console.log("Cancelado todos os uploads...");
     }
 
-    public cancelTask(id: string) {
-        const t = this.queue.find(x => x.id === id);
-        if (!t) return;
+    private sendTask(id: string) {
+        console.log(`Enviar: ${id}`);
+    }
+
+    private removeTask(id: string) {
+        console.log(`Remover: ${id}`);
+    }
+
+    private cancelTask(id: string) {
+        const task = this.queue.find(x => x.id === id);
+        if (!task) return;
         const endpointCancel    = `${this.apiBase}/file/uploadInChunk/cancel`;
-        t.controller.abort();
-        t.state = 'cancelled';
-        this.updateItem(t);
-        if (t.uploadId) {
+        task.controller.abort();
+        task.state = 'cancelled';
+        this.updateItem(task);
+        if (task.uploadId) {
             // melhor esforço (não espere)
-            fetch(`${endpointCancel}/${encodeURIComponent(t.uploadId)}`, {
+            fetch(`${endpointCancel}/${encodeURIComponent(task.uploadId)}`, {
                 method: 'DELETE',
                 headers: this.authHeaders()
             }).catch(() => {});
         }
-        this.dispatch('upload-file-cancelled', { fileName: t.file.name, uploadId: t.uploadId });
+        this.dispatch('upload-file-cancelled', { fileName: task.file.name, uploadId: task.uploadId });
         this.updateTotalProgress();
     }
 
     private renderItem(task: UploadTask) {
         const row = document.createElement('div');
-        row.className='msu-item'; row.id=`row_${task.id}`;
+        row.className='msum-item'; row.id=`row_${task.id}`;
         row.innerHTML = `
-        <div class="msu-name" title="${task.file.name}">${task.file.name}</div>
-        <div class="msu-meta">${this.bytesToSizeXB(task.file.size)}</div>
-        <div class="msu-status">Aguardando</div>
-        <div class="msu-bar"><progress max="100" value="0"></progress></div>
-        <div class="msu-actions-row">
-          <button class="msu-action msu-action--danger" type="button">Cancelar</button>
+        <div class="thumb">
+            <div>
+                ${this.iconForFile(task.file)}
+            </div>
+            <div class="alert-icon">
+                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:none;}</style></defs><title/><g><path d="M16,19a1,1,0,0,1-1-.76l-1.51-6.06A2.5,2.5,0,0,1,14,10a2.56,2.56,0,0,1,4,0,2.5,2.5,0,0,1,.46,2.19L17,18.24A1,1,0,0,1,16,19Zm0-8a.54.54,0,0,0-.44.22.52.52,0,0,0-.1.48L16,13.88l.54-2.18a.52.52,0,0,0-.1-.48A.54.54,0,0,0,16,11Z"/><circle cx="16" cy="21.5" r="1.5"/><path d="M16,29A13,13,0,1,1,29,16,13,13,0,0,1,16,29ZM16,5A11,11,0,1,0,27,16,11,11,0,0,0,16,5Z"/></g><g><rect class="cls-1" height="30" width="30"/></g></svg>
+            </div>
+        </div>
+        <div class="meta">
+            <div class="name" title="${task.file.name}">${task.file.name}</div>
+            <div class="sub">${this.bytesToSizeXB(task.file.size)} - ${task.file.type}</div>
+            <div class="progress" aria-hidden="true"><span></span></div>
+            <div class="row">
+                <button class="icon-btn cancel" title="Cancelar" aria-label="Cancelar">
+                    <svg viewBox="0 0 42 42" width="24px" height="24px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px">
+                        <path fill-rule="evenodd" d="M21.002,26.588l10.357,10.604c1.039,1.072,1.715,1.083,2.773,0l2.078-2.128 c1.018-1.042,1.087-1.726,0-2.839L25.245,21L36.211,9.775c1.027-1.055,1.047-1.767,0-2.84l-2.078-2.127 c-1.078-1.104-1.744-1.053-2.773,0L21.002,15.412L10.645,4.809c-1.029-1.053-1.695-1.104-2.773,0L5.794,6.936 c-1.048,1.073-1.029,1.785,0,2.84L16.759,21L5.794,32.225c-1.087,1.113-1.029,1.797,0,2.839l2.077,2.128 c1.049,1.083,1.725,1.072,2.773,0L21.002,26.588z"/>
+                    </svg>
+                ️ </button>
+                <button class="icon-btn send" title="Enviar" aria-label="Enviar">
+                    <svg viewBox="0 0 48 48" width="24px" height="24px" xmlns="http://www.w3.org/2000/svg" xml:space="preserve">
+                        <path d="M35,2H17c-0.2651367,0-0.5195313,0.1054688-0.7070313,0.2929688l-8,8C8.1054688,10.4804688,8,10.734375,8,11v30  c0,2.7568359,2.2431641,5,5,5h22c2.7568359,0,5-2.2431641,5-5V7C40,4.2431641,37.7568359,2,35,2z M38,41  c0,1.6542969-1.3457031,3-3,3H13c-1.6542969,0-3-1.3457031-3-3V11.4140625L17.4140625,4H35c1.6542969,0,3,1.3457031,3,3V41z M17,14  h-5c-0.5522461,0-1-0.4472656-1-1s0.4477539-1,1-1h5c0.5512695,0,1-0.4482422,1-1V6c0-0.5527344,0.4477539-1,1-1s1,0.4472656,1,1v5  C20,12.6542969,18.6542969,14,17,14z M24,17c-4.9624023,0-9,4.0371094-9,9s4.0375977,9,9,9s9-4.0371094,9-9S28.9624023,17,24,17z   M24,33c-3.8598633,0-7-3.140625-7-7s3.1401367-7,7-7s7,3.140625,7,7S27.8598633,33,24,33z M27.7070313,24.2929688  c0.390625,0.390625,0.390625,1.0234375,0,1.4140625C27.5117188,25.9023438,27.2558594,26,27,26  s-0.5117188-0.0976563-0.7070313-0.2929688L25,24.4140625V30c0,0.5527344-0.4477539,1-1,1s-1-0.4472656-1-1v-5.5859375  l-1.2929688,1.2929688c-0.390625,0.390625-1.0234375,0.390625-1.4140625,0s-0.390625-1.0234375,0-1.4140625l3-3  c0.390625-0.390625,1.0234375-0.390625,1.4140625,0L27.7070313,24.2929688z"/>
+                    </svg>
+                </button>
+                <button class="icon-btn remove" title="Remover" aria-label="Remover">
+                    <svg viewBox="0 0 91 91" height="30px" width="30px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g>
+                        <path d="M67.305,36.442v-8.055c0-0.939-0.762-1.701-1.7-1.701H54.342v-5.524c0-0.938-0.761-1.7-1.699-1.7h-12.75   c-0.939,0-1.701,0.762-1.701,1.7v5.524H26.93c-0.939,0-1.7,0.762-1.7,1.701v8.055c0,0.938,0.761,1.699,1.7,1.699h0.488v34.021   c0,0.938,0.761,1.7,1.699,1.7h29.481c3.595,0,6.52-2.924,6.52-6.518V38.142h0.486C66.543,38.142,67.305,37.381,67.305,36.442z    M41.592,22.862h9.35v3.824h-9.35V22.862z M61.719,67.345c0,1.719-1.4,3.117-3.12,3.117h-27.78v-32.32l30.9,0.002V67.345z    M63.904,34.742H28.629v-4.655h11.264h12.75h11.262V34.742z"/><rect height="19.975" width="3.4" x="36.066" y="44.962"/><rect height="19.975" width="3.4" x="44.566" y="44.962"/><rect height="19.975" width="3.4" x="53.066" y="44.962"/></g>
+                    </svg>
+                ️</button>
+            </div>
         </div>`;
-        row.querySelector('button')!.addEventListener('click', ()=> this.cancelTask(task.id));
+
+        const btn_upload_send = this.selectorParent<HTMLButtonElement>(row, 'button.send');
+        btn_upload_send.hidden = true;
+        btn_upload_send.addEventListener('click', ()=> this.sendTask(task.id));
+
+        const btn_upload_cancel = this.selectorParent<HTMLButtonElement>(row, 'button.cancel');
+        btn_upload_cancel.hidden = true;
+        btn_upload_cancel.addEventListener('click', ()=> this.cancelTask(task.id));
+
+        const btn_upload_remove = this.selectorParent<HTMLButtonElement>(row, 'button.remove');
+        btn_upload_remove.addEventListener('click', ()=> this.removeTask(task.id));
+
         this.list_uploads.appendChild(row);
+
     }
 
     private updateItem(task: UploadTask){
@@ -406,28 +498,22 @@ class UploadMultiple extends HTMLElement {
 
     private iconForFile(file: File) {
         const type = (file.type || '').toLowerCase();
-        const ext = this.extension(file.name);
-        const color = '#60a5fa';
-        const svg = (path:any)=> `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="${color}" d="${path}"/></svg>`;
         if (type.startsWith('image/'))
-            return null; // terá preview
-        if (type==='application/pdf' || ext==='.pdf') {
-            return svg("M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm1 7V3.5L19.5 9H15Z M8 14h8v2H8v-2Zm0 4h8v2H8v-2Zm0-8h5v2H8V10Z");
-        }
-        if (type.includes('word') || ext==='.doc' || ext==='.docx') {
-            return svg("M4 2h10l6 6v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V9h6.5L12 3.5ZM6.5 12h2l1 5 1-5h2l1 5 1-5h2l-2 8h-2l-1-5-1 5H8.5l-2-8Z");
-        }
-        if (type==='application/zip' || ext==='.zip') {
-            return svg("M7 2h6l4 4v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm6 1.5V7h4.5L13 3.5ZM10 6h2v2h-2V6Zm0 3h2v2h-2V9Zm0 3h2v2h-2v-2Zm0 3h2v3h-2v-3Z");
-        }
-        return svg("M4 2h10l6 6v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V9h6.5L12 3.5ZM6.5 12h2l1 5 1-5h2l1 5 1-5h2l-2 8h-2l-1-5-1 5H8.5l-2-8Z");
+            return null;
+        const ext = this.extension(file.name);
+        const svg = (extension:string)=>
+            `<svg class="image-icon" xmlns="http://www.w3.org/2000/svg" viewBox="2 2 18 22" width="18px" height="22px">
+                <path d="M 4 2 L 14 2 L 20 8 L 20 22 C 20 23.105 19.105 24 18 24 L 4 24 C 2.895 24 2 23.105 2 22 L 2 4 C 2 2.895 2.895 2 4 2 Z M 12 3.5 L 12 9 L 18.5 9 L 12 3.5 Z M 3.695 13.471 L 3.695 17.982 C 3.695 18.616 4.209 19.13 4.843 19.13 L 17.341 19.13 C 17.975 19.13 18.489 18.616 18.489 17.982 L 18.489 13.471 C 18.489 12.837 17.975 12.323 17.341 12.323 L 4.843 12.323 C 4.209 12.323 3.695 12.837 3.695 13.471 Z"/>
+                <text style="fill: rgb(51, 51, 51); font-family: Arial, sans-serif; font-size: 4px; font-weight: 700; text-anchor: middle; white-space: pre;" x="10.847" y="17.019">${extension}</text>
+            </svg>`;
+        return svg(ext);
     }
 
     // ------------ Util -------------------
     private extension(name:string):string{
         const i=name.lastIndexOf('.'); return i>0 ? name.slice(i).toLowerCase() : ''
     }
-    private reqAttr(name: string):string {
+    private requiredAttribute(name: string):string {
         const v = this.getAttribute(name);
         if (!v) throw new Error(`Atributo obrigatório ausente: ${name}`);
         return v;
@@ -451,8 +537,10 @@ class UploadMultiple extends HTMLElement {
         return h;
     }
     private alert(message: string, hasErro: boolean = true) {
-        if (hasErro)
-            console.error(`[Error]: ${message}`);
+        if (hasErro) {
+            this.messages.hidden = false;
+            this.message_text.innerHTML = message;
+        }
         else
             console.log(`[Alert]: ${message}`);
     }
@@ -464,7 +552,7 @@ class UploadMultiple extends HTMLElement {
         return list.some(a => a === ext || a === type || (a.endsWith('/*') &&
             type.startsWith(a.slice(0, -1))));
     }
-    private attrNum(name: string): number | undefined {
+    private getAttributeNumber(name: string): number | undefined {
         const value = this.getAttribute(name);
         return value ? Number(value) : undefined;
     }
