@@ -1,5 +1,6 @@
 package br.com.devd2.meshstorageserver.controllers;
 
+import br.com.devd2.meshstorage.helper.FileUtil;
 import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
@@ -22,8 +23,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -73,8 +77,8 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/download/{idFile}")
-    public ResponseEntity<?> downloadFile(
-            @PathVariable String idFile) {
+    public ResponseEntity<?> downloadFile(@PathVariable
+                                              @Parameter(description = "Identificador único do arquivo armazenado.") String idFile) {
         try {
             FileStorage file = fileStorageService.getFile(idFile);
             String contentType = file.getFileContentType();
@@ -93,6 +97,60 @@ public class FileStorageController {
         }
 
     }
+    @Operation(summary = "Baixar vários arquivos em ZIP", description = "Baixar vários arquivos (chave de acesso) de uma aplicação do ServerStorage em arquivo compactado .ZIP utilizando StreamResponseBody.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Bytes do arquivo recuperado com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/download/zip")
+    public ResponseEntity<StreamingResponseBody> downloadZip(@RequestParam("idsFiles")
+                                                                 @Parameter(description = "Lista de identificadores únicos do arquivo armazenado para recuperação do ZIP compactado.") List<String> idsFiles)  {
+        try {
+
+            List<String> uniqueIds = idsFiles.stream().distinct().toList();
+            if (uniqueIds.isEmpty()) {
+                log.info("Nenhum id de arquivo foi encontrado para download.");
+                return ResponseEntity.badRequest().build();
+            }
+
+            String fisicalName = FileUtil.generatePhisicalNameByExtension(".zip");
+            String zipName = "download_"+fisicalName;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zipName + "\"");
+            headers.set(HttpHeaders.CACHE_CONTROL, "no-store");
+            headers.set("X-Accel-Buffering", "no");
+
+            StreamingResponseBody body = output -> {
+                try (var zip = new java.util.zip.ZipOutputStream(output)) {
+                    zip.setLevel(java.util.zip.Deflater.BEST_SPEED);
+                    byte[] buf = new byte[8192];
+                    for (String id : uniqueIds) {
+                        try {
+                            var file = fileStorageService.getFile(id);
+                            var eZip = new java.util.zip.ZipEntry(file.getFileLogicName());
+                            eZip.setSize(file.getFileContent().length);
+                            zip.putNextEntry(eZip);
+                            zip.write(file.getFileContent());
+                            zip.closeEntry();
+                            zip.flush();
+                        } catch (ApiBusinessException error_business) {
+                            var e = new java.util.zip.ZipEntry("error-" + id + ".txt");
+                            zip.putNextEntry(e);
+                            zip.write(error_business.getMessage().getBytes(StandardCharsets.UTF_8));
+                            zip.closeEntry();
+                        }
+                    }
+                }
+            };
+            return ResponseEntity.ok().headers(headers).body(body);
+        } catch (Exception error) {
+            var message = "Erro ao baixar arquivos compactados do Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().build();
+        }
+
+    }
 
     @Operation(summary = "Remover arquivo do ServerStorage", description = "Remover um arquivo do ServerStorage pelo identificador do arquivo (chave de acesso).")
     @ApiResponses(value = {
@@ -100,7 +158,8 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @DeleteMapping("/delete/{idFile}")
-    public ResponseEntity<?> deleteFile (@PathVariable String idFile) {
+    public ResponseEntity<?> deleteFile (@PathVariable
+                                             @Parameter(description = "Identificador único do arquivo armazenado.") String idFile) {
         try {
             var fileStorage = fileStorageService.deleteFile(idFile);
             var response = HelperMapper.ConvertToResponse(fileStorage);
@@ -122,15 +181,15 @@ public class FileStorageController {
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/list")
     public ResponseEntity<?> listFiles (@RequestParam("applicationCode")
-                                       @Parameter(description = "Sigla da aplicação responsável pelos arquivos") String applicationCode,
-                                   @RequestParam(name = "pageNumber", defaultValue = "1")
-                                       @Parameter(description = "Número da página da paginação") int pageNumber,
-                                   @RequestParam(name = "recordsPerPage", defaultValue = "15")
-                                       @Parameter(description = "Quantidade de registro que devem ser retornado por página na paginação") int recordsPerPage,
-                                   @RequestParam(name = "isFilesSentForBackup", defaultValue = "false")
-                                       @Parameter(description = "Filtro de arquivos já enviados para backup") boolean isFilesSentForBackup,
-                                   @RequestParam(name = "isFilesRemoved", defaultValue = "false")
-                                       @Parameter(description = "Filtro de arquivos removidos do armazenamento") boolean isFilesRemoved) {
+                                            @Parameter(description = "Sigla da aplicação responsável pelos arquivos") String applicationCode,
+                                        @RequestParam(name = "pageNumber", defaultValue = "1")
+                                            @Parameter(description = "Número da página da paginação") int pageNumber,
+                                        @RequestParam(name = "recordsPerPage", defaultValue = "15")
+                                            @Parameter(description = "Quantidade de registro que devem ser retornado por página na paginação") int recordsPerPage,
+                                        @RequestParam(name = "isFilesSentForBackup", defaultValue = "false")
+                                            @Parameter(description = "Filtro de arquivos já enviados para backup") boolean isFilesSentForBackup,
+                                        @RequestParam(name = "isFilesRemoved", defaultValue = "false")
+                                            @Parameter(description = "Filtro de arquivos removidos do armazenamento") boolean isFilesRemoved) {
         try {
             var list = fileStorageService.listFilesByApplicationCode(applicationCode, pageNumber, recordsPerPage, isFilesSentForBackup, isFilesRemoved);
             return ResponseEntity.ok(list);
@@ -184,11 +243,12 @@ public class FileStorageController {
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/qrcode/{idFile}")
-    public ResponseEntity<?> qrCodeFile(@PathVariable String idFile,
-                                     @RequestParam(name="tokenExpirationTime", defaultValue="0")
-                                        @Parameter(description = "Tempo de expiração do token de acesso (em minutos), se 0 nunca expira.") Long tokenExpirationTime,
-                                     @RequestParam(name="maximumAccessestoken", defaultValue="0")
-                                         @Parameter(description = "Quantidade máxima de acesso ao arquivo por token, se 0 sem limite.") int maximumAccessestoken) {
+    public ResponseEntity<?> qrCodeFile(@PathVariable
+                                            @Parameter(description = "Identificador único do arquivo armazenado.") String idFile,
+                                        @RequestParam(name="tokenExpirationTime", defaultValue="0")
+                                            @Parameter(description = "Tempo de expiração do token de acesso (em minutos), se 0 nunca expira.") Long tokenExpirationTime,
+                                        @RequestParam(name="maximumAccessestoken", defaultValue="0")
+                                            @Parameter(description = "Quantidade máxima de acesso ao arquivo por token, se 0 sem limite.") int maximumAccessestoken) {
         try {
             var qrcode = fileStorageService.generateQrCode(idFile, tokenExpirationTime, maximumAccessestoken);
             return ResponseEntity.ok(qrcode);
@@ -208,7 +268,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @GetMapping("/link/{token}")
     public ResponseEntity<?> downloadLinkFile(@PathVariable("token")
-                                           @Parameter(description = "Token (chave acesso) ao arquivo para download") String token) {
+                                              @Parameter(description = "Token (chave acesso) ao arquivo para download") String token) {
         try {
             FileStorage file = fileStorageService.getFileByToken(token);
             String contentType = file.getFileContentType();

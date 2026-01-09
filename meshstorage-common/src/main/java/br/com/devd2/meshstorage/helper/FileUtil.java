@@ -69,10 +69,18 @@ public class FileUtil {
      */
     public static String generatePhisicalName(String originalFilename) {
         var extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        return generatePhisicalNameByExtension(extension);
+    }
+
+    /**
+     * Gerar nome físico de arquivo para armazenamento em disco.
+     * @param extension - Extensão (com ponto, ex: .txt)do nome do arquivo fisico.
+     * @return Nome fisico gerado.
+     */
+    public static String generatePhisicalNameByExtension(String extension) {
         var prefixName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         return prefixName + "_" + UUID.randomUUID().toString().toUpperCase() + extension.toLowerCase();
     }
-
     /**
      * Realiza o processo de compressão do conteúdo do arquivo.
      * @param bytesFile - Bytes do arquivo para realizar a compressão em ZIP;
