@@ -42,7 +42,7 @@
   {
     "applicationCode": "APP3",
     "applicationName": "Aplicação 03",
-    "applicationDescription": "Aplicação 03 de Teste - Com Config/OCR - PDF e Imagens",
+    "applicationDescription": "Aplicação 03 de Teste - PDF e Imagens",
     "allowedFileTypes": [
       "application/pdf",
       "image/gif",
@@ -53,7 +53,7 @@
     "maximumFileSizeMB": 3,
     "compressedFileContentToZip": true,
     "convertImageFileToWebp": true,
-    "applyOcrFileContent": true,
+    "applyOcrFileContent": false,
     "allowDuplicateFile": true,
     "requiresFileReplication": true
   }

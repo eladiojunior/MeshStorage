@@ -79,7 +79,7 @@ public class UploadChunkService {
         if (sizeFileMB > application.getMaximumFileSizeMB())
             throw new ApiBusinessException("Arquivo com tamnho de ["+sizeFileMB+"MB], maior que o permitido para aplicação (Max="+application.getMaximumFileSizeMB()+"MB).");
 
-        long total = (request.fileSize() + chunkSize - 1) / chunkSize;
+        long chunkTotal = (request.fileSize() + chunkSize - 1) / chunkSize;
         String uploadId = UUID.randomUUID().toString();
         Path staging = stagingDir.resolve(uploadId + ".part");
         // Cria arquivo estágio (vazio). Pré-alocar é opcional (pode usar setLength).
@@ -88,10 +88,10 @@ public class UploadChunkService {
         }
         UploadSessionModel sessionModel = new UploadSessionModel(
                 uploadId, request.applicationCode(), request.fileName(), request.contentType(), request.fileSize(),
-                chunkSize, total, staging, request.checksumSha256()
+                chunkSize, chunkTotal, staging, request.checksumSha256()
         );
         sessions.put(uploadId, sessionModel);
-        return new InitUploadResponse(uploadId, chunkSize, total);
+        return new InitUploadResponse(uploadId, chunkSize, chunkTotal);
     }
 
     /**

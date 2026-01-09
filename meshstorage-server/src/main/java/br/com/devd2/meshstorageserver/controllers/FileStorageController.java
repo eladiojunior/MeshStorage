@@ -316,17 +316,17 @@ public class FileStorageController {
     public ResponseEntity<?> uploadChunkFile(
             @RequestParam(name="uploadId")
                 @Parameter(description = "Identificador do upload em andamento.") String uploadId,
-            @RequestParam("index")
-                @Parameter(description = "Index do bloco do upload em andamento.") int index,
-            @RequestParam("total")
-                @Parameter(description = "Total de blocos do upload em andamento.") long total,
-            @RequestPart("chunk")
-                @Parameter(description = "Informações do bloco do arquivo (bytes) do upload em andamento.") MultipartFile chunk
+            @RequestParam("chunkIndex")
+                @Parameter(description = "Index do bloco do upload em andamento.") int chunkIndex,
+            @RequestParam("chunkTotal")
+                @Parameter(description = "Total de blocos do upload em andamento.") long chunkTotal,
+            @RequestPart("chunkBlob")
+                @Parameter(description = "Informações do bloco do arquivo (bytes) do upload em andamento.") MultipartFile chunkBlob
     ) {
 
-        try (var in = chunk.getInputStream()) {
-            fileStorageUploadChunkService.receiveChunk(uploadId, index, total, in, chunk.getSize());
-            return ResponseEntity.ok(new SuccessResponse("Bloco "+index+" de "+total+" recebido com sucesso."));
+        try (var in = chunkBlob.getInputStream()) {
+            fileStorageUploadChunkService.receiveChunk(uploadId, chunkIndex, chunkTotal, in, chunkBlob.getSize());
+            return ResponseEntity.ok(new SuccessResponse("Bloco "+chunkIndex+" de "+chunkTotal+" recebido com sucesso."));
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {

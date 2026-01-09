@@ -202,25 +202,26 @@ class Upload extends HTMLElement {
             signal: this.abortCtrl.signal
         });
         await this.checkRespose(initResp);
-        const { uploadId, chunkSize } = await initResp.json();
+        const { uploadId, chunkSize, chunkTotal } = await initResp.json();
         this.uploadId = uploadId;
-        const cs = Number(chunkSize) || this.CHUNK_SIZE;
-        this.dispatch('upload-start', {fileName: this.file.name, size: this.file.size, cs});
+        const _chunkTotal = Number(chunkTotal) || 0;
+        const _chunkSize = Number(chunkSize) || this.CHUNK_SIZE;
+        this.dispatch('upload-start', {fileName: this.file.name, size: this.file.size, _chunkSize});
 
         //Enviar blocos do arquivo de upload...
         const endpointChunk = `${this.apiBase}/file/uploadInChunk/chunk`;
         let sent = 0;
-        for (let index = 0; index < chunkSize; index++) {
+        for (let index = 0; index < _chunkTotal; index++) {
             if (!this.abortCtrl)
                 throw new Error('Upload cancelado');
-            const start = index * chunkSize;
-            const end = Math.min(start + cs, this.file.size);
+            const start = index * _chunkTotal;
+            const end = Math.min(start + _chunkTotal, this.file.size);
             const blob = this.file.slice(start, end);
             const form = new FormData();
             form.append('uploadId', this.uploadId!);
-            form.append('index', String(index));
-            form.append('total', String(cs));
-            form.append('chunk', blob, this.file.name);
+            form.append('chunkIndex', String(index));
+            form.append('chunkTotal', String(_chunkTotal));
+            form.append('chunkBlob', blob, this.file.name);
             const chunkResp = await fetch(endpointChunk, {
                 method: 'PUT',
                 headers: this.authHeaders(),
