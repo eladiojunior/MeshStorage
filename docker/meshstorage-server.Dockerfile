@@ -4,10 +4,10 @@ FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # Copia o projeto do server
-COPY ./meshstorage-server /app/meshstorage-server
+COPY ../meshstorage-server /app/meshstorage-server
 
 # Copia o projeto common (assumindo que está na mesma raiz)
-COPY ./meshstorage-common /app/meshstorage-common
+COPY ../meshstorage-common /app/meshstorage-common
 
 # Instala o módulo common no repositório local dentro do container
 RUN cd /app/meshstorage-common && mvn clean install -DskipTests

@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+
+  meshstorage-client-a:
+    image: meshstorage-client:1.0.0
+    container_name: meshstorage-client-a
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: LINUX_DOCKER
+      STORAGE_NAME: STORAGE_A
+      STORAGE_PATH: /storage
+      URL_WEBSOCKET_SERVER: ws://192.168.1.21:3001/server-storage-websocket
+    volumes:
+      - /home/eladiojunior/storages/storage_01:/storage
+
+  meshstorage-client-b:
+    image: meshstorage-client:1.0.0
+    container_name: meshstorage-client-b
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: LINUX_DOCKER
+      STORAGE_NAME: STORAGE_B
+      STORAGE_PATH: /storage
+      URL_WEBSOCKET_SERVER: ws://192.168.1.21:3001/server-storage-websocket
+    volumes:
+      - /home/eladiojunior/storages/storage_02:/storage
+
+  meshstorage-client-c:
+    image: meshstorage-client:1.0.0
+    container_name: meshstorage-client-c
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: LINUX_DOCKER
+      STORAGE_NAME: STORAGE_C
+      STORAGE_PATH: /storage
+      URL_WEBSOCKET_SERVER: ws://192.168.1.21:3001/server-storage-websocket
+    volumes:
+      - /home/eladiojunior/storages/storage_03:/storage

@@ -1,0 +1,16 @@
+Para mostrar que a solução é bem flexivel, aqui vamos criar uma imagem simples
+e publicar vários clients em Docker... com volumes de disco diferentes.
+
+1. Criar imagem do "meshstorage-frontend" e enviar para o Docker;
+Acesse a pasta do projeto "meshstorage" e execute:
+/> docker build -f docker/meshstorage-frontend.Dockerfile -t meshstorage-frontend:1.0.0 .
+
+2. No Docker execute o frontend:
+/> docker run -d --name meshstorage-frontend.net --restart unless-stopped \
+-p 8080:8080 \
+-e ASPNETCORE_ENVIRONMENT=Production \
+-e ApiSettings__BaseUrl=http://192.168.1.21:3001 \
+  meshstorage-frontend:1.0.0
+
+3. Criei um Docker-Compose para facilitar:
+/> docker-compose up -d

@@ -20,30 +20,47 @@
     </div>
     <div class="card-body">
         <div class="row g-3">
-        @foreach (var item in Model)
-        {
-            <div class="col-12">
-                <div class="border rounded p-3 @(item.IsOffline ? "bg-offline" : "")">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <h4 class="mb-1">@item.Name</h4>
-                            <small class="text-muted">IP: @item.IpAddress - SO: @item.OsName</small>
+            @foreach (var item in Model)
+            {
+                <div class="col-12">
+                    <div class="border rounded p-3 @(item.IsOffline ? "bg-offline" : "")">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h4 class="mb-1">@item.Name</h4>
+                                <small class="text-muted">IP: @item.IpAddress - SO: @item.OsName</small>
+                            </div>
+                            <span class="badge @item.StatusBgClasses">@item.StatusLabel</span>
                         </div>
-                        <span class="badge @item.StatusBgClasses">@item.StatusLabel</span>
-                    </div>
-                    <div class="d-flex justify-content-between small text-muted mb-1">
-                        <span>Total @item.StorageCapacity.ToString("D") GB e @item.StorageUsed.ToString("D") GB usados</span>
-                        <span>@item.StorageUsage</span>
-                    </div>
-                    <div class="progress storage-progress">
-                        <div
-                            class="progress-bar @item.StatusBgProgressBarClasses"
-                            style="width: @item.StorageUsageProgressBar">
+                        <div class="d-flex align-items-start gap-2">
+                            <!-- COLUNA PRINCIPAL (texto + barra) -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between small text-muted mb-1">
+                                    <span>Total @item.StorageCapacity.ToString("D") GB e @item.StorageUsed.ToString("D") GB usados</span>
+                                    <span>@item.StorageUsage</span>
+                                </div>
+                                <div class="progress storage-progress">
+                                    <div
+                                        class="progress-bar @item.StatusBgProgressBarClasses"
+                                        style="width: @item.StorageUsageProgressBar">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- COLUNA AÇÃO (span das duas linhas) -->
+                            <div class="d-flex align-items-center">
+                                @if (item.IsOffline)
+                                {
+                                    <button class="btn btn-danger btn-with-icon removal-storage"
+                                            title="Remover Storage"
+                                            data-id_storage="@item.Id">
+                                        <span class="material-icons">delete</span>
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_ModalConfirmRemovalStoragePartial")

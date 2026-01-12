@@ -2,30 +2,33 @@
 using System.Text.Json;
 using meshstorage_frontend.Exceptions;
 using meshstorage_frontend.Helper;
+using meshstorage_frontend.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace meshstorage_frontend.Controllers;
 
-public class DefaultController : Controller
+public class DefaultController(RazorViewToStringRenderer renderer, 
+    ILogger<HomeController> logger) : Controller
 {
-    private readonly RazorViewToStringRenderer _renderer;
-    private readonly ILogger<HomeController> _logger;
-    
-    public DefaultController(RazorViewToStringRenderer renderer, ILogger<HomeController> logger)
-    {
-        _renderer = renderer;
-        _logger = logger;
-    }
-    
     /// <summary>
-    /// Cria um retorno Json de Erro (Result = false) com mensagem de erro.
+    /// Cria um retorno Json de Erro, Tipo=ERROR, com mensagem de erro.
     /// </summary>
-    /// <param name="mensagemErro"></param>
+    /// <param name="mensagemErro">Mensage de erro para apresentação.</param>
     /// <returns></returns>
-    internal JsonResult JsonResultErro(string mensagemErro)
+    internal JsonResult JsonResultError(string mensagemErro)
     {
-        return Json(new { HasErro = true, Erros = new List<string> { mensagemErro } }, JsonSerializerOptions.Default);
+        return Json(new { Tipo = ResponseMessageTypeEnum.Error.GetDescription(), Erros = new List<string> { mensagemErro } }, JsonSerializerOptions.Default);
+    }
+
+    /// <summary>
+    /// Cria um retorno Json de Alert, ResponseType=INFO, com mensagem de alerta.
+    /// </summary>
+    /// <param name="mensagemAlerta">Mensage de alerta para apresentação.</param>
+    /// <returns></returns>
+    internal JsonResult JsonResultAlerta(string mensagemAlerta)
+    {
+        return Json(new { Tipo = ResponseMessageTypeEnum.Alert.GetDescription(), Mensagem = mensagemAlerta }, JsonSerializerOptions.Default);
     }
 
     /// <summary>
@@ -35,17 +38,17 @@ public class DefaultController : Controller
     /// <returns></returns>
     internal JsonResult JsonResultErro(IEnumerable mensagensErro)
     {
-        return Json(new { HasErro = true, Erros = mensagensErro }, JsonSerializerOptions.Default);
+        return Json(new { Tipo = ResponseMessageTypeEnum.Error.GetDescription(), Erros = mensagensErro }, JsonSerializerOptions.Default);
     }
 
     internal JsonResult JsonResultErro(object model, string mensagem = "")
     {
-        return Json(new { HasErro = true, Model = model, Mensagem = mensagem }, JsonSerializerOptions.Default);
+        return Json(new { Tipo = ResponseMessageTypeEnum.Error.GetDescription(), Model = model, Mensagem = mensagem }, JsonSerializerOptions.Default);
     }
 
     internal JsonResult JsonResultErro(Exception ex)
     {
-        return Json(new { HasErro = true, Erros = new[] { ex.Message } }, JsonSerializerOptions.Default);
+        return Json(new { Tipo = ResponseMessageTypeEnum.Error.GetDescription(), Erros = new List<string> { ex.Message } }, JsonSerializerOptions.Default);
     }
 
     /// <summary>
@@ -64,7 +67,7 @@ public class DefaultController : Controller
             Json(
                 new
                 {
-                    HasErro = true,
+                    Tipo = ResponseMessageTypeEnum.Error.GetDescription(),
                     Chaves = chaves,
                     Erros = mensagens.Where(a => a != null).Select(a => a.ErrorMessage).ToList()
                 },
@@ -72,24 +75,24 @@ public class DefaultController : Controller
     }
 
     /// <summary>
-    ///     Cria um retorno Json de Sucesso (Result = true) com mensagem para o usuário (opcional).
+    ///     Cria um retorno Json de Sucesso (Tipo = INFO) com mensagem para o usuário (opcional).
     /// </summary>
-    /// <param name="mensagemAlerta">Mensagem de alerta que deve ser apresentada ao usuário.</param>
+    /// <param name="mensagemInfo">Mensagem de informação que deve ser apresentada ao usuário.</param>
     /// <returns></returns>
-    internal JsonResult JsonResultSucesso(string mensagemAlerta = "")
+    internal JsonResult JsonResultSucesso(string mensagemInfo = "")
     {
-        return Json(new { HasErro = false, Mensagem = mensagemAlerta }, JsonSerializerOptions.Default);
+        return Json(new { Tipo = ResponseMessageTypeEnum.Info.GetDescription(), Mensagem = mensagemInfo }, JsonSerializerOptions.Default);
     }
 
     /// <summary>
-    ///     Cria um retorno Json de Sucesso (Result = true) com Model e mensagem para o usuário (opcional).
+    ///     Cria um retorno Json de Sucesso (Tipo = INFO) com Model e mensagem para o usuário (opcional).
     /// </summary>
     /// <param name="model">Informações do Model para renderizar a view.</param>
-    /// <param name="mensagemAlerta">Mensagem de alerta que deve ser apresentada ao usuário.</param>
+    /// <param name="mensagemInfo">Mensagem de alerta que deve ser apresentada ao usuário.</param>
     /// <returns></returns>
-    internal JsonResult JsonResultSucesso(object model, string mensagemAlerta = "")
+    internal JsonResult JsonResultSucesso(object model, string mensagemInfo = "")
     {
-        return Json(new { HasErro = false, Model = model, Mensagem = mensagemAlerta }, JsonSerializerOptions.Default);
+        return Json(new { Tipo = ResponseMessageTypeEnum.Info.GetDescription(), Model = model, Mensagem = mensagemInfo }, JsonSerializerOptions.Default);
     }
 
     /// <summary>
@@ -100,7 +103,7 @@ public class DefaultController : Controller
     /// <returns></returns>
     internal string RenderRazorViewToString(string viewName, object model)
     {
-        var html = _renderer.RenderViewToStringAsync(ControllerContext, viewName, model);
+        var html = renderer.RenderViewToStringAsync(ControllerContext, viewName, model);
         return html.Result;
     }
 
@@ -109,18 +112,37 @@ public class DefaultController : Controller
     /// </summary>
     /// <param name="erro">Exception de erro para tratamento.</param>
     /// <param name="localErro">Local do erro.</param>
-    internal string TratarErroNegocio(Exception erro, string localErro = null)
+    internal JsonResult TratarErroNegocio(Exception erro, string? localErro = null)
     {
-        if (erro.GetType() == typeof(BusinessException))
+        var mensagem = $"{(string.IsNullOrEmpty(localErro) ? localErro + ": " : "")} Erro inesperado na requisição.";
+        var tipo = ResponseMessageTypeEnum.Error;
+        erro = UnwrapException(erro);
+        switch (erro)
         {
-            var message = erro.Message;
-            if (!string.IsNullOrEmpty(message))
-                return message;
+            case ApiBusinessException apiEx:
+                mensagem = apiEx.Message;
+                tipo = ResponseMessageTypeEnum.Alert;
+                break;
+            case BusinessException bizEx:
+                mensagem = bizEx.Message;
+                tipo = ResponseMessageTypeEnum.Alert;
+                break;
         }
-        _logger.LogError("Error: {}", erro.Message);
-        return $"{(string.IsNullOrEmpty(localErro) ? localErro + ": " : "")} Erro inesperado na requisição.";
+        return tipo == ResponseMessageTypeEnum.Error ? JsonResultErro(mensagem) : JsonResultAlerta(mensagem);
     }
 
+    /// <summary>
+    /// Verifica se existe uma InnerException no AggregateException.
+    /// </summary>
+    /// <param name="ex">Exception a ser verificada.</param>
+    /// <returns></returns>
+    private Exception UnwrapException(Exception ex)
+    {
+        if (ex is AggregateException agg)
+            return agg.Flatten().InnerExceptions.First();
+        return ex;
+    }
+    
     /// <summary>
     /// Controle de Redirect com registro de mensagem de sucesso ou erro na TempData para recuperação na
     /// interface (View) que receberá a requisição.

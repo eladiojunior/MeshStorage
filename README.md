@@ -62,7 +62,7 @@ O servidor inicia na porta `3001`.
 ### 🔹 **Passo 3: Iniciar os Clientes (Agents)**
 Nos file servers, execute:
 ```sh
-$ java -jar meshstorage-client.jar -url-websocket-server=ws://localhost:3001/server-storage-websocket -server-name=HOSTNAME -storage-name=STORAGE_X -storage-path=C:\storage\xpto
+$ java -jar meshstorage-client.jar -url-websocket-server ws://localhost:3001/server-storage-websocket -server-name HOSTNAME -storage-name STORAGE_X -storage-path C:\storage\xpto
 ```
 - **Parametros:**\
 - **-url-websocket-server** = URL do servidor que irá se conectar ao cliente.

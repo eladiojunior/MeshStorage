@@ -33,7 +33,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -377,7 +376,7 @@ public class FileStorageService {
      * Solicita a remoção de um arquivo do Server Storage.
      * @param idFile - Identificador do arquivo para remover.
      */
-    public FileStorage deleteFile(String idFile) throws ApiBusinessException {
+    public FileStorage removeFile(String idFile) throws ApiBusinessException {
 
         if (idFile == null || idFile.isEmpty())
             throw new ApiBusinessException("Identificador do arquivo não pode ser nulo ou vazio.");

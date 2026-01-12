@@ -18,5 +18,6 @@
             $(".mensagens").show();
             $("html,body").scrollTop(0);
         }
-    },
+    }
+    
 }

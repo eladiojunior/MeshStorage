@@ -8,7 +8,7 @@ puro).
 ### Componentes
 
 ## `<meshstorage-upload>`
-Componente para integração com a solução MesgStorage que implementa o FileUpload com estrutura de envio de arquivos
+Componente para integração com a solução Meshstorage que implementa o FileUpload com estrutura de envio de arquivos
 particinados com configuração do tamanho máximo, tipos de extensões aceitas, progresso e checagem de completude do 
 processo de upload do arquivo no frontend.
 
@@ -23,7 +23,7 @@ revalidado no servidor.
 - upload-error → { message }
 
 ## `<meshstorage-upload-multiple>`
-Componente para integração com a solução MesgStorage que implementa o FileUpload com estrutura de envio de vários 
+Componente para integração com a solução Meshstorage que implementa o FileUpload com estrutura de envio de vários 
 arquivos concorrentes de forma particinada (em blocos) com configuração do tamanho máximo, tipos de extensões aceitas, 
 progresso e checagem de completude de cada arquivo no frontend.
 

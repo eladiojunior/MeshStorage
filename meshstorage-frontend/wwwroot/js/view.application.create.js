@@ -7,22 +7,22 @@ Application_Create = {
         Application_Create.InitFilterContentType();
     },
     ListContentTypes: function () {
-        $.ajax({
-            cache: false,
-            type: "GET",
-            url: _contexto + "Application/ListFileContentTypes",
-            dataType: "json",
-            success: function (result) {
-                if (result.HasErro) {
-                    Global.ExibirMensagem(result.Erros, true);
-                    return;
-                }
-                listFileContentType = result.Model;
-                Application_Create.LoadListContentTypeSelected();
-                Application_Create.LoadListContentType();
-            }, error: function (XMLHttpRequest, textStatus, errorThrown) {
-                alert(errorThrown);
+        fetch(`${_contexto}Application/ListFileContentTypes`, {
+            method: 'GET'
+        }).then(r => {
+            if (!r.ok) {
+                Toast.error("Erro não esperado do servidor para listar os tipos de arquivos.");
+                return;
             }
+            return r.json();
+        }).then(result => {
+            const _continue = Toast.checkType(result.Tipo, result.Erros, result.Mensagem);
+            if (!_continue) return;
+            listFileContentType = result.Model;
+            Application_Create.LoadListContentTypeSelected();
+            Application_Create.LoadListContentType();
+        }).catch(err => {
+            Toast.error(err.mensage || "Erro ao listar os tipos de arquivos.");
         });
     },
     LoadListContentTypeSelectedByInput: function () {

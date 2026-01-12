@@ -38,7 +38,7 @@ public class ApplicationController(
         try
         {
             
-            apiService.registreApplication(model);
+            apiService.RegistreApplication(model);
 
         }
         catch (Exception erro)
@@ -58,7 +58,7 @@ public class ApplicationController(
      */
     private List<FileContentTypeViewModel> ListContentTypes()
     {
-        var listTypes = apiService.getAllContentTypes();
+        var listTypes = apiService.GetAllContentTypes();
         return listTypes.Result;
     }
     
@@ -71,7 +71,7 @@ public class ApplicationController(
             return RedirectToActionByMessage("Index", "Dashboard",
                 true, "Identificador da aplicação não informado.");
 
-        var applicationEdit = apiService.getApplication(idApplication);
+        var applicationEdit = apiService.GetApplication(idApplication);
         var application = applicationEdit.Result;
         if (application == null)
             return RedirectToActionByMessage("Index", "Dashboard",
@@ -104,7 +104,7 @@ public class ApplicationController(
         
         try
         {
-            apiService.editApplication(model);
+            apiService.EditApplication(model);
         }
         catch (Exception error)
         {
@@ -127,7 +127,7 @@ public class ApplicationController(
             return RedirectToActionByMessage("Index", "Dashboard",
                 true, "Sigla da aplicação não informada.");
 
-        var listFilsApplication = apiService.listFilesApplication(codeApplication, pageNumber, 
+        var listFilsApplication = apiService.ListFilesApplication(codeApplication, pageNumber, 
             recordsPerPage, isFilesSentForBackup, isFilesRemoved).Result;
         var model = new ListFilesApplicationViewModel();
         

@@ -1,10 +1,6 @@
 ﻿namespace meshstorage_frontend.Services.Exceptions;
 
-public class ApiBusinessException : Exception
+public class ApiBusinessException(int code, string message) : Exception(message)
 {
-    public int Code { get; private set; }
-    public ApiBusinessException(int code, string message) : base(message)
-    {
-        Code = code;
-    }
+    public int Code { get; private set; } = code;
 }

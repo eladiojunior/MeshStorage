@@ -30,6 +30,16 @@ public class ServerStorageCache {
     @Value("${mesh.file.weight-errors-last-request:0}")
     private double weight_errors_last_request;
 
+    /**
+     * Verifica se a lista de Server Storage está vazia e atualiza com as informações do banco dados.
+     */
+    public void ifEmptyRefreshListAllServerStorage() {
+        if (mapServerStorageCache.isEmpty()) {
+            var listAll = serverStorageRepository.findAll();
+            listAll.forEach(this::addOrUpdateServerStorage);
+        }
+    }
+
     //Chave de cache para recuperar o Score, se existir.
     public record MetricKeyScore(String id,
             long free, long total, long resp, int req, int err) {}
@@ -114,6 +124,18 @@ public class ServerStorageCache {
         return mapServerStorageCache.values().stream()
                 .filter(f ->
                         f.getServerStorageStatusCode() == ServerStorageStatusEnum.ACTIVE.getCode()).toList();
+    }
+
+    /**
+     * Recupera todos os Server Storages que não tenham sido REMOVIDOS logicamente, primeiro no cache se não encontrar, vai no banco.
+     * @return Lista de Server Storage não removidos.
+     */
+    public List<ServerStorage> listByNotStatusRemoved() {
+        return mapServerStorageCache.values().stream()
+                .sorted( (s1, s2) -> {
+                    return s1.getServerStorageStatusCode().compareTo(s2.getServerStorageStatusCode());
+                }).filter(f ->
+                        f.getServerStorageStatusCode() != ServerStorageStatusEnum.REMOVED.getCode()).toList();
     }
 
     /**

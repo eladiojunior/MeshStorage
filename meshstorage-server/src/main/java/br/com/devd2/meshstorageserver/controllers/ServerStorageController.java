@@ -5,6 +5,7 @@ import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.response.ErrorResponse;
 import br.com.devd2.meshstorageserver.models.response.ServerStorageResponse;
 import br.com.devd2.meshstorageserver.models.response.StatusMeshStorageResponse;
+import br.com.devd2.meshstorageserver.models.response.SuccessResponse;
 import br.com.devd2.meshstorageserver.services.ServerStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -70,6 +71,25 @@ public class ServerStorageController {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {
             var message = "Erro ao listar os ServerStorage para armazenamento de arquivos físicos.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+
+    }
+    @Operation(summary = "Remover ServerStorage", description = "Remove logicamente um Server Storage que está INATIVO, desativado do cliente.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "ServerStorage removido com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SuccessResponse.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @DeleteMapping("/remove/{idServeStorage}")
+    public ResponseEntity<?> removeServerStorage(@PathVariable Long idServeStorage) {
+        try {
+            serverStorageService.removeServerStorage(idServeStorage);
+            return ResponseEntity.ok(new SuccessResponse("ServerStorage removido com sucesso"));
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao remover um ServerStorage pelo seu identificador.";
             log.error(message, error);
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }

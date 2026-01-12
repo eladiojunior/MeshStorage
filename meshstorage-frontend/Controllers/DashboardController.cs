@@ -5,15 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace meshstorage_frontend.Controllers;
 
-public class DashboardController : DefaultController
+public class DashboardController(
+    IApiService apiService,
+    RazorViewToStringRenderer renderer,
+    ILogger<HomeController> logger)
+    : DefaultController(renderer, logger)
 {
-    private readonly IApiService _apiService;
-
-    public DashboardController(IApiService apiService, 
-        RazorViewToStringRenderer renderer, ILogger<HomeController> logger) : base(renderer, logger)
-    {
-        _apiService = apiService;
-    }
     
     // GET: Dashboard/Index ou Dashboard/
     [HttpGet]
@@ -22,7 +19,7 @@ public class DashboardController : DefaultController
         try
         {
             var model = new DashboardModel();
-            var systemStatus = _apiService.getSystemStatus().Result;
+            var systemStatus = apiService.GetSystemStatus().Result;
             model.TotalStorage = systemStatus.TotalStorage;
             model.ConnectedClients = systemStatus.ConnectedClients;
             model.TotalFiles = systemStatus.TotalFiles;
@@ -43,7 +40,7 @@ public class DashboardController : DefaultController
     {
         try
         {
-            var storages = _apiService.getStorages().Result;
+            var storages = apiService.GetStorages().Result;
             return JsonResultSucesso(RenderRazorViewToString("_InfoStorageCardPartial", storages), "Sucesso");
         }
         catch (Exception error)
@@ -58,7 +55,7 @@ public class DashboardController : DefaultController
     {
         try
         {
-            var applications = _apiService.getApplications().Result;
+            var applications = apiService.GetApplications().Result;
             return JsonResultSucesso(RenderRazorViewToString("_InfoApplicationCardPartial", applications), "Sucesso");
         }
         catch (Exception error)

@@ -97,7 +97,7 @@ public class FileStorageController {
         }
 
     }
-    @Operation(summary = "Baixar vários arquivos em ZIP", description = "Baixar vários arquivos (chave de acesso) de uma aplicação do ServerStorage em arquivo compactado .ZIP utilizando StreamResponseBody.")
+    @Operation(summary = "Baixar vários arquivos em ZIP do ServerStorage", description = "Baixar vários arquivos (chave de acesso) de uma aplicação do ServerStorage em arquivo compactado .ZIP utilizando StreamResponseBody.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Bytes do arquivo recuperado com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = Arrays.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
@@ -157,11 +157,11 @@ public class FileStorageController {
             @ApiResponse(responseCode = "200", description = "Arquivo removido com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseEntity.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @DeleteMapping("/delete/{idFile}")
-    public ResponseEntity<?> deleteFile (@PathVariable
+    @DeleteMapping("/remove/{idFile}")
+    public ResponseEntity<?> removeFile (@PathVariable
                                              @Parameter(description = "Identificador único do arquivo armazenado.") String idFile) {
         try {
-            var fileStorage = fileStorageService.deleteFile(idFile);
+            var fileStorage = fileStorageService.removeFile(idFile);
             var response = HelperMapper.ConvertToResponse(fileStorage);
             return ResponseEntity.ok(response);
         } catch (ApiBusinessException error_business) {

@@ -198,7 +198,7 @@ public class MapperHelper
     private FileContentTypeViewModel MapperFileContentType(FileContentTypeApiResponse? response)
     {
         if (response == null)
-            return null;
+            return null!;
 
         var model = new FileContentTypeViewModel();
         model.Code = response.Code;

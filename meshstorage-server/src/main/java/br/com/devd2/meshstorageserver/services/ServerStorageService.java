@@ -123,7 +123,6 @@ public class ServerStorageService {
         var serverStorage = serverStorageRepository.save(server);
 
         //Adicionar novo Storage no cache...
-        cacheServerStorage.clearCache();
         cacheServerStorage.addOrUpdateServerStorage(serverStorage);
         return serverStorage;
 
@@ -227,10 +226,11 @@ public class ServerStorageService {
      * @return Lista de Server Storages encontrados.
      */
     public List<ServerStorage> getListServerStorage(boolean hasAvailable) throws ApiBusinessException {
+        cacheServerStorage.ifEmptyRefreshListAllServerStorage();
         if (hasAvailable)
             return cacheServerStorage.listByStatusActive();
         else
-            return serverStorageRepository.findAll();
+            return cacheServerStorage.listByNotStatusRemoved();
     }
 
     /**
@@ -335,4 +335,40 @@ public class ServerStorageService {
 
     }
 
+    /**
+     * Responsável por verificar se o ServerStorage está INATIVO e remover da lista de Server Storages disponíveis.
+     * @param idServeStorage - Identificar único do ServerStorage para verificação e remoção.
+     * @throws ApiBusinessException Erro de negócio.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void removeServerStorage(Long idServeStorage) throws ApiBusinessException {
+
+        if (idServeStorage == null)
+            throw new ApiBusinessException("Identificador do Server Storage não informado.");
+
+        //Verificar se existe um server/storage registrado.
+        ServerStorage server = serverStorageRepository.findById(idServeStorage).orElse(null);
+        if (server == null)
+            throw new ApiBusinessException(
+                    String.format("Nenhum Server Storage com o ID: [%1s] encontrado.", idServeStorage));
+
+        if (server.isAtive())
+            throw new ApiBusinessException(
+                    "Server Storage ativo, vinculado a um Client, não pode ser removido.");
+        if (server.getServerStorageStatusCode() != ServerStorageStatusEnum.INACTIVE.getCode()) {
+            var serverStorageStatus = ServerStorageStatusEnum.getValue(server.getServerStorageStatusCode());
+            throw new ApiBusinessException(
+                    String.format("Server Storage com situação [%1s=%2s], não pode ser removido.",
+                            server.getServerStorageStatusCode(), serverStorageStatus));
+        }
+
+        //Remover logicamente o Server Storage.
+        server.setDateTimeRemovedServerStorage(LocalDateTime.now());
+        server.setServerStorageStatusCode(ServerStorageStatusEnum.REMOVED.getCode());
+        serverStorageRepository.save(server);
+
+        //Limpar cache...
+        cacheServerStorage.clearCache();
+
+    }
 }

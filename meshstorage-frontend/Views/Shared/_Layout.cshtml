@@ -44,6 +44,7 @@
 <main role="main">
     @Html.ValidationSummary()
     @await Html.PartialAsync("_MessageRedirectPartial")
+    @await Html.PartialAsync("_ToastAlertUserPartial")
     @RenderBody()
 </main>
 <script>
@@ -54,6 +55,7 @@ var _contexto = '@urlRoot';
 </script>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/global.toast.js" asp-append-version="true"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
