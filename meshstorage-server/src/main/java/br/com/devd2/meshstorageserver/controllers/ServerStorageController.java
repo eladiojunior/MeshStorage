@@ -54,7 +54,7 @@ public class ServerStorageController {
 
     }
 
-    @Operation(summary = "Lista os ServerStorage", description = "Lista todos os Server Storages para armazenamento de arquivos físicos.")
+    @Operation(summary = "Lista os ServerStorage", description = "Lista os Server Storages, conforme flag de disponibilidade, para armazenamento de arquivos físicos.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista dos ServerStorage com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ServerStorageResponse[].class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
@@ -62,7 +62,7 @@ public class ServerStorageController {
     @GetMapping("/list")
     public ResponseEntity<?> getListServerStorage(
             @RequestParam(name = "available", defaultValue = "true")
-                @Parameter(description = "Flag de disponibilidade do storage para utilização") boolean available) {
+                @Parameter(description = "Flag de disponibilidade do server storage para utilização") boolean available) {
         try {
             var listServerStorage = serverStorageService.getListServerStorage(available);
             var response = HelperMapper.ConvertToResponseListServerStorage(listServerStorage);
@@ -76,6 +76,7 @@ public class ServerStorageController {
         }
 
     }
+
     @Operation(summary = "Remover ServerStorage", description = "Remove logicamente um Server Storage que está INATIVO, desativado do cliente.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "ServerStorage removido com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SuccessResponse.class))}),
@@ -90,6 +91,27 @@ public class ServerStorageController {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
         } catch (Exception error) {
             var message = "Erro ao remover um ServerStorage pelo seu identificador.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+
+    }
+
+    @Operation(summary = "Lista TODOS os ServerStorage", description = "Lista todos os Server Storages para armazenamento de arquivos físicos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista dos ServerStorage com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ServerStorageResponse[].class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/listAll")
+    public ResponseEntity<?> getListAllServerStorage() {
+        try {
+            var listServerStorage = serverStorageService.getListAllServerStorage();
+            var response = HelperMapper.ConvertToResponseListServerStorage(listServerStorage);
+            return ResponseEntity.ok(response);
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao listar TODOS os ServerStorage para armazenamento de arquivos físicos.";
             log.error(message, error);
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }

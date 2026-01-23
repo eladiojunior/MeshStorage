@@ -18,6 +18,7 @@ import br.com.devd2.meshstorageserver.helper.HelperFormat;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.helper.HelperServer;
 import br.com.devd2.meshstorageserver.models.FileUploadModel;
+import br.com.devd2.meshstorageserver.models.request.ListFilesFilterRequest;
 import br.com.devd2.meshstorageserver.models.response.FileContentTypesResponse;
 import br.com.devd2.meshstorageserver.models.response.FileStatusCodeResponse;
 import br.com.devd2.meshstorageserver.models.response.ListFileStorageResponse;
@@ -36,10 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -437,34 +435,41 @@ public class FileStorageService {
     }
 
     /**
-     * Recupera a lista de arquivos de uma aplicação (nome) de forma painada.
-     * @param applicationCode - Nome da aplicação para recuperação dos arquivos.
-     * @param pageNumber - Número da página da paginação
-     * @param recordsPerPage - Número de registros por página.
-     * @param isFilesSentForBackup - indicador de filtro dos arquivos enviados para o backup, armazenamento de longo prazo.
-     * @param isFilesRemoved - indicado de filtro dos arquivos removidos do armazenamento.
-     * @return Instancia com a lista de arquivos da aplicação.
+     * Responsável por recuperar os arquivos (estrutura, não os bytes) conforme o filtro informada.
+     * @param request - Request com o filtro de consulta dos arquivos.
+     * @return Lista dos arquivos, conforme o filtro informado.
      */
-    public ListFileStorageResponse listFilesByApplicationCode(String applicationCode, int pageNumber, int recordsPerPage, boolean isFilesSentForBackup, boolean isFilesRemoved) throws ApiBusinessException {
+    public ListFileStorageResponse listFilesByFilter(ListFilesFilterRequest request) throws ApiBusinessException {
 
-        if (applicationCode == null || applicationCode.isEmpty())
+        if (request == null)
+            throw new ApiBusinessException("Nenhuma informação para filtro dos arquivos encontrada.");
+
+        if (request.getApplicationCode() == null || request.getApplicationCode().isEmpty())
             throw new ApiBusinessException("Sigla da aplicação não pode ser nulo ou vazio.");
 
-        var application = applicationService.getApplicationByCode(applicationCode);
+        var application = applicationService.getApplicationByCode(request.getApplicationCode());
         if (application == null)
-            throw new ApiBusinessException("Aplicação não identificada pela sigla ("+applicationCode+"), obrigatório.");
+            throw new ApiBusinessException("Aplicação não identificada pela sigla ("+request.getApplicationCode()+"), obrigatório.");
 
-        if (pageNumber == 0) pageNumber = 1;
-        if (recordsPerPage == 0) recordsPerPage = 15;
+        var pageNumber = request.getPageNumber();
+        if (pageNumber == 0)
+            pageNumber = 1;
+        var recordsPerPage = request.getRecordsPerPage();
+        if (recordsPerPage == 0)
+            recordsPerPage = 15;
 
         Specification<FileStorage> specification = (root, q, cb) -> {
             List<Integer> fileStatusCodes = new ArrayList<>();
             fileStatusCodes.add(FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode());
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("application").get("id"), application.getId()));
-            if (isFilesSentForBackup)
+            if (request.getFileLogicName() != null && !request.getFileLogicName().isEmpty())
+                predicates.add(cb.like(root.get("fileLogicName"), "%"+request.getFileLogicName()+"%"));
+            if (request.getFileContentType()!=null && request.getFileContentType().length!=0)
+                predicates.add(root.get("fileContentType").in(Arrays.stream(request.getFileContentType()).toList()));
+            if (request.isFilesRemoved())
                 fileStatusCodes.add(FileStorageStatusEnum.ARCHIVED_SUCESSFULLY.getCode());
-            if (isFilesRemoved)
+            if (request.isFilesRemoved())
                 fileStatusCodes.add(FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode());
             predicates.add(root.get("fileStatusCode").in(fileStatusCodes));
             return cb.and(predicates.toArray(Predicate[]::new));

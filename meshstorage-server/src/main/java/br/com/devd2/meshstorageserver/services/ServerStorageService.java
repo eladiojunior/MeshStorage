@@ -222,7 +222,9 @@ public class ServerStorageService {
     }
 
     /**
-     * Lista de Server Storages registrados para utilização, seja os disponíveis ou não.
+     * Lista de Server Storages registrados para utilização, conforme o flag de disponibilidade.
+     * @param hasAvailable - Flag de disponibilidade, true = lista apenas os ativos para utilização, false - lista os
+     *                     ativos e inativos, apenas os removidos não serão listados.
      * @return Lista de Server Storages encontrados.
      */
     public List<ServerStorage> getListServerStorage(boolean hasAvailable) throws ApiBusinessException {
@@ -231,6 +233,15 @@ public class ServerStorageService {
             return cacheServerStorage.listByStatusActive();
         else
             return cacheServerStorage.listByNotStatusRemoved();
+    }
+
+    /**
+     * Lista TODOS de Server Storages registrados, seja os disponíveis ou não.
+     * @return Lista de Server Storages encontrados.
+     */
+    public List<ServerStorage> getListAllServerStorage() throws ApiBusinessException {
+        cacheServerStorage.ifEmptyRefreshListAllServerStorage();
+        return cacheServerStorage.listAll();
     }
 
     /**

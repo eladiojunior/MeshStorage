@@ -5,6 +5,7 @@ import br.com.devd2.meshstorageserver.entites.FileStorage;
 import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperMapper;
 import br.com.devd2.meshstorageserver.models.request.InitUploadRequest;
+import br.com.devd2.meshstorageserver.models.request.ListFilesFilterRequest;
 import br.com.devd2.meshstorageserver.models.response.*;
 import br.com.devd2.meshstorageserver.services.FileStorageService;
 import br.com.devd2.meshstorageserver.services.UploadChunkService;
@@ -174,14 +175,19 @@ public class FileStorageController {
 
     }
 
-    @Operation(summary = "Lista de arquivos do ServerStorage", description = "Lista os arquivos de uma aplicação (sigla) de forma paginada.")
+    @Operation(summary = "Lista de arquivos do ServerStorage", description = "Lista os arquivos de uma aplicação (sigla), filtros e de forma paginada.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de arquivos recuperados da aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ListFileStorageResponse.class))}),
+            @ApiResponse(responseCode = "200", description = "Lista de arquivos de uma aplicação", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ListFileStorageResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @GetMapping("/list")
-    public ResponseEntity<?> listFiles (@RequestParam("applicationCode")
+    @GetMapping("/listPaginated")
+    public ResponseEntity<?> listFilesPaginated (
+                                        @RequestParam(name = "applicationCode", defaultValue = "APP1")
                                             @Parameter(description = "Sigla da aplicação responsável pelos arquivos") String applicationCode,
+                                        @RequestParam(name = "fileLogicName", required = false)
+                                            @Parameter(description = "[Opcional] Filtro por parte do Nome Lógico do arquivo") String fileLogicName,
+                                        @RequestParam(name = "fileContentType", required = false)
+                                            @Parameter(description = "[Opcional] Filtro por Tipo de arquivo [MineType]") String[] fileContentType,
                                         @RequestParam(name = "pageNumber", defaultValue = "1")
                                             @Parameter(description = "Número da página da paginação") int pageNumber,
                                         @RequestParam(name = "recordsPerPage", defaultValue = "15")
@@ -191,7 +197,11 @@ public class FileStorageController {
                                         @RequestParam(name = "isFilesRemoved", defaultValue = "false")
                                             @Parameter(description = "Filtro de arquivos removidos do armazenamento") boolean isFilesRemoved) {
         try {
-            var list = fileStorageService.listFilesByApplicationCode(applicationCode, pageNumber, recordsPerPage, isFilesSentForBackup, isFilesRemoved);
+
+            var request = new ListFilesFilterRequest(applicationCode, fileLogicName, fileContentType,
+                    pageNumber, recordsPerPage, isFilesSentForBackup, isFilesRemoved);
+
+            var list = fileStorageService.listFilesByFilter(request);
             return ResponseEntity.ok(list);
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
@@ -364,7 +374,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
     @PostMapping(path = "/uploadInChunk/cancel/{uploadId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> uploadCancelFile(@PathVariable("uploadId")
-                                                @Parameter(description = "Identificador único do upload para cancelamento.") String uploadId) {
+                                              @Parameter(description = "Identificador único do upload para cancelamento.") String uploadId) {
         try {
             fileStorageUploadChunkService.cancelUpload(uploadId);
             return ResponseEntity.ok(new SuccessResponse("Upload "+uploadId+" cancelado com sucesso."));

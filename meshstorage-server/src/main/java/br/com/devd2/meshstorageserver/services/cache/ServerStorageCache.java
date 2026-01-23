@@ -43,7 +43,7 @@ public class ServerStorageCache {
     //Chave de cache para recuperar o Score, se existir.
     public record MetricKeyScore(String id,
             long free, long total, long resp, int req, int err) {}
-    private Cache<MetricKeyScore, Double> cacheScore = Caffeine.newBuilder()
+    private final Cache<MetricKeyScore, Double> cacheScore = Caffeine.newBuilder()
             .expireAfterWrite(Duration.ofMinutes(5)) //5 Minutos no cache
             .maximumSize(10_000)
             .build();
@@ -124,6 +124,14 @@ public class ServerStorageCache {
         return mapServerStorageCache.values().stream()
                 .filter(f ->
                         f.getServerStorageStatusCode() == ServerStorageStatusEnum.ACTIVE.getCode()).toList();
+    }
+
+    /**
+     * Recupera todos os Server Storages independente se estão ativos, inativos ou foram removidos.
+     * @return Lista TODOS de Server Storage.
+     */
+    public List<ServerStorage> listAll() {
+        return mapServerStorageCache.values().stream().toList();
     }
 
     /**
