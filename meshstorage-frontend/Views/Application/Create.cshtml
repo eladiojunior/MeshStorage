@@ -32,9 +32,9 @@ ViewBag.Title = "Registrar nova aplicação";
     <div class="form-group mb-2">
         <div class="row">
             <div class="col-6">
-                <label asp-for="AllowedFileTypes" class="form-label"></label>
+                <label for="FiltroTipo" class="form-label"></label>
                 <div class="mb-2">
-                    <input type="text" class="form-control filtro-lista" placeholder="Filtrar tipo de arquivo...">
+                    <input type="text" id="FiltroTipo" class="form-control filtro-lista" placeholder="Filtrar tipo de arquivo...">
                 </div>
                 <div class="overflow-auto border rounded-1" style="height: 300px">
                     <div class="list-group lista-itens"></div>

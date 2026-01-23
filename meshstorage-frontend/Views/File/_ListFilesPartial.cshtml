@@ -16,7 +16,6 @@
                 <th class="text-end">Tamanho</th>
                 <th>Compressão</th>
                 <th>Data Upload</th>
-                <th>Status</th>
                 <th class="text-end">Ações</th>
             </tr>
         </thead>
@@ -26,7 +25,9 @@
         <tr>
             <!-- Ícone -->
             <td class="text-center">
-                <i class="bi @file.IconClass fs-4 text-secondary"></i>
+                <span class="material-icons fs-4 text-secondary">
+                    @file.IconFile
+                </span>
             </td>
             <!-- Nome -->
             <td>
@@ -60,19 +61,13 @@
             <td>
                 @file.DtRegisteredFileStorage
             </td>
-            <!-- Status -->
-            <td>
-                <span class="badge bg-info">
-                    @file.FileStatusDescription
-                </span>
-            </td>
             <!-- Ações -->
             <td class="text-end">
                 <button class="btn btn-sm btn-outline-primary" title="Download">
-                    <i class="bi bi-download"></i>
+                    <span class="material-icons">file_download</span>
                 </button>
                 <button class="btn btn-sm btn-outline-danger ms-1" title="Remover">
-                    <i class="bi bi-trash"></i>
+                    <span class="material-icons">delete</span>
                 </button>
             </td>
         </tr>

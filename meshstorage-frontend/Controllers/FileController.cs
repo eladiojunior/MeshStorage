@@ -22,64 +22,39 @@ public class FileController(
             return RedirectToActionByMessage("Index", "Dashboard",
                 true, "Sigla da aplicação não informada.");
 
-        var filter = new FilterListFileViewModel
+        var filterSession = new FilterListFileDto
         {
-            ApplicationCode = codeApplication
+            ApplicationCode = codeApplication,
+            Page = 1,
+            PageSize = 15
         };
-        var pageNumber = 1;
-        var recordsPerPage = 15;
-        
-        var filterSession = HttpContext.Session.GetObject<FilterListFileSession>
-            (KeySessionEnum.FilterListFile.GetDescription());
-        if (filterSession != null)
-        {
-            filter.ApplicationCode = filterSession.ApplicationCode;
-            filter.FileLogicName = filterSession.FileLogicName;
-            filter.FileContentType = filterSession.FileContentType;
-            filter.FilesRemoved = filterSession.FilesRemoved;
-            filter.FilesSentForBackup = filterSession.FilesSentForBackup;
-            pageNumber = filterSession.Page;
-            recordsPerPage = filterSession.PageSize;
-        }
-        
-        var model = apiService.ListFilesFilter(filter, pageNumber, recordsPerPage).Result;
+
+        var model = apiService.ListFilesFilter(filterSession).Result;
         return View(model);
         
     }
 
     // POST File/SearchFileBuFilter
     [HttpPost]
-    public IActionResult SearchFileByFilter(FilterListFileViewModel filter, int pageNumber, int recordsPerPage)
+    public IActionResult SearchFileByFilter(FilterListFileViewModel filter, int? page, int? pageSize)
     {
         
-        try
+        var sessionFilter = new FilterListFileDto()
         {
-            
-            var sessionFilter = new FilterListFileSession()
-            {
-                ApplicationCode = filter.ApplicationCode,
-                FileLogicName = filter.FileLogicName,
-                FileContentType = filter.FileContentType,
-                FilesRemoved = filter.FilesRemoved,
-                FilesSentForBackup = filter.FilesSentForBackup,
-                Page = pageNumber,
-                PageSize = recordsPerPage,
-                LastUpdated = DateTime.UtcNow
-            };
-            
-            HttpContext.Session.SetObject(KeySessionEnum.FilterListFile.GetDescription(), sessionFilter);
-            
-            var listFilesApplication = 
-                apiService.ListFilesFilter(filter, pageNumber, recordsPerPage).Result;
-            return JsonResultSucesso(RenderRazorViewToString("_ListFilesApplicationPartial", listFilesApplication), 
-                "Filtro realizado com sucesso.");
-            
-        }
-        catch (Exception error)
-        {
-            logger.LogError(error, "SearchFileByFilter(FilterListFileViewModel::filter, int::pageNumber, int::recordsPerPage)");
-            return JsonResultErro(TratarErroNegocio(error, $"SearchFileByFilter()"));
-        }
+            ApplicationCode = filter.ApplicationCode,
+            FileLogicName = filter.FileLogicName,
+            FileContentType = (filter.FileContentType!=null?filter.FileContentType.Split(";"): []),
+            FilesRemoved = filter.FilesRemoved,
+            FilesSentForBackup = filter.FilesSentForBackup,
+            Page = page.HasValue?page.Value:1,
+            PageSize = pageSize.HasValue? pageSize.Value:15,
+            LastUpdated = DateTime.UtcNow
+        };
+        
+        HttpContext.Session.SetObject(KeySessionEnum.FilterListFile.GetDescription(), sessionFilter);
+        
+        var model = apiService.ListFilesFilter(sessionFilter).Result;
+        return View("SearchFile", model);
         
     }
     

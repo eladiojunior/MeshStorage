@@ -1,4 +1,5 @@
-﻿using meshstorage_frontend.Models.External.Request;
+﻿using meshstorage_frontend.Models.Dto;
+using meshstorage_frontend.Models.External.Request;
 using meshstorage_frontend.Models.External.Response;
 using meshstorage_frontend.Models.ViewModels;
 
@@ -202,7 +203,7 @@ public class MapperHelper
         return model;
     }
     
-    public PagedResultViewModel<FileItemViewModel, FilterListFileViewModel> MapperListFiles
+    public PagedResultViewModel<FileItemViewModel, FilterListFileViewModel> MapperListFile
         (ListFilesApiResponse? response, List<FileContentTypeViewModel> allContentTypes)
     {
         var model = new PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>
@@ -280,4 +281,16 @@ public class MapperHelper
         return resultContentType == null ? "" : resultContentType.Extension;
     }
 
+    public FilterListFileViewModel MapperFilterListFile(FilterListFileDto filter)
+    {
+        var model = new FilterListFileViewModel
+        {
+            ApplicationCode = filter.ApplicationCode,
+            FileLogicName = filter.FileLogicName,
+            FileContentType = string.Join(";", filter.FileContentType),
+            FilesRemoved = filter.FilesRemoved,
+            FilesSentForBackup = filter.FilesSentForBackup
+        };
+        return model;
+    }
 }

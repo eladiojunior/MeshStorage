@@ -8,12 +8,12 @@
     <div class="form-group mb-2">
         <div class="row">
             <div class="col-3">
-                <label for="Filter.ApplicationCode">Sigla Aplicação</label>
-                <input asp-for="Filter!.ApplicationCode" class="form-control" required="required" disabled="disabled"/>
+                <label asp-for="Filter!.ApplicationCode">Sigla Aplicação</label>
+                <input asp-for="Filter!.ApplicationCode" class="form-control" required="required" readonly="readonly"/>
                 <span asp-validation-for="Filter!.ApplicationCode" class="text-danger"></span>
             </div>
             <div class="col-9">
-                <label for="Filter.FileLogicName">Parte do nome lógico do arquivo</label>
+                <label asp-for="Filter!.FileLogicName">Parte do nome lógico do arquivo</label>
                 <input asp-for="Filter!.FileLogicName" class="form-control"/>
             </div>
         </div>
@@ -21,9 +21,9 @@
     <div class="form-group mb-2">
         <div class="row">
             <div class="col-6">
-                <label for="Filter.FileContentType" class="form-label">Tipos de arquivos</label>
+                <label for="FilterContentType" class="form-label">Tipos de arquivos</label>
                 <div class="mb-2">
-                    <input type="text" class="form-control filtro-lista" placeholder="Filtrar tipo de arquivo...">
+                    <input type="text" id="FilterContentType" class="form-control filtro-lista" placeholder="Filtrar tipo de arquivo...">
                 </div>
                 <div class="overflow-auto border rounded-1" style="height: 300px">
                     <div class="list-group lista-itens"></div>
@@ -49,19 +49,21 @@
     <div class="form-group mb-2">
         <div class="form-check form-switch">
             <input asp-for="Filter!.FilesRemoved" class="form-check-input" type="checkbox"/>
-            <label for="Filter.FilesRemoved" class="form-check-label">Listar arquivos Removidos</label>
+            <label asp-for="Filter!.FilesRemoved" class="form-check-label">Listar arquivos Removidos</label>
         </div>
     </div>
     <div class="form-group mb-2">
         <div class="form-check form-switch">
             <input asp-for="Filter!.FilesSentForBackup" class="form-check-input" type="checkbox"/>
-            <label for="Filter.FilesSentForBackup" class="form-check-label">Listar arquivos enviados para Backup</label>
+            <label asp-for="Filter!.FilesSentForBackup" class="form-check-label">Listar arquivos enviados para Backup</label>
         </div>
     </div>
     <div class="form-group mt-5 mb-5 text-center">
         <button type="submit" class="btn btn-primary">Filtar</button>
         <a asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">Voltar</a>
     </div>
+    <input type="hidden" asp-for="Page"/>
+    <input type="hidden" asp-for="PageSize"/>
 </form>
 <div class="row g-4">
     <div class="col-12">

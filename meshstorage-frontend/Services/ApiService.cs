@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using meshstorage_frontend.Helper;
+using meshstorage_frontend.Models.Dto;
 using meshstorage_frontend.Models.External.Response;
 using meshstorage_frontend.Models.ViewModels;
 using meshstorage_frontend.Services.Cache;
@@ -174,24 +175,25 @@ public class ApiService : IApiService
         return Task.FromResult(_mapper.MapperApplication(response, GetAllContentTypes().Result));
     }
 
-    public Task<PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>> ListFilesFilter(FilterListFileViewModel filter, 
-        int pageNumber, int recordsPerPage)
+    public Task<PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>> ListFilesFilter
+        (FilterListFileDto filter)
     {
         var url = "/api/v1/file/listPaginated?applicationCode=" + filter.ApplicationCode;
         if (!string.IsNullOrEmpty(filter.FileLogicName))
             url += "&fileLogicName=" + filter.FileLogicName;
-        if (!string.IsNullOrEmpty(filter.FileLogicName))
-            url += "&fileLogicName=" + filter.FileLogicName;
-        url += "&pageNumber=" + pageNumber +
-               "&recordsPerPage=" + recordsPerPage +
+        if (filter.FileContentType.Length != 0)
+            url = filter.FileContentType.Aggregate(url, (current, contentType) => 
+                current + ("&fileContentType=" + contentType));
+        url += "&pageNumber=" + filter.Page +
+               "&recordsPerPage=" + filter.PageSize +
                "&isFilesSentForBackup=" + filter.FilesSentForBackup +
                "&isFilesRemoved=" + filter.FilesRemoved;
         var json = RequestGet(url).Result;
         var response = JsonSerializer.Deserialize<ListFilesApiResponse>(json, _jsonSerializerOptions);
-        var model = _mapper.MapperListFiles(response, GetAllContentTypes().Result);
-        model.Filter = filter;
-        model.Page = pageNumber;
-        model.PageSize = recordsPerPage;
+        var model = _mapper.MapperListFile(response, GetAllContentTypes().Result);
+        model.Filter = _mapper.MapperFilterListFile(filter);
+        model.Page = filter.Page;
+        model.PageSize = filter.PageSize;
         return Task.FromResult(model);
     }
 

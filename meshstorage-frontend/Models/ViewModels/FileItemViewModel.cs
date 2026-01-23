@@ -16,13 +16,14 @@ public class FileItemViewModel
     public DateTime DtRegisteredFileStorage { get; set; }
     public string FileStatusDescription { get; set; } = string.Empty;
     
-    public string IconClass =>
+    public string IconFile =>
         FileExtension switch
         {
-            "pdf" => "bi-file-earmark-pdf text-danger",
-            "jpg" or "jpeg" or "png" or "webp" => "bi-file-earmark-image text-success",
-            "doc" or "docx" => "bi-file-earmark-word text-primary",
-            _ => "bi-file-earmark"
+            ".pdf" => "picture_as_pdf",
+            ".zip" => "folder_zip",
+            ".jpg" or ".jpeg" or ".png" or ".webp" => "image",
+            ".doc" or ".docx" => "text_snippet",
+            _ => "insert_drive_file"
         };
     public string FileLengthFormatted =>
         FileSizeFormatter.Format(FileLength);
