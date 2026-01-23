@@ -5,11 +5,11 @@ using meshstorage_frontend.Helper;
 
 namespace meshstorage_frontend.Controllers;
 
-public class HomeController : DefaultController
+public class HomeController(
+    RazorViewToStringRenderer renderer) :
+    DefaultController(renderer)
 {
-    public HomeController(RazorViewToStringRenderer renderer, ILogger<HomeController> logger) : 
-        base(renderer, logger) { }
-
+    
     public IActionResult Index()
     {
         return View();

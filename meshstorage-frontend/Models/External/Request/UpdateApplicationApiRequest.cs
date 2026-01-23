@@ -5,19 +5,19 @@ namespace meshstorage_frontend.Models.External.Request;
 public class UpdateApplicationApiRequest
 {
     [JsonPropertyName("applicationCode")]
-    public string ApplicationCode { get; set; }
+    public string ApplicationCode { get; set; } = string.Empty;
     
     [JsonPropertyName("applicationName")]
-    public string ApplicationName { get; set; }
+    public string ApplicationName { get; set; } = string.Empty;
     
     [JsonPropertyName("applicationDescription")]
-    public string ApplicationDescription { get; set; }
+    public string ApplicationDescription { get; set; } = string.Empty;
     
     [JsonPropertyName("maximumFileSizeMB")]
     public long MaximumFileSize { get; set; }
-    
-    [JsonPropertyName("allowedFileTypes")]
-    public string[] AllowedFileTypes { get; set; }
+
+    [JsonPropertyName("allowedFileTypes")] 
+    public string[] AllowedFileTypes { get; set; } = [];
     
     [JsonPropertyName("compressedFileContentToZip")]
     public bool CompressedFileContentToZip { get; set; }

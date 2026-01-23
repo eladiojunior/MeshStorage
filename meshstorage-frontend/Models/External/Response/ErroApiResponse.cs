@@ -8,5 +8,5 @@ public class ErroApiResponse
     public int Code { get; set; }
     
     [JsonPropertyName("messageError")]
-    public string Menssage { get; set; }
+    public string Menssage { get; set; } = string.Empty;
 }

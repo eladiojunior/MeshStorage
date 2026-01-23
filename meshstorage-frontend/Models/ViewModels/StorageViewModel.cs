@@ -3,22 +3,16 @@
 public class StorageViewModel
 {
     public long Id { get; set; }
-    public string IdClient { get; set; }
-    public string Name { get; set; }
-    public string IpAddress { get; set; }
-    public string OsName { get; set; }
+    public string IdClient { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string IpAddress { get; set; } = string.Empty;
+    public string OsName { get; set; } = string.Empty;
     public long StorageCapacity { get; set; }
     public long StorageUsed { get; set; }
     public long FileCount { get; set; }
-    public string Status { get; set; }
+    public string Status { get; set; } = string.Empty;
 
-    public bool IsOffline
-    {
-        get
-        {
-            return Status.Equals("offline");
-        }
-    }
+    public bool IsOffline => Status.Equals("offline");
 
     public string StatusLabel
     {
@@ -40,23 +34,12 @@ public class StorageViewModel
             return percentual;
         }
     }
-    public string StorageUsage
-    {
-        get
-        {
-            return PercentualStorageUsage.ToString("P1");
-        }
-    }
+    public string StorageUsage => PercentualStorageUsage.ToString("P1");
 
-    public string StatusBgClasses
-    {
-        get
-        {
-            return (Status.Equals("active") ? "bg-success" : 
-                Status.Equals("warning") ? "bg-warning" : 
-                IsOffline ? "bg-secondary" : "bg-danger");            
-        }
-    }
+    public string StatusBgClasses =>
+        (Status.Equals("active") ? "bg-success" : 
+            Status.Equals("warning") ? "bg-warning" : 
+            IsOffline ? "bg-secondary" : "bg-danger");
 
     public string StatusBgProgressBarClasses
     {
@@ -68,11 +51,6 @@ public class StorageViewModel
         }
     }
 
-    public string StorageUsageProgressBar
-    {
-        get
-        {
-            return $"{Math.Round(PercentualStorageUsage * 100, 0)}%";
-        }
-    }
+    public string StorageUsageProgressBar => $"{Math.Round(PercentualStorageUsage * 100, 0)}%";
+    
 }

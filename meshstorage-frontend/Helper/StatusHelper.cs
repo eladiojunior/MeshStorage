@@ -2,13 +2,13 @@
 
 public class StatusHelper
 {
-    private static StatusHelper instance = null;
+    private static StatusHelper? _instance = null;
     private static readonly Dictionary<string, string> _statusClasses = new();
     private static readonly Dictionary<string, string> _iconsClasses = new();
     
     public static StatusHelper Get()
     {
-        return instance ?? (instance = new StatusHelper());
+        return _instance ??= new StatusHelper();
     }
 
     private StatusHelper()

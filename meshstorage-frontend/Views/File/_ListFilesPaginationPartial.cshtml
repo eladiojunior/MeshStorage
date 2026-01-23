@@ -1,0 +1,20 @@
+﻿@using meshstorage_frontend.Models.ViewModels;
+@model PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>
+
+@{
+    var totalPages = (int)Math.Ceiling((double)Model.TotalRecords / Model.PageSize);
+}
+
+@if (totalPages > 1)
+{
+    <nav class="d-flex justify-content-end">
+        <ul class="pagination pagination-sm">
+            @for (var i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(i == Model.Page ? "active" : "")">
+                    <button class="page-link">@i</button>
+                </li>
+            }
+        </ul>
+    </nav>
+}

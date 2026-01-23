@@ -1,5 +1,4 @@
-﻿using meshstorage_frontend.Models.External;
-using meshstorage_frontend.Models.External.Request;
+﻿using meshstorage_frontend.Models.External.Request;
 using meshstorage_frontend.Models.External.Response;
 using meshstorage_frontend.Models.ViewModels;
 
@@ -7,8 +6,7 @@ namespace meshstorage_frontend.Helper;
 
 public class MapperHelper
 {
-
-    private int FormatMbtoGb(long valueMb)
+    private static int FormatMbtoGb(long valueMb)
     {
         return (int)Math.Round((decimal)(valueMb / 1024), 0);
     }
@@ -48,34 +46,29 @@ public class MapperHelper
 
     public List<StorageViewModel> MapperStorage(StorageApiResponse[]? response)
     {
-        if (response == null)
-            return null;
         var listModels = new List<StorageViewModel>();
-        foreach (var item in response)
-        {
-            var itemModel = MapperStorage(item);
-            if (itemModel != null)
-                listModels.Add(itemModel);
-        }
+        if (response == null)
+            return listModels;
+
+        listModels.AddRange(response.Select(MapperStorage).OfType<StorageViewModel>());
         return listModels;
     }
 
-    public List<ApplicationViewModel> MapperApplication(ApplicationApiResponse[]? response,
+    public List<ApplicationViewModel> MapperApplication(ApplicationApiResponse[]? response, 
         List<FileContentTypeViewModel> allContentTypes)
     {
-        if (response == null)
-            return null;
+        
         var listModels = new List<ApplicationViewModel>();
-        foreach (var item in response)
-        {
-            var itemModel = MapperApplication(item, allContentTypes);
-            if (itemModel != null)
-                listModels.Add(itemModel);
-        }
+        if (response == null)
+            return listModels;
+
+        listModels.AddRange(response.Select(appResponse => 
+            MapperApplication(appResponse, allContentTypes)).OfType<ApplicationViewModel>());
+        
         return listModels;
     }
     
-    private StorageViewModel MapperStorage(StorageApiResponse? response)
+    private StorageViewModel? MapperStorage(StorageApiResponse? response)
     {
         if (response == null)
             return null;
@@ -107,7 +100,7 @@ public class MapperHelper
         request.ApplicationCode = model.ApplicationCode;
         request.ApplicationName = model.ApplicationName;
         request.ApplicationDescription = model.ApplicationDescription;
-        request.MaximumFileSize = model.MaximumFileSizeMB;
+        request.MaximumFileSize = model.MaximumFileSizeMb;
         request.AllowedFileTypes = model.AllowedFileTypes.Split(";");
         request.CompressedFileContentToZip = model.CompressedFileContentToZip;
         request.ConvertImageFileToWebp = model.ConvertImageFileToWebp;
@@ -127,7 +120,7 @@ public class MapperHelper
         request.ApplicationCode = model.ApplicationCode;
         request.ApplicationName = model.ApplicationName;
         request.ApplicationDescription = model.ApplicationDescription;
-        request.MaximumFileSize = model.MaximumFileSizeMB;
+        request.MaximumFileSize = model.MaximumFileSizeMb;
         request.AllowedFileTypes = model.AllowedFileTypes.Split(";");
         request.CompressedFileContentToZip = model.CompressedFileContentToZip;
         request.ConvertImageFileToWebp = model.ConvertImageFileToWebp;
@@ -145,20 +138,22 @@ public class MapperHelper
         if (response == null)
             return null;
 
-        var model = new ApplicationViewModel();
-        model.Id = response.Id;
-        model.Code = response.ApplicationCode;
-        model.Name = response.ApplicationName;
-        model.Description = response.ApplicationDescription;
-        model.Icon = "apps";
-        model.MaximumFileSize = response.MaximumFileSize;
-        model.CompressedFileContentToZip = response.CompressedFileContentToZip;
-        model.ConvertImageFileToWebp = response.ConvertImageFileToWebp;
-        model.ApplyOcrFileContent = response.ApplyOcrFileContent;
-        model.AllowDuplicateFile = response.AllowDuplicateFile;
-        model.RequiresFileReplication = response.RequiresFileReplication;
-        model.TotalFiles = response.TotalFiles;
-        model.AllowedFileTypes = MapperAllowedFileTypes(response.AllowedFileTypes, allContentTypes);
+        var model = new ApplicationViewModel
+        {
+            Id = response.Id,
+            Code = response.ApplicationCode,
+            Name = response.ApplicationName,
+            Description = response.ApplicationDescription,
+            Icon = "apps",
+            MaximumFileSize = response.MaximumFileSize,
+            CompressedFileContentToZip = response.CompressedFileContentToZip,
+            ConvertImageFileToWebp = response.ConvertImageFileToWebp,
+            ApplyOcrFileContent = response.ApplyOcrFileContent,
+            AllowDuplicateFile = response.AllowDuplicateFile,
+            RequiresFileReplication = response.RequiresFileReplication,
+            TotalFiles = response.TotalFiles,
+            AllowedFileTypes = MapperAllowedFileTypes(response.AllowedFileTypes, allContentTypes)
+        };
         return model;
     }
 
@@ -166,15 +161,15 @@ public class MapperHelper
     /// Mapear lista de ContentType em objeto de FileContentType para apresentar na aplicação.
     /// </summary>
     /// <param name="responseAllowedFileTypes">Lista de ContentType simples (string).</param>
+    /// <param name="allContentTypes">Lista de Tipos de arquivos para verificação.</param>
     /// <returns></returns>
-    private List<FileContentTypeViewModel> MapperAllowedFileTypes(string[] responseAllowedFileTypes, 
+    private List<FileContentTypeViewModel> MapperAllowedFileTypes(string[] responseAllowedFileTypes,
         List<FileContentTypeViewModel> allContentTypes)
     {
         var result = new List<FileContentTypeViewModel>();
         foreach (var contentType in responseAllowedFileTypes)
         {
-            var item = allContentTypes
-                .FirstOrDefault(f => f.ContentType.Equals(contentType));
+            var item = GetContentType(contentType, allContentTypes);
             if (item != null && !result.Contains(item))
                 result.Add(item);
         }
@@ -183,31 +178,106 @@ public class MapperHelper
 
     public List<FileContentTypeViewModel> MapperFileContentType(FileContentTypeApiResponse[]? response)
     {
-        if (response == null)
-            return null;
         var listModels = new List<FileContentTypeViewModel>();
-        foreach (var item in response)
-        {
-            var itemModel = MapperFileContentType(item);
-            if (itemModel != null)
-                listModels.Add(itemModel);
-        }
+        if (response == null)
+            return listModels;
+        listModels.AddRange(response.Select(MapperFileContentType).OfType<FileContentTypeViewModel>());
         return listModels;
     }
     
-    private FileContentTypeViewModel MapperFileContentType(FileContentTypeApiResponse? response)
+    private FileContentTypeViewModel? MapperFileContentType(FileContentTypeApiResponse? response)
     {
         if (response == null)
-            return null!;
+            return null;
 
-        var model = new FileContentTypeViewModel();
-        model.Code = response.Code;
-        model.NameEnum = response.NameEnum;
-        model.Extension = response.Extension;
-        model.Description = response.Description;
-        model.ContentType = response.ContentType;
-       
+        var model = new FileContentTypeViewModel
+        {
+            Code = response.Code,
+            NameEnum = response.NameEnum,
+            Extension = response.Extension,
+            Description = response.Description,
+            ContentType = response.ContentType
+        };
+
         return model;
     }
     
+    public PagedResultViewModel<FileItemViewModel, FilterListFileViewModel> MapperListFiles
+        (ListFilesApiResponse? response, List<FileContentTypeViewModel> allContentTypes)
+    {
+        var model = new PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>
+        {
+            TotalRecords = 0,
+            Filter = null,
+            Page = 1,
+            PageSize = 15,
+            Items = []
+        };
+
+        if (response == null)
+            return model;
+
+        model.TotalRecords = response.TotalRecords;
+        if (model.TotalRecords == 0) 
+            return model;
+
+        foreach (var fileModel in response.Files.Select(fileResponse => 
+                     MapperFileItem(fileResponse, allContentTypes)).OfType<FileItemViewModel>())
+            model.Items.Add(fileModel);
+        
+        return model;
+        
+    }
+
+    private FileItemViewModel? MapperFileItem(FileItemResponse? response, 
+        List<FileContentTypeViewModel> allContentTypes)
+    {
+        if (response == null)
+            return null;
+        
+        var model = new FileItemViewModel
+        {
+            IdFile = response.IdFile,
+            FileLogicName = response.FileLogicName,
+            FileFisicalName = response.FileFisicalName,
+            FileContentType = response.FileContentType,
+            FileExtension = GetFileExtension(response.FileContentType, allContentTypes),
+            FileLength = response.FileLength,
+            HashFileBytes = response.HashFileBytes,
+            CompressedFileContent = response.CompressedFileContent,
+            DtRegisteredFileStorage = response.DateTimeRegisteredFileStorage,
+            FileStatusDescription = response.FileStatusDescription,
+            PercentualCompressedFile = (response is { CompressedFileContent: true, FileCompressed: not null }?
+                response.FileCompressed.PercentualCompressedFile:0)
+        };
+
+        return model;
+        
+    }
+
+    /// <summary>
+    /// Recupera um FileContentType pelo seu contentType informado.
+    /// </summary>
+    /// <param name="contentType">Tipo do arquivo para recuperar todas as informações.</param>
+    /// <param name="allContentTypes">Tipos de arquivos para recuperação.</param>
+    /// <returns></returns>
+    private FileContentTypeViewModel? GetContentType(string contentType, List<FileContentTypeViewModel> allContentTypes)
+    {
+        var resultContentType = allContentTypes
+            .FirstOrDefault(f => f.ContentType.Equals(contentType));
+        return resultContentType;
+    }
+
+    /// <summary>
+    /// Recupera a extensão (.pdf, .doc. .jpj etc.) a partir de um ContentType informado.
+    /// </summary>
+    /// <param name="contentType">Tipo do arquivo para recuperar a extenção.</param>
+    /// <param name="allContentTypes">Lista de tipos de arquivos para verificação</param>
+    /// <returns></returns>
+    private string GetFileExtension(string contentType, List<FileContentTypeViewModel> allContentTypes)
+    {
+        var resultContentType = GetContentType(contentType, allContentTypes);
+        return resultContentType == null ? "" : resultContentType.Extension;
+    }
+
 }

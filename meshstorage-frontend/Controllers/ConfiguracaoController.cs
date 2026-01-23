@@ -3,12 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace meshstorage_frontend.Controllers;
 
-public class ConfiguracaoController : DefaultController
+public class ConfiguracaoController(
+    RazorViewToStringRenderer renderer) : 
+    DefaultController(renderer)
 {
-    public ConfiguracaoController(RazorViewToStringRenderer renderer, ILogger<HomeController> logger) : base(renderer, logger)
-    {
-    }
-
     // GET
     [HttpGet]
     public IActionResult Index()

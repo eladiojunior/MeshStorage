@@ -11,7 +11,7 @@ public interface IApiService
     Task<List<FileContentTypeViewModel>> GetAllContentTypes();
     Task<ApplicationViewModel?> RegistreApplication(CreateApplicationViewModel model);
     Task<ApplicationViewModel?> EditApplication(EditApplicationViewModel model);
-    Task<ListFilesApplicationViewModel> ListFilesApplication(string codeApplication, int pageNumber, 
-        int recordsPerPage, bool isFilesSentForBackup, bool isFilesRemoved);
+    Task<PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>> ListFilesFilter
+        (FilterListFileViewModel filter, int pageNumber, int recordsPerPage);
     void RemoveStorage(long idServerStorage);
 }

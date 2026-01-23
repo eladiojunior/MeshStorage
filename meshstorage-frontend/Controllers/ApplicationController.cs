@@ -8,8 +8,8 @@ namespace meshstorage_frontend.Controllers;
 public class ApplicationController(
     IApiService apiService,
     RazorViewToStringRenderer renderer,
-    ILogger<HomeController> logger)
-    : DefaultController(renderer, logger)
+    ILogger<ApplicationController> logger)
+    : DefaultController(renderer)
 {
     
     // GET Application/Create
@@ -43,6 +43,7 @@ public class ApplicationController(
         }
         catch (Exception erro)
         {
+            logger.LogError(erro, "Registre(CreateApplicationViewModel::model)");
             ModelState.AddModelError("_form",  erro.Message);
             return View("Create", model);
         }
@@ -84,7 +85,7 @@ public class ApplicationController(
         model.ApplicationDescription = application.Description;
         model.AllowedFileTypes = string.Join(";", application.AllowedFileTypes
             .Select(s => s.ContentType).ToList());
-        model.MaximumFileSizeMB = application.MaximumFileSize;
+        model.MaximumFileSizeMb = application.MaximumFileSize;
         model.CompressedFileContentToZip = application.CompressedFileContentToZip;
         model.ConvertImageFileToWebp = application.ConvertImageFileToWebp;
         model.ApplyOcrFileContent = application.ApplyOcrFileContent;
@@ -108,6 +109,7 @@ public class ApplicationController(
         }
         catch (Exception error)
         {
+            logger.LogError(error, "SaveEdit(EditApplicationViewModel::model)");
             ModelState.AddModelError("_form", error.Message);
             return View("Edit", model);
         }
@@ -115,24 +117,6 @@ public class ApplicationController(
         return RedirectToActionByMessage("Index", "Dashboard", 
             false, "Aplicação atualizada com sucesso.");
 
-    }
-    
-    // GET Application/SearchFile
-    [HttpGet]
-    public IActionResult SearchFile(string codeApplication, int pageNumber=1, 
-        int recordsPerPage=15, bool isFilesSentForBackup=false, bool isFilesRemoved=false)
-    {
-        
-        if (string.IsNullOrEmpty(codeApplication))
-            return RedirectToActionByMessage("Index", "Dashboard",
-                true, "Sigla da aplicação não informada.");
-
-        var listFilsApplication = apiService.ListFilesApplication(codeApplication, pageNumber, 
-            recordsPerPage, isFilesSentForBackup, isFilesRemoved).Result;
-        var model = new ListFilesApplicationViewModel();
-        
-        return View(model);
-        
     }
     
 }

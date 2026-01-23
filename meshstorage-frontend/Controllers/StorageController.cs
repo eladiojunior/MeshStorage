@@ -7,8 +7,8 @@ namespace meshstorage_frontend.Controllers;
 public class StorageController(
     IApiService apiService,
     RazorViewToStringRenderer renderer,
-    ILogger<HomeController> logger)
-    : DefaultController(renderer, logger)
+    ILogger<StorageController> logger)
+    : DefaultController(renderer)
 {
     
     // DELETE Storage/RemoveStorage
@@ -22,6 +22,7 @@ public class StorageController(
         }
         catch (Exception error)
         {
+            logger.LogError(error, "RemoveStorage(long::idServerStorage)");
             return TratarErroNegocio(error, $"RemoveStorage(idServerStorage={idServerStorage})");
         }
     }

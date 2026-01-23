@@ -1,0 +1,78 @@
+﻿@using meshstorage_frontend.Models.ViewModels;
+@model PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>
+@{
+    ViewBag.Title = "Listar os Arquivos da Aplicação";
+}
+<h2>Listar dos Arquivos da Aplicação</h2>
+<form id="formSearchFile" asp-action="SearchFileByFilter" asp-controller="File" method="post">
+    <div class="form-group mb-2">
+        <div class="row">
+            <div class="col-3">
+                <label for="Filter.ApplicationCode">Sigla Aplicação</label>
+                <input asp-for="Filter!.ApplicationCode" class="form-control" required="required" disabled="disabled"/>
+                <span asp-validation-for="Filter!.ApplicationCode" class="text-danger"></span>
+            </div>
+            <div class="col-9">
+                <label for="Filter.FileLogicName">Parte do nome lógico do arquivo</label>
+                <input asp-for="Filter!.FileLogicName" class="form-control"/>
+            </div>
+        </div>
+    </div>
+    <div class="form-group mb-2">
+        <div class="row">
+            <div class="col-6">
+                <label for="Filter.FileContentType" class="form-label">Tipos de arquivos</label>
+                <div class="mb-2">
+                    <input type="text" class="form-control filtro-lista" placeholder="Filtrar tipo de arquivo...">
+                </div>
+                <div class="overflow-auto border rounded-1" style="height: 300px">
+                    <div class="list-group lista-itens"></div>
+                </div>
+            </div>
+            <div class="col-6">
+                <label class="form-label">
+                    Tipos de arquivos selecionados
+                    <span class="badge bg-primary count-content-types">0</span>
+                </label>
+                <div class="overflow-auto border rounded-1" style="height: 345px">
+                    <input type="hidden" asp-for="Filter!.FileContentType"/>
+                    <div class="list-group lista-itens-selected"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <span asp-validation-for="Filter!.FileContentType" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group mb-2">
+        <div class="form-check form-switch">
+            <input asp-for="Filter!.FilesRemoved" class="form-check-input" type="checkbox"/>
+            <label for="Filter.FilesRemoved" class="form-check-label">Listar arquivos Removidos</label>
+        </div>
+    </div>
+    <div class="form-group mb-2">
+        <div class="form-check form-switch">
+            <input asp-for="Filter!.FilesSentForBackup" class="form-check-input" type="checkbox"/>
+            <label for="Filter.FilesSentForBackup" class="form-check-label">Listar arquivos enviados para Backup</label>
+        </div>
+    </div>
+    <div class="form-group mt-5 mb-5 text-center">
+        <button type="submit" class="btn btn-primary">Filtar</button>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">Voltar</a>
+    </div>
+</form>
+<div class="row g-4">
+    <div class="col-12">
+        <div class="lista-files-filter">
+            @{
+                await Html.RenderPartialAsync("_ListFilesPartial", Model.Items);
+                await Html.RenderPartialAsync("_ListFilesPaginationPartial", Model);
+            }
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/view.file.search.js" asp-append-version="true"></script>
+}

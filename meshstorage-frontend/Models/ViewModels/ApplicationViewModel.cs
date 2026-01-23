@@ -3,10 +3,10 @@
 public class ApplicationViewModel
 {
     public long Id { get; set; }
-    public string Code { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string Icon { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Icon { get; set; } = string.Empty;
     public long MaximumFileSize { get; set; }
     public bool CompressedFileContentToZip { get; set; }
     public bool ConvertImageFileToWebp { get; set; }
@@ -14,7 +14,7 @@ public class ApplicationViewModel
     public bool AllowDuplicateFile { get; set; }
     public bool RequiresFileReplication { get; set; }
     public long TotalFiles { get; set; }
-    
-    public List<FileContentTypeViewModel> AllowedFileTypes { get; set; }
-    
+
+    public List<FileContentTypeViewModel> AllowedFileTypes { get; set; } = [];
+
 }

@@ -1,0 +1,82 @@
+﻿@model List<meshstorage_frontend.Models.ViewModels.FileItemViewModel>
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="alert">
+        <p>Nenhum arquivo encontrado para o filtro informado.</p>
+    </div>
+    return;
+}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th></th>
+                <th>Arquivo</th>
+                <th>Tipo</th>
+                <th class="text-end">Tamanho</th>
+                <th>Compressão</th>
+                <th>Data Upload</th>
+                <th>Status</th>
+                <th class="text-end">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var file in Model)
+        {
+        <tr>
+            <!-- Ícone -->
+            <td class="text-center">
+                <i class="bi @file.IconClass fs-4 text-secondary"></i>
+            </td>
+            <!-- Nome -->
+            <td>
+                <div class="fw-semibold">@file.FileLogicName</div>
+                <small class="text-muted">@file.FileFisicalName</small>
+            </td>
+            <!-- Tipo -->
+            <td>
+                <span class="badge bg-secondary">@file.FileExtension</span>
+                <small class="text-muted">@file.FileContentType</small>
+            </td>
+            <!-- Tamanho -->
+            <td class="text-end">
+                @file.FileLengthFormatted
+            </td>
+
+            <!-- Compressão -->
+            <td>
+                @if (file.CompressedFileContent)
+                {
+                    <span class="badge bg-success">
+                        Sim [@file.PercentualCompressedFile%]
+                    </span>
+                }
+                else
+                {
+                    <span class="text-muted">Não</span>
+                }
+            </td>
+            <!-- Data -->
+            <td>
+                @file.DtRegisteredFileStorage
+            </td>
+            <!-- Status -->
+            <td>
+                <span class="badge bg-info">
+                    @file.FileStatusDescription
+                </span>
+            </td>
+            <!-- Ações -->
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary" title="Download">
+                    <i class="bi bi-download"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger ms-1" title="Remover">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+        }
+        </tbody>
+    </table>
+</div>

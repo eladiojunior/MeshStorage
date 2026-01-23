@@ -8,15 +8,16 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace meshstorage_frontend.Controllers;
 
-public class DefaultController(RazorViewToStringRenderer renderer, 
-    ILogger<HomeController> logger) : Controller
+public class DefaultController(
+    RazorViewToStringRenderer renderer) : Controller
 {
+
     /// <summary>
     /// Cria um retorno Json de Erro, Tipo=ERROR, com mensagem de erro.
     /// </summary>
     /// <param name="mensagemErro">Mensage de erro para apresentação.</param>
     /// <returns></returns>
-    internal JsonResult JsonResultError(string mensagemErro)
+    private JsonResult JsonResultErro(string mensagemErro)
     {
         return Json(new { Tipo = ResponseMessageTypeEnum.Error.GetDescription(), Erros = new List<string> { mensagemErro } }, JsonSerializerOptions.Default);
     }
@@ -26,7 +27,7 @@ public class DefaultController(RazorViewToStringRenderer renderer,
     /// </summary>
     /// <param name="mensagemAlerta">Mensage de alerta para apresentação.</param>
     /// <returns></returns>
-    internal JsonResult JsonResultAlerta(string mensagemAlerta)
+    private JsonResult JsonResultAlerta(string mensagemAlerta)
     {
         return Json(new { Tipo = ResponseMessageTypeEnum.Alert.GetDescription(), Mensagem = mensagemAlerta }, JsonSerializerOptions.Default);
     }
@@ -58,10 +59,12 @@ public class DefaultController(RazorViewToStringRenderer renderer,
     /// <returns></returns>
     internal JsonResult JsonResultErro(ModelStateDictionary modelState)
     {
-        var chaves = from modelstate in modelState.AsQueryable().Where(f => f.Value.Errors.Count > 0)
-            select modelstate.Key;
+        var chaves = from modelstate in 
+                modelState.AsQueryable().Where(f => f.Value != null && 
+            f.Value.Errors.Count > 0) select modelstate.Key;
         var mensagens =
-            from modelstate in modelState.AsQueryable().Where(f => f.Value.Errors.Count > 0)
+            from modelstate in modelState.AsQueryable()
+                .Where(f => f.Value != null && f.Value.Errors.Count > 0)
             select modelstate.Value.Errors.FirstOrDefault(a => !string.IsNullOrEmpty(a.ErrorMessage));
         return
             Json(

@@ -2,11 +2,11 @@
 
 public class SystemStatusApiResponse
 {
-    public string SystemHealth { get; set; }
-    public string MessageStatus { get; set; }
+    public string SystemHealth { get; set; } = string.Empty;
+    public string MessageStatus { get; set; } = string.Empty;
     public int TotalSpaceStorages { get; set; }
     public int TotalFreeStorages { get; set; }
     public int TotalClientsConnected { get; set; }
     public int TotalFilesStorages { get; set; }
-    public string DateTimeAvailable { get; set; }
+    public string DateTimeAvailable { get; set; } = string.Empty;
 }

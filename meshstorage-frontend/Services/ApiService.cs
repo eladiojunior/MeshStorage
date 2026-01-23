@@ -1,8 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
-using meshstorage_frontend.Exceptions;
 using meshstorage_frontend.Helper;
-using meshstorage_frontend.Models.External;
 using meshstorage_frontend.Models.External.Response;
 using meshstorage_frontend.Models.ViewModels;
 using meshstorage_frontend.Services.Cache;
@@ -72,7 +70,7 @@ public class ApiService : IApiService
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
 
         // Serializa o objeto para JSON e adiciona no body
-        var json = System.Text.Json.JsonSerializer.Serialize(payload);
+        var json = JsonSerializer.Serialize(payload);
         request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
         using var response = await _httpClient.SendAsync(request);
@@ -89,7 +87,7 @@ public class ApiService : IApiService
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
 
         // Serializa o objeto para JSON e adiciona no body
-        var json = System.Text.Json.JsonSerializer.Serialize(payload);
+        var json = JsonSerializer.Serialize(payload);
         request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
         using var response = await _httpClient.SendAsync(request);
@@ -120,9 +118,8 @@ public class ApiService : IApiService
 
     public Task<SystemStatusViewModel> GetSystemStatus()
     {
-        SystemStatusApiResponse? response = null;
         var json = RequestGet("/api/v1/system/status").Result;
-        response = JsonSerializer.Deserialize<SystemStatusApiResponse>(json, _jsonSerializerOptions);
+        var response = JsonSerializer.Deserialize<SystemStatusApiResponse>(json, _jsonSerializerOptions);
         return Task.FromResult(_mapper.MapperSystemStatus(response));
     }
 
@@ -177,14 +174,29 @@ public class ApiService : IApiService
         return Task.FromResult(_mapper.MapperApplication(response, GetAllContentTypes().Result));
     }
 
-    public Task<ListFilesApplicationViewModel> ListFilesApplication(string codeApplication, int pageNumber, 
-        int recordsPerPage, bool isFilesSentForBackup, bool isFilesRemoved)
+    public Task<PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>> ListFilesFilter(FilterListFileViewModel filter, 
+        int pageNumber, int recordsPerPage)
     {
-        throw new NotImplementedException();
+        var url = "/api/v1/file/listPaginated?applicationCode=" + filter.ApplicationCode;
+        if (!string.IsNullOrEmpty(filter.FileLogicName))
+            url += "&fileLogicName=" + filter.FileLogicName;
+        if (!string.IsNullOrEmpty(filter.FileLogicName))
+            url += "&fileLogicName=" + filter.FileLogicName;
+        url += "&pageNumber=" + pageNumber +
+               "&recordsPerPage=" + recordsPerPage +
+               "&isFilesSentForBackup=" + filter.FilesSentForBackup +
+               "&isFilesRemoved=" + filter.FilesRemoved;
+        var json = RequestGet(url).Result;
+        var response = JsonSerializer.Deserialize<ListFilesApiResponse>(json, _jsonSerializerOptions);
+        var model = _mapper.MapperListFiles(response, GetAllContentTypes().Result);
+        model.Filter = filter;
+        model.Page = pageNumber;
+        model.PageSize = recordsPerPage;
+        return Task.FromResult(model);
     }
 
     public void RemoveStorage(long idServerStorage)
     {
-        _ = RequestDelete<string>("/api/v1/storage/remove/" + idServerStorage, null).Result;
+        _ = RequestDelete<string>("/api/v1/storage/remove/" + idServerStorage, null!).Result;
     }
 }

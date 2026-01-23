@@ -7,9 +7,8 @@ namespace meshstorage_frontend.Controllers;
 
 public class DashboardController(
     IApiService apiService,
-    RazorViewToStringRenderer renderer,
-    ILogger<HomeController> logger)
-    : DefaultController(renderer, logger)
+    RazorViewToStringRenderer renderer)
+    : DefaultController(renderer)
 {
     
     // GET: Dashboard/Index ou Dashboard/

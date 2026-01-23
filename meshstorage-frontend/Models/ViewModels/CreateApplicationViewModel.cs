@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using meshstorage_frontend.Helper;
 
 namespace meshstorage_frontend.Models.ViewModels;
 
@@ -9,26 +8,26 @@ public class CreateApplicationViewModel
     [Required(ErrorMessage = "Sigla obrigatória.")]
     [MaxLength(10, ErrorMessage = "Informe no máximo 10 caracteres sem espaço.")]
     [RegularExpression(@"^\S+$", ErrorMessage = "Sigla inválida, informe no máximo 10 caracteres sem espaço.")]
-    public string ApplicationCode { get; set; }
+    public string ApplicationCode { get; set; } = string.Empty;
     
     [Display(Name = "Nome da aplicação")]
     [Required(ErrorMessage = "Nome da aplicação obrigatório.")]
     [MaxLength(50, ErrorMessage = "Informe no máximo 50 caracteres.")]
-    public string ApplicationName { get; set; }
+    public string ApplicationName { get; set; } = string.Empty;
 
     [Display(Name = "Descrição da aplicação")]
     [Required(ErrorMessage = "Descrição da aplicação obrigatória.")]
     [MaxLength(500, ErrorMessage = "Informe no máximo 500 caracteres.")]
-    public string ApplicationDescription { get; set; }
+    public string ApplicationDescription { get; set; } = string.Empty;
 
     [Display(Name = "Tipos de arquivos aceitos para upload")]
     [Required(ErrorMessage = "Informe pelo menos um tipo de arquivo (Content Type) permitido.")]
-    public string AllowedFileTypes { get; set; }
+    public string AllowedFileTypes { get; set; } = string.Empty;
 
     [Display(Name = "Tamanho dos arquivos (em MB=MegaBytes)")]
     [Required(ErrorMessage = "Informe o tamanho máximo dos arquivos.")]
     [Range(1, 20, ErrorMessage = "Tamanho dos arquivos deve estar entre 1 e 20 MB.")]
-    public long MaximumFileSizeMB { get; set; } = 1;
+    public long MaximumFileSizeMb { get; set; } = 1;
 
     [Display(Name = "Realizar compressão dos arquivos para reduzir o tamanho?")]
     public bool CompressedFileContentToZip { get; set; } = false;

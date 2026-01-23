@@ -84,13 +84,18 @@
                         <div class="d-flex justify-content-end">
                             <a class="btn btn-sm btn-outline-secondary me-2 btn-with-icon"
                                     title="Localizar arquivo na aplicação." asp-action="SearchFile"
-                                    asp-controller="Application" asp-route-codeApplication="@item.Code">
+                                    asp-controller="File" asp-route-codeApplication="@item.Code">
                                 <span class="material-icons">search</span>
                             </a>
-                            <a class="btn btn-sm btn-outline-secondary btn-with-icon"
-                                    title="Alterar configuração da aplicação." asp-action="Edit" 
-                                    asp-controller="Application" asp-route-idApplication="@item.Id">
+                            <a class="btn btn-sm btn-outline-secondary me-2 btn-with-icon"
+                               title="Alterar configuração da aplicação." asp-action="Edit" 
+                               asp-controller="Application" asp-route-idApplication="@item.Id">
                                 <span class="material-icons">edit</span>
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary btn-with-icon"
+                               title="Enviar um arquivo para aplicação." asp-action="Upload"
+                               asp-controller="File" asp-route-idApplication="@item.Id">
+                                <span class="material-icons">upload_file</span>
                             </a>
                         </div>
                     </div>
