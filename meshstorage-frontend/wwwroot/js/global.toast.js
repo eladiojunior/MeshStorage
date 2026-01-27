@@ -20,6 +20,10 @@
     }
 
     function show(message, type = 'info', delay = 5000) {
+        
+        if (!message || message === '')
+            return;
+        
         if (!toastInstance) init();
 
         if (!toastInstance) {
@@ -51,13 +55,7 @@
                 toastEl.classList.add('bg-info');
         }
 
-        // Mensagem (array ou string)
-        if (Array.isArray(message)) {
-            toastBody.innerHTML = message.join('<br/>');
-        } else {
-            toastBody.innerHTML = message;
-        }
-
+        toastBody.innerHTML = Global.CheckMensagemArray(message, '<br/>');
         toastInstance._config.delay = delay;
         toastInstance.show();
     }
@@ -74,7 +72,7 @@
                 _continue = false;
                 break;
             case 'INFO':
-                if (!mensagem && mensagem !== '')
+                if (mensagem && mensagem !== '')
                     Toast.info(mensagem);
                 _continue = true;
                 break;

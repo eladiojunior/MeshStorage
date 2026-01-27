@@ -40,7 +40,7 @@ public class DashboardController(
         try
         {
             var storages = apiService.GetStorages().Result;
-            return JsonResultSucesso(RenderRazorViewToString("_InfoStorageCardPartial", storages), "Sucesso");
+            return JsonResultSucesso(RenderRazorViewToString("_InfoStorageCardPartial", storages), string.Empty);
         }
         catch (Exception error)
         {
@@ -55,7 +55,7 @@ public class DashboardController(
         try
         {
             var applications = apiService.GetApplications().Result;
-            return JsonResultSucesso(RenderRazorViewToString("_InfoApplicationCardPartial", applications), "Sucesso");
+            return JsonResultSucesso(RenderRazorViewToString("_InfoApplicationCardPartial", applications), string.Empty);
         }
         catch (Exception error)
         {

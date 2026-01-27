@@ -25,7 +25,7 @@ public class ApplicationController(
     public IActionResult ListFileContentTypes()
     {
         var listFileContentTypes = ListContentTypes();
-        return JsonResultSucesso(listFileContentTypes, "Sucesso");
+        return JsonResultSucesso(listFileContentTypes, string.Empty);
     }
         
     // POST Application/Registre

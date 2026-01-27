@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using meshstorage_frontend.Helper;
 using meshstorage_frontend.Models.Dto;
@@ -53,9 +54,9 @@ public class ApiService : IApiService
     private async Task<string> RequestGet(string endpoint, string apiKey = "") {
         
         using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         if (!string.IsNullOrEmpty(apiKey))
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         
         using var response = await _httpClient.SendAsync(request);
         return await ReadResponse(response);
@@ -65,10 +66,10 @@ public class ApiService : IApiService
     private async Task<string> RequestPost<T>(string endpoint, T payload, string? apiKey = null)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         if (!string.IsNullOrEmpty(apiKey))
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
         // Serializa o objeto para JSON e adiciona no body
         var json = JsonSerializer.Serialize(payload);
@@ -78,14 +79,26 @@ public class ApiService : IApiService
         return await ReadResponse(response);
         
     }
+    private async Task<string> RequestPost(string endpoint, string? apiKey = null)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        if (!string.IsNullOrEmpty(apiKey))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+        using var response = await _httpClient.SendAsync(request);
+        return await ReadResponse(response);
+        
+    }
     
     private async Task<string> RequestPut<T>(string endpoint, T payload, string? apiKey = null)
     {
         using var request = new HttpRequestMessage(HttpMethod.Put, endpoint);
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         if (!string.IsNullOrEmpty(apiKey))
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
         // Serializa o objeto para JSON e adiciona no body
         var json = JsonSerializer.Serialize(payload);
@@ -100,10 +113,10 @@ public class ApiService : IApiService
     {
             
         using var request = new HttpRequestMessage(HttpMethod.Delete, endpoint);
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         if (!string.IsNullOrEmpty(apiKey))
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
         // Serializa o objeto para JSON e adiciona no body
         if (payload != null)
@@ -178,6 +191,10 @@ public class ApiService : IApiService
     public Task<PagedResultViewModel<FileItemViewModel, FilterListFileViewModel>> ListFilesFilter
         (FilterListFileDto filter)
     {
+        
+        if (string.IsNullOrEmpty(filter.ApplicationCode))
+            throw new ApiBusinessException(400, "Sigla da aplicação não informada.");
+            
         var url = "/api/v1/file/listPaginated?applicationCode=" + filter.ApplicationCode;
         if (!string.IsNullOrEmpty(filter.FileLogicName))
             url += "&fileLogicName=" + filter.FileLogicName;
@@ -199,6 +216,149 @@ public class ApiService : IApiService
 
     public void RemoveStorage(long idServerStorage)
     {
-        _ = RequestDelete<string>("/api/v1/storage/remove/" + idServerStorage, null!).Result;
+        if (idServerStorage == 0)
+            throw new ApiBusinessException(400, "Identificador do Server Storage não informado.");
+
+        _ = RequestDelete<string>($"/api/v1/storage/remove/{idServerStorage}", null!).Result;
+        
     }
+
+    public async Task<(Stream Stream, string ContentType, string FileName)> DownloadFile(string idFile, 
+        string? userName, string? accessChannel)
+    {
+        
+        if (string.IsNullOrEmpty(idFile))
+            throw new ApiBusinessException(400, "Identificador do arquivo não informado.");
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/api/v1/file/download/{idFile}"
+        );
+
+        if (!string.IsNullOrEmpty(userName))
+            request.Headers.Add("X-User-Name", userName);
+        if (!string.IsNullOrEmpty(accessChannel))
+            request.Headers.Add("X-Access-Channel", "Site");
+
+        var response = await _httpClient.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            var stream = await response.Content.ReadAsStreamAsync();
+            var contentType =
+                response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+            var fileName =
+                response.Content.Headers.ContentDisposition?.FileNameStar ??
+                response.Content.Headers.ContentDisposition?.FileName ??
+                $"arquivo-{idFile}";
+
+            return (stream, contentType, fileName);
+        }
+    
+        //Tratar erro na retorno da API.
+        var error = await response.Content.ReadAsStringAsync();
+        if (response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.InternalServerError)
+        {
+            var responseErro = JsonSerializer.Deserialize<ErroApiResponse>(error, _jsonSerializerOptions);
+            if (responseErro != null)
+                throw new ApiBusinessException(responseErro.Code, responseErro.Menssage);
+        }
+        
+        //Lançar erro genérico...
+        throw new Exception($"API error: {(int)response.StatusCode} - {error}");
+        
+    }
+
+    public void RemoveFile(string idFile)
+    {
+        if (string.IsNullOrEmpty(idFile))
+            throw new ApiBusinessException(400, "Identificador do arquivo não informado.");
+        
+        _ = RequestDelete<string>($"/api/v1/file/remove/{idFile}", null!).Result;
+        
+    }
+
+    public Task<FileQrCodeViewModel?> GenerateLinkQrCodeFile(string idFile, long tokenExpirationTime, int maximumAccessesToken)
+    {
+        if (string.IsNullOrEmpty(idFile))
+            throw new ApiBusinessException(400, "Identificador do arquivo não informado.");
+        
+        var url = $"/api/v1/file/qrcode/{idFile}?tokenExpirationTime={tokenExpirationTime}" +
+                  $"&maximumAccessestoken={maximumAccessesToken}";
+        var json = RequestGet(url).Result;
+        var response = JsonSerializer.Deserialize<GerenateQrCodeFileResponse>(json, _jsonSerializerOptions);
+        return Task.FromResult(_mapper.MapperGenerateQrCodeFile(response));
+    }
+
+    public Task<UploadFileInitViewModel> UploadFileInit(UploadFileInitDto uploadFileInit)
+    {
+        var request = _mapper.MapperUploadFileInit(uploadFileInit);
+        var json = RequestPost("/api/v1/file/uploadInChunk/init", request).Result;
+        var response = JsonSerializer.Deserialize<UploadFileInitApiResponse>(json, _jsonSerializerOptions);
+        var model = _mapper.MapperUploadFileInit(response);
+        if (model == null)
+            throw new ApiBusinessException(500, "Erro na inicialização do upload do arquivo.");
+        return Task.FromResult(model);
+    }
+
+    public async Task<UploadFileOkViewModel> UploadFileSendChunk(UploadFileChunkDto dto)
+    {
+
+        using var formContent = new MultipartFormDataContent();
+            
+        var chunkContent = new ByteArrayContent(dto.ChunkData);
+        chunkContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        formContent.Add(chunkContent, "chunkBlob", "chunk.bin");
+
+        var response = await _httpClient.PutAsync(
+            $"/api/v1/file/uploadInChunk/chunk?uploadId={dto.UploadId}" +
+            $"&chunkIndex={dto.ChunkIndex}&chunkTotal={dto.TotalChunks}",
+            formContent
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            return new UploadFileOkViewModel
+            {
+                UploadId = dto.UploadId
+            };
+        }
+
+        //Tratar erro na retorno da API.
+        var error = await response.Content.ReadAsStringAsync();
+        if (response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.InternalServerError)
+        {
+            var responseErro = JsonSerializer.Deserialize<ErroApiResponse>(error, _jsonSerializerOptions);
+            if (responseErro != null)
+                throw new ApiBusinessException(responseErro.Code, responseErro.Menssage);
+        }
+    
+        //Lançar erro genérico...
+        throw new Exception($"API error: {(int)response.StatusCode} - {error}");
+            
+    }
+
+    public Task<UploadFileFinalizeViewModel> UploadFileFinalize(string uploadId)
+    {
+        var json = RequestPost($"/api/v1/file/uploadInChunk/finalize/{uploadId}").Result;
+        var response = JsonSerializer.Deserialize<UploadFileFinalizeApiResponse>(json, _jsonSerializerOptions);
+        var model = _mapper.MapperUploadFileFinalize(response);
+        if (model == null)
+            throw new ApiBusinessException(500, "Erro na finalização do upload do arquivo.");
+        return Task.FromResult(model);
+    }
+
+    public Task<UploadFileOkViewModel> UploadFileCancel(string uploadId)
+    {
+        _ = RequestPost($"/api/v1/file/uploadInChunk/cancel/{uploadId}").Result;
+        var model = new UploadFileOkViewModel
+        {
+            UploadId = uploadId
+        };
+        return Task.FromResult(model);
+    }
+    
 }

@@ -1,4 +1,5 @@
-﻿@model List<meshstorage_frontend.Models.ViewModels.FileItemViewModel>
+﻿@using meshstorage_frontend.Models.ViewModels
+@model List<FileItemViewModel>
 @if (!Model.Any())
 {
     <div class="alert alert-info" role="alert">
@@ -9,69 +10,82 @@
 <div class="table-responsive">
     <table class="table table-hover align-middle">
         <thead class="table-light">
-            <tr>
-                <th></th>
-                <th>Arquivo</th>
-                <th>Tipo</th>
-                <th class="text-end">Tamanho</th>
-                <th>Compressão</th>
-                <th>Data Upload</th>
-                <th class="text-end">Ações</th>
-            </tr>
+        <tr>
+            <th></th>
+            <th>Arquivo</th>
+            <th>Tipo</th>
+            <th class="text-end">Tamanho</th>
+            <th>Compressão</th>
+            <th>Data/Hora Upload</th>
+            <th class="text-end">Ações</th>
+        </tr>
         </thead>
         <tbody>
         @foreach (var file in Model)
         {
-        <tr>
-            <!-- Ícone -->
-            <td class="text-center">
-                <span class="material-icons fs-4 text-secondary">
-                    @file.IconFile
-                </span>
-            </td>
-            <!-- Nome -->
-            <td>
-                <div class="fw-semibold">@file.FileLogicName</div>
-                <small class="text-muted">@file.FileFisicalName</small>
-            </td>
-            <!-- Tipo -->
-            <td>
-                <span class="badge bg-secondary">@file.FileExtension</span>
-                <small class="text-muted">@file.FileContentType</small>
-            </td>
-            <!-- Tamanho -->
-            <td class="text-end">
-                @file.FileLengthFormatted
-            </td>
-
-            <!-- Compressão -->
-            <td>
-                @if (file.CompressedFileContent)
-                {
-                    <span class="badge bg-success">
-                        Sim [@file.PercentualCompressedFile%]
+            <tr id="@file.IdFile">
+                <!-- Ícone -->
+                <td class="text-center">
+                    <span class="material-icons fs-4 text-primary">
+                        @file.IconFile
                     </span>
-                }
-                else
-                {
-                    <span class="text-muted">Não</span>
-                }
-            </td>
-            <!-- Data -->
-            <td>
-                @file.DtRegisteredFileStorage
-            </td>
-            <!-- Ações -->
-            <td class="text-end">
-                <button class="btn btn-sm btn-outline-primary" title="Download">
-                    <span class="material-icons">file_download</span>
-                </button>
-                <button class="btn btn-sm btn-outline-danger ms-1" title="Remover">
-                    <span class="material-icons">delete</span>
-                </button>
-            </td>
-        </tr>
+                </td>
+                <!-- Nome -->
+                <td>
+                    <div class="fw-semibold">@file.FileLogicName</div>
+                    <small class="text-muted" title="Nome do arquivo armazenado no repositório.">
+                        @file.FileFisicalName
+                    </small>
+                </td>
+                <!-- Tipo -->
+                <td>
+                    <span class="badge bg-secondary" title="ContentType: @file.FileContentType">
+                        @file.FileExtension
+                    </span>
+                </td>
+                <!-- Tamanho -->
+                <td class="text-end">
+                    @file.FileLengthFormatted
+                </td>
+
+                <!-- Compressão -->
+                <td>
+                    @if (file.CompressedFileContent)
+                    {
+                        <span class="badge bg-success" title="Arquivo compactado no repositório.">
+                            Sim [@file.PercentualCompressedFile%]
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Não</span>
+                    }
+                </td>
+                <!-- Data -->
+                <td>
+                    @file.DtRegisteredFileStorage
+                </td>
+                <!-- Ações -->
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary btn-with-icon download-file"
+                            data-id_file="@file.IdFile" title="Download do arquivo.">
+                        <span class="material-icons">file_download</span>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary ms-1 btn-with-icon qrcode-file"
+                            data-id_file="@file.IdFile" data-name_file="@file.FileLogicName"
+                            title="Gerar QR-Code para acesso ao arquivo no repositório.">
+                        <span class="material-icons">qr_code_2</span>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger ms-1 btn-with-icon remove-file" 
+                            data-id_file="@file.IdFile" data-name_file="@file.FileLogicName" 
+                            title="Remover o arquivo do repositório.">
+                        <span class="material-icons">delete</span>
+                    </button>
+                </td>
+            </tr>
         }
         </tbody>
     </table>
 </div>
+@await Html.PartialAsync("_ModalConfirmRemovalFilePartial")
+@await Html.PartialAsync("_ModalGenerateQrCodeFilePartial")

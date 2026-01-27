@@ -1,4 +1,6 @@
-﻿namespace meshstorage_frontend.Models.ViewModels;
+﻿using meshstorage_frontend.Helper;
+
+namespace meshstorage_frontend.Models.ViewModels;
 
 public class ApplicationViewModel
 {
@@ -8,6 +10,7 @@ public class ApplicationViewModel
     public string Description { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
     public long MaximumFileSize { get; set; }
+    public string MaxFileSizeFormatted => $"{MaximumFileSize} MB";
     public bool CompressedFileContentToZip { get; set; }
     public bool ConvertImageFileToWebp { get; set; }
     public bool ApplyOcrFileContent { get; set; }
@@ -16,5 +19,6 @@ public class ApplicationViewModel
     public long TotalFiles { get; set; }
 
     public List<FileContentTypeViewModel> AllowedFileTypes { get; set; } = [];
+    public string[] AllowedExtensions => AllowedFileTypes.Select(s => s.Extension).ToArray();
 
 }

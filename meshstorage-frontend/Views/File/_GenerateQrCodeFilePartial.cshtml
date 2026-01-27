@@ -1,0 +1,22 @@
+﻿@model meshstorage_frontend.Models.ViewModels.FileQrCodeViewModel
+<div class="justify-content-center">
+  <!-- QR Code -->
+  <div class="mb-4 text-center">
+    <img src="@Model.ImgQrCodeBase64" alt="QR Code" class="img-fluid rounded" style="max-width: 300px;">
+    <p class="text-muted small mt-2">Escaneie para acessar</p>
+  </div>
+  <!-- Link com botão copiar -->
+  <div class="input-group mb-4">
+    <input type="text" id="downloadLink" class="form-control" value="@Model.LinkAccessFile" readonly>
+    <button class="btn btn-outline-secondary" type="button" id="btnCopiarLink" title="Copiar link">
+      <span class="material-icons" style="font-size: 20px; vertical-align: middle;">content_copy</span>
+    </button>
+  </div>
+  <!-- Botão de download -->
+  <div class="mb-4 text-center">
+    <a href="@Model.LinkAccessFile" class="btn btn-sm btn-secondary" download>
+      <span class="material-icons" style="font-size: 20px; vertical-align: middle;">download</span>
+      Baixar arquivo
+    </a>
+  </div>
+</div>

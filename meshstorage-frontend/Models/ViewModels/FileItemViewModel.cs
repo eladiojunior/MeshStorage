@@ -26,5 +26,5 @@ public class FileItemViewModel
             _ => "insert_drive_file"
         };
     public string FileLengthFormatted =>
-        FileSizeFormatter.Format(FileLength);
+        FormatterHelper.FileSizeFormat(FileLength);
 }

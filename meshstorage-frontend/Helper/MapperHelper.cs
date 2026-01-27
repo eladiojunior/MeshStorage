@@ -293,4 +293,54 @@ public class MapperHelper
         };
         return model;
     }
+
+    public FileQrCodeViewModel? MapperGenerateQrCodeFile(GerenateQrCodeFileResponse? response)
+    {
+        if (response == null)
+            return null;
+        
+        var model = new FileQrCodeViewModel()
+        {
+            IdFile = response.IdFile,
+            LinkAccessFile = response.LinkAccessFile,
+            QrCodeBase64 = response.Base64QrCodeAccessFile,
+            DtRegisteredAccessFile = response.DateTimeRegisteredAccessFile,
+            MaximumAccessesToken = 0,
+            TokenExpirationTime = 0
+        };
+        return model;
+    }
+
+    public UploadFileInitApiRequest MapperUploadFileInit(UploadFileInitDto dto)
+    {
+        return new UploadFileInitApiRequest
+        {
+            ApplicationCode = dto.ApplicationCode,
+            FileName = dto.FileName,
+            ContentType = dto.ContentType,
+            FileSize = dto.FileSize
+        };
+    }
+    public UploadFileInitViewModel? MapperUploadFileInit(UploadFileInitApiResponse? response)
+    {
+        if (response == null)
+            return null;
+        return new UploadFileInitViewModel
+        {
+            UploadId = response.UploadId,
+            ChunkSize = response.ChunkSize,
+            TotalChunks = response.ChunkTotal
+        };
+    }
+
+    public UploadFileFinalizeViewModel? MapperUploadFileFinalize(UploadFileFinalizeApiResponse? response)
+    {
+        if (response == null)
+            return null;
+        return new UploadFileFinalizeViewModel
+        {
+            IdFile = response.IdFile,
+            Status = response.Status
+        };
+    }
 }

@@ -1,0 +1,36 @@
+﻿<div class="modal fade" id="modalGenerateQrCodeFile" data-backdrop="static" data-keyboard="false" tabindex="-1"
+     aria-labelledby="agentHelpLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="agentHelpLabel">Gerar QR Code e link para acesso ao arquivo</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="idFileQrCode" value=""/>
+        <section class="mb-4">
+          <h6 class="fw-bold">Informa os parametros de acesso ao arquivo <span class="fw-bold name-file-qrcode">nome_logico_arquivo</span> por link ou image QR Code:</h6>
+        </section>
+        <section class="mb-4">
+          <div class="form-group mb-2">
+            <label for="tokenExpirationTime" class="form-label">Tempo de expiração do token de acesso (em minutos), <strong>se 0 nunca expira</strong>.</label>
+            <span class="badge bg-primary token-expiration-time">Nunca expira</span>
+            <input id="tokenExpirationTime" type="range" class="form-range" min="0" max="7200" value="0">
+          </div>
+          <div class="form-group mb-2">
+            <label for="maximumAccessesToken" class="form-label">Quantidade máxima de acesso ao arquivo por token, <strong>se 0 sem limite</strong>.</label>
+            <span class="badge bg-primary maximum-accesses-token">Não tem limite</span>
+            <input id="maximumAccessesToken" type="range" class="form-range" min="0" max="100" value="0">
+          </div>
+        </section>
+        <div class="result-generate-qrcode">
+          <div class="alert alert-info">Informe os parametros acima e clique em "Gerar" para criar o link e imagem QR Code para acesso ao arquivo.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary generate-qrcode-file">Gerar</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>

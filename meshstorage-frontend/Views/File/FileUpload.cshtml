@@ -1,0 +1,232 @@
+﻿@model meshstorage_frontend.Models.ViewModels.FileUploadViewModel
+@{
+    ViewBag.Title = "Upload de Arquivos";
+}
+<div class="container py-4">
+    <div class="row">
+        <!-- Coluna Principal - Área de Upload -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <span class="material-icons me-2 text-primary">cloud_upload</span>
+                        Upload de Arquivos
+                    </h5>
+                    <a class="btn btn-sm btn-primary" asp-controller="Dashboard" asp-action="Index" 
+                       title="Voltar para o Dashboard">Voltar</a>
+                </div>
+                <div class="card-body">
+                    <!-- Seletor de Aplicação -->
+                    <div class="mb-4">
+                        <label for="selectApplication" class="form-label fw-semibold">
+                            <span class="material-icons align-middle me-1" style="font-size: 18px;">apps</span>
+                            Aplicação
+                        </label>
+                        <select class="form-select" id="selectApplication" asp-for="ApplicationCode">
+                            <option value="">Selecione uma aplicação...</option>
+                            @foreach (var app in Model.Applications)
+                            {
+                                <option value="@app.Code"
+                                    data-max-size="@app.MaximumFileSize"
+                                    data-allowed-types="@string.Join(",", app.AllowedExtensions)"
+                                    data-compress="@app.CompressedFileContentToZip.ToString().ToLower()"
+                                    data-convert-webp="@app.ConvertImageFileToWebp.ToString().ToLower()"
+                                    data-ocr="@app.ApplyOcrFileContent.ToString().ToLower()"
+                                    data-allow-duplicate="@app.AllowDuplicateFile.ToString().ToLower()"
+                                    data-replication="@app.RequiresFileReplication.ToString().ToLower()">
+                                @app.Code - @app.Name
+                            </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Área de Drag and Drop -->
+                    <div id="dropZone" class="drop-zone mb-4">
+                        <div class="drop-zone-content">
+                            <span class="material-icons drop-zone-icon">upload_file</span>
+                            <h5 class="mt-3 mb-2">Arraste e solte seus arquivos aqui</h5>
+                            <p class="text-muted mb-3">ou</p>
+                            <label for="fileInput" class="btn btn-primary">
+                                <span class="material-icons align-middle me-1" style="font-size: 18px;">folder_open</span>
+                                Selecionar Arquivos
+                            </label>
+                            <input type="file" id="fileInput" class="d-none" multiple>
+                        </div>
+                        <div class="drop-zone-hover">
+                            <span class="material-icons" style="font-size: 64px;">file_download</span>
+                            <h5 class="mt-2">Solte os arquivos aqui</h5>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Arquivos -->
+                    <div id="fileListContainer" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <span class="material-icons align-middle me-1" style="font-size: 20px;">list</span>
+                                Arquivos Selecionados
+                                <span id="fileCount" class="badge bg-primary ms-2">0</span>
+                            </h6>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="btnClearAll">
+                                <span class="material-icons align-middle" style="font-size: 16px;">delete_sweep</span>
+                                Limpar Todos
+                            </button>
+                        </div>
+                        <div id="fileList" class="file-list"></div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-success flex-grow-1" id="btnStartUpload" disabled>
+                            <span class="material-icons align-middle me-1" style="font-size: 18px;">cloud_upload</span>
+                            Iniciar Upload
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="btnCancelUpload" disabled>
+                            <span class="material-icons align-middle me-1" style="font-size: 18px;">cancel</span>
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progresso Geral -->
+            <div id="overallProgressContainer" class="card shadow-sm d-none">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">Progresso Geral</span>
+                        <span id="overallProgressText">0%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div id="overallProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="mt-2 small text-muted">
+                        <span id="uploadStats">0 de 0 arquivos enviados</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna Lateral - Configurações e Regras -->
+        <div class="col-lg-4">
+            <!-- Regras de Upload -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 d-flex align-items-center">
+                        <span class="material-icons me-2 text-info">info</span>
+                        Regras de Upload
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="rulesPlaceholder" class="text-muted text-center py-3">
+                        <span class="material-icons d-block mb-2" style="font-size: 40px; opacity: 0.5;">rule</span>
+                        Selecione uma aplicação para ver as regras
+                    </div>
+                    <div id="rulesContent" class="d-none">
+                        <div class="rule-item mb-3">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="material-icons me-2 text-warning" style="font-size: 20px;">storage</span>
+                                <span class="fw-semibold">Tamanho Máximo</span>
+                            </div>
+                            <span id="ruleMaxSize" class="ms-4 text-muted">-</span>
+                        </div>
+                        <div class="rule-item mb-3">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="material-icons me-2 text-success" style="font-size: 20px;">description</span>
+                                <span class="fw-semibold">Tipos Aceitos</span>
+                            </div>
+                            <div id="ruleAllowedTypes" class="ms-4 mt-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações de Processamento -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 d-flex align-items-center">
+                        <span class="material-icons me-2 text-secondary">settings</span>
+                        Processamento Automático
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="settingsPlaceholder" class="text-muted text-center py-3">
+                        <span class="material-icons d-block mb-2" style="font-size: 40px; opacity: 0.5;">tune</span>
+                        Selecione uma aplicação para ver as configurações
+                    </div>
+                    <div id="settingsContent" class="d-none">
+                        <div class="setting-item d-flex align-items-center justify-content-between py-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons me-2 text-primary" style="font-size: 20px;">folder_zip</span>
+                                <span>Compactar em ZIP</span>
+                            </div>
+                            <span id="settingCompress" class="badge">-</span>
+                        </div>
+                        <div class="setting-item d-flex align-items-center justify-content-between py-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons me-2 text-success" style="font-size: 20px;">image</span>
+                                <span>Converter para WebP</span>
+                            </div>
+                            <span id="settingConvertWebp" class="badge">-</span>
+                        </div>
+                        <div class="setting-item d-flex align-items-center justify-content-between py-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons me-2 text-info" style="font-size: 20px;">document_scanner</span>
+                                <span>Aplicar OCR</span>
+                            </div>
+                            <span id="settingOcr" class="badge">-</span>
+                        </div>
+                        <div class="setting-item d-flex align-items-center justify-content-between py-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons me-2 text-warning" style="font-size: 20px;">content_copy</span>
+                                <span>Permitir Duplicados</span>
+                            </div>
+                            <span id="settingDuplicate" class="badge">-</span>
+                        </div>
+                        <div class="setting-item d-flex align-items-center justify-content-between py-2">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons me-2 text-danger" style="font-size: 20px;">sync</span>
+                                <span>Replicação Obrigatória</span>
+                            </div>
+                            <span id="settingReplication" class="badge">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Resultado -->
+<div class="modal fade" id="modalResult" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span class="material-icons align-middle me-2" id="modalResultIcon">check_circle</span>
+                    <span id="modalResultTitle">Upload Concluído</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalResultBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/file-upload.css" asp-append-version="true"/>
+}
+@section Scripts {
+<script src="~/js/view-file-upload.js" asp-append-version="true"></script>
+<script>
+    $(function() {
+        ViewFileUpload.init({
+            contexto: '@Url.Content("~/")',
+            chunkSize: 1024 * 1024, // 1MB por chunk
+            maxConcurrentUploads: 3
+        });
+    });
+</script>
+}
+

@@ -14,6 +14,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">Aplicações</h5>
+        <a class="btn btn-sm btn-primary" asp-controller="Application" asp-action="Create" title="Criar uma aplicação">Nova Aplicação</a>
         <span class="badge bg-secondary" style="font-size: 1.2em">@Model.Count</span>
     </div>
     <div class="card-body">
@@ -94,7 +95,7 @@
                             </a>
                             <a class="btn btn-sm btn-outline-secondary btn-with-icon"
                                title="Enviar um arquivo para aplicação." asp-action="Upload"
-                               asp-controller="File" asp-route-idApplication="@item.Id">
+                               asp-controller="File" asp-route-ApplicationCode="@item.Code">
                                 <span class="material-icons">upload_file</span>
                             </a>
                         </div>
@@ -102,8 +103,5 @@
                 </div>
             }
         </div>
-    </div>
-    <div class="card-footer text-end">
-        <a class="btn btn-primary" asp-controller="Application" asp-action="Create" title="Criar uma aplicação">Nova Aplicação</a>
     </div>
 </div>

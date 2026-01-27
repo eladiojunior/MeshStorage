@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   meshstorage-frontend:
-    image: meshstorage-frontend:1.0.0
+    image: meshstorage-frontend:1.0.1
     container_name: meshstorage-frontend.net
     restart: unless-stopped
     ports:
