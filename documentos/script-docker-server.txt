@@ -2,7 +2,7 @@ Para realizar o processo de Build/Deploy no Docker
 -----------------------------------------------------
 
 1. Acesse a pasta da solução MeshStorage:
-/> docker build -f docker/meshstorage-server.Dockerfile -t meshstorage-server-1.0.0 .
+/> docker build -f docker/meshstorage-server.Dockerfile -t meshstorage-server:1.0.1 .
 
 2. Para facilitar o start do meshstorage-server, criei um arquivo docker-compose.yml.
 Acesse a pasta do meshstorage-server e execute o comando:

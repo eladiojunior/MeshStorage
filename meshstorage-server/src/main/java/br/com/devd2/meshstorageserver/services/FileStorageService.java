@@ -542,9 +542,10 @@ public class FileStorageService {
         byte[] imagemQrCode = qrCodeService.createQrImage(link, file.getFileFisicalName());
 
         response.setIdFile(idFile);
-        response.setLinkAcessFile(link);
-        response.setImageQrCodeAcessFile(imagemQrCode);
-        response.setDateTimeRegisteredFileStorage(LocalDateTime.now());
+        response.setLinkAccessFile(link);
+        response.setTokenAccessFile(tokenPublic);
+        response.setImageQrCodeAccessFile(imagemQrCode);
+        response.setDateTimeRegisteredAccessFile(LocalDateTime.now());
         return response;
 
     }

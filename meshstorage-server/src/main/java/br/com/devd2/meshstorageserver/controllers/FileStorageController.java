@@ -352,7 +352,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "200", description = "Bloco do upload do arquivo", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = FinalizeUploadResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @PostMapping(path = "/uploadInChunk/finalize/{uploadId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/uploadInChunk/finalize/{uploadId}")
     public ResponseEntity<?> uploadFinalizeFile(@PathVariable("uploadId")
                                                 @Parameter(description = "Identificador único do upload para finalização.") String uploadId) {
         try {
@@ -372,7 +372,7 @@ public class FileStorageController {
             @ApiResponse(responseCode = "200", description = "Cancelar upload do arquivo", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = SuccessResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
             @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
-    @PostMapping(path = "/uploadInChunk/cancel/{uploadId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/uploadInChunk/cancel/{uploadId}")
     public ResponseEntity<?> uploadCancelFile(@PathVariable("uploadId")
                                               @Parameter(description = "Identificador único do upload para cancelamento.") String uploadId) {
         try {

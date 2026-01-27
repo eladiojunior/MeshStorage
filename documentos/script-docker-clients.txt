@@ -12,4 +12,5 @@ Acesse a pasta do projeto "meshstorage" e execute:
 -v /mnt/WinDriveD/storage_X:/storage meshstorage-client:1.0.0
 
 3. Criei um Docker-Compose para subir 5 clients:
+==> Acesse a pasta meshstorage-client antes de executar o comando.
 /> docker-compose up -d
