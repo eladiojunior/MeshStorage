@@ -194,9 +194,6 @@ public class FileController(
             await chunkFile.CopyToAsync(memoryStream);
             var chunkData = memoryStream.ToArray();
 
-            //Gerar um tempinho para testar a aplicação...
-            Thread.Sleep(500);
-            
             // Chama o serviço que irá comunicar com a API
             var result = await apiService.UploadFileSendChunk(new UploadFileChunkDto
             {

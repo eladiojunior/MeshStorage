@@ -340,7 +340,7 @@ public class MapperHelper
         return new UploadFileFinalizeViewModel
         {
             IdFile = response.IdFile,
-            Status = response.Status
+            Status = response.FileStatusDescription
         };
     }
 }

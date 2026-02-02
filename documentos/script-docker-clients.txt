@@ -14,3 +14,8 @@ Acesse a pasta do projeto "meshstorage" e execute:
 3. Criei um Docker-Compose para subir 5 clients:
 ==> Acesse a pasta meshstorage-client antes de executar o comando.
 /> docker-compose up -d
+
+Clints:
+A: docker run -d --name meshstorage-client-a --restart unless-stopped -e SERVER_NAME=LINUX_DOCKER_A -e STORAGE_NAME=STORAGE_A -e URL_WEBSOCKET_SERVER=ws://192.168.1.21:3001/server-storage-websocket -v /home/eladiojunior/storages/storage_01:/storage meshstorage-client:1.0.0
+B: docker run -d --name meshstorage-client-b --restart unless-stopped -e SERVER_NAME=LINUX_DOCKER_B -e STORAGE_NAME=STORAGE_B -e URL_WEBSOCKET_SERVER=ws://192.168.1.21:3001/server-storage-websocket -v /home/eladiojunior/storages/storage_02:/storage meshstorage-client:1.0.0
+C: docker run -d --name meshstorage-client-c --restart unless-stopped -e SERVER_NAME=LINUX_DOCKER_C -e STORAGE_NAME=STORAGE_C -e URL_WEBSOCKET_SERVER=ws://192.168.1.21:3001/server-storage-websocket -v /home/eladiojunior/storages/storage_03:/storage meshstorage-client:1.0.0

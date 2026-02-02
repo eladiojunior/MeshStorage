@@ -254,7 +254,9 @@ public class ApiService : IApiService
                 response.Content.Headers.ContentDisposition?.FileNameStar ??
                 response.Content.Headers.ContentDisposition?.FileName ??
                 $"arquivo-{idFile}";
-
+            //Retirar as aspas duplas se vier com...
+            contentType = contentType.Replace("\"", "");
+            fileName = fileName.Replace("\"", "");
             return (stream, contentType, fileName);
         }
     
