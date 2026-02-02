@@ -74,12 +74,12 @@ public class FileStorageService {
     }
 
     /**
-     * Recupera um arquivo pelo seu Identificador externo.
+     * Recupera um arquivo (COM seu conteúdo em bytes) pelo seu Identificador externo.
      * @param idFile - Identificador para recuperação do arquivo no Storage.
      * @return Arquivo recuperado ou nulo se não existir.
      * @throws ApiBusinessException - Erro de negócio.
      */
-    public FileStorage getFile(String idFile) throws ApiBusinessException {
+    public FileStorage downloadFile(String idFile) throws ApiBusinessException {
 
         if (idFile == null || idFile.isEmpty())
             throw new ApiBusinessException("Id File (chave do arquivo) não pode ser nulo ou vazio.");
@@ -92,14 +92,15 @@ public class FileStorageService {
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.ARCHIVED_SUCESSFULLY.getCode() &&
                 fileStorage.getDateTimeBackupFileStorage() != null)
             throw new ApiBusinessException("Arquivo enviado para armazenamento de longo prazo (backup) em [" +
-                    fileStorage.getDateTimeBackupFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
+                    fileStorage.getDateTimeBackupFileStorage()
+                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
                     "]. Solicite a recuperação do arquivo no backup ["+ pathFileStorage +"].");
 
         if (fileStorage.getFileStatusCode()==FileStorageStatusEnum.DELETED_SUCCESSFULLY.getCode() &&
                 fileStorage.getDateTimeRemovedFileStorage() != null)
             throw new ApiBusinessException("Arquivo removido do armazenamento em [" +
-                    fileStorage.getDateTimeRemovedFileStorage().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +
-                    "]. Solicite recuperação do arquivo no backup ["+ pathFileStorage +"].");
+                    fileStorage.getDateTimeRemovedFileStorage()
+                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + "].");
 
         //Enviar comando de DOWNLOAD para o Storage...
         var fileStorageMessage = new FileDownloadMessage();
@@ -316,7 +317,9 @@ public class FileStorageService {
             //Enviar para armazenar fisicamente...
             var fileRegisterMessage = new FileRegisterMessage();
             fileRegisterMessage.setIdFile(fileStorageEntity.getIdFile());
-            fileRegisterMessage.setFileName(fileStorageEntity.getFileFisicalName());
+            fileRegisterMessage.setFileName(nomeFisicoArquivo);
+            if (isFileCompressedContent)
+                fileRegisterMessage.setFileName(nameFileCompressed);
             fileRegisterMessage.setApplicationStorageFolder(fileStorageEntity.getApplicationStorageFolder());
             fileRegisterMessage.setDataBase64(FileBase64Util.fileToBase64(bytesFile));
 
@@ -334,8 +337,8 @@ public class FileStorageService {
             if (fileStorageClientStatus.getFileStatusCode() == FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode()) {
 
                 //Atualizar totalizador...
-                serverStorageService.updateServerStorageTotalFile(bestStorage.getId(), true);
-                applicationService.updateApplicationTotalFile(application.getId(), true);
+                serverStorageService.updateServerStorageTotalFile(bestStorage.getId());
+                applicationService.updateApplicationTotalFile(application.getId());
 
                 if (isExtractionTextByOrcFormFile)
                 {//Colocar na fila para processamento do OCR do arquivo...
@@ -357,17 +360,17 @@ public class FileStorageService {
     /**
      * Verifica se o arquivo já existe, seu armazenamento confirmado, para uma aplicação (ID)
      * com base no HASH dos bytes do arquivo.
+     * OTIMIZADO: Usa query otimizada que retorna apenas boolean ao invés de carregar entidades.
      * @param applicationId - Identificador da aplicação que está armazenando o arquivo.
      * @param hashFileBytes - HASH dos bytes do arquivos para verificação da duplicidade.
      * @throws ApiBusinessException Caso exista duplicidade será retornado um exception de negócio.
      */
     private void checkFileDuplicationByHash(Long applicationId, String hashFileBytes) throws ApiBusinessException {
-        var fileStorage = fileStorageRepository.findByApplicationIdAndHashFileBytes(
-                        applicationId, hashFileBytes).stream().filter(f ->
-                        f.getFileStatusCode()==FileStorageStatusEnum.STORED_SUCCESSFULLY.getCode())
-                .findFirst().orElse(null);
-        if (fileStorage != null)
+        boolean exists = fileStorageRepository.existsByApplicationIdAndHashAndStatusStored(
+                applicationId, hashFileBytes);
+        if (exists) {
             throw new ApiBusinessException("Arquivo já existe na aplicação e armazenado confirmado, duplicidade não é permitido.");
+        }
     }
 
     /**
@@ -417,10 +420,10 @@ public class FileStorageService {
                 for (FileStorageClient client : listFileStorageClient) {
                     var serverStorage = serverStorageService.getByIdServerStorageClient(client.getIdServerStorageClient());
                     if (serverStorage != null)
-                        serverStorageService.updateServerStorageTotalFile(serverStorage.getId(), false);
+                        serverStorageService.updateServerStorageTotalFile(serverStorage.getId());
                 }
                 if (fileStorage.getApplication() != null)
-                    applicationService.updateApplicationTotalFile(fileStorage.getApplication().getId(), false);
+                    applicationService.updateApplicationTotalFile(fileStorage.getApplication().getId());
 
             }
 
@@ -575,12 +578,13 @@ public class FileStorageService {
     }
 
     /**
-     * Recupera um arquivo da estrutura de armazenamento pelo ID apos a verificação do token de acesso.
+     * Recupera um arquivo (COM seu conteúdo bytes) da estrutura de armazenamento pelo ID após a
+     * verificação do token de acesso.
      * @param token - Token de acesso ao arquivo.
      * @return Arquivo recuperado ou nulo se não existir.
      * @throws ApiBusinessException - Erro de negócio.
      */
-    public FileStorage getFileByToken(String token) throws ApiBusinessException {
+    public FileStorage downloadFileByToken(String token) throws ApiBusinessException {
 
         if (token == null ||  token.isEmpty())
             throw new ApiBusinessException("Token de acesso inválido ou não informado.");
@@ -610,7 +614,7 @@ public class FileStorageService {
                         String.format("Token de acesso com limite de acesso máximo [%s].", numberAccessestoken));
         }
 
-        return getFile(accessToken.getIdFile());
+        return downloadFile(accessToken.getIdFile());
 
     }
 
@@ -808,6 +812,25 @@ public class FileStorageService {
         }
 
         return resultSuccess;
+
+    }
+
+    /**
+     * Recupera as informações do arquivo (SEM conteúdo em bytes) pelo seu identificador (chave).
+     * @param idFile - Identificador para recuperação das informações do arquivo.
+     * @return Arquivo recuperado ou nulo se não existir.
+     * @throws ApiBusinessException - Erro de negócio.
+     */
+    public FileStorage getFile(String idFile) throws ApiBusinessException {
+
+        if (idFile == null || idFile.isEmpty())
+            throw new ApiBusinessException("Id File (chave do arquivo) não pode ser nulo ou vazio.");
+
+        var fileStorage = fileStorageRepository.findByIdFile(idFile).orElse(null);
+        if (fileStorage == null)
+            throw new ApiBusinessException("Arquivo não identificado pelo seu ID ("+idFile+"), obrigatório.");
+
+        return fileStorage;
 
     }
 

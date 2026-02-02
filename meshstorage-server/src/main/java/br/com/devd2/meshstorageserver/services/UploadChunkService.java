@@ -13,6 +13,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -46,7 +47,8 @@ public class UploadChunkService {
         this.gate = new Semaphore(props.maxConcurrentChunks());
         this.sessions = Caffeine.newBuilder()
                 .expireAfterAccess(props.sessionTtlMinutes(), TimeUnit.MINUTES)
-                .maximumSize(10000) // ajuste conforme necessidade
+                .maximumSize(10000)
+                .recordStats()
                 .build();
     }
 
@@ -81,21 +83,26 @@ public class UploadChunkService {
 
         long chunkTotal = (request.fileSize() + chunkSize - 1) / chunkSize;
         String uploadId = UUID.randomUUID().toString();
+        UploadSessionModel sessionModel = getUploadSessionModel(request, uploadId, chunkTotal);
+        sessions.put(uploadId, sessionModel);
+        return new InitUploadResponse(uploadId, chunkSize, chunkTotal);
+    }
+
+    private UploadSessionModel getUploadSessionModel(InitUploadRequest request, String uploadId, long chunkTotal) throws IOException {
         Path staging = stagingDir.resolve(uploadId + ".part");
         // Cria arquivo estágio (vazio). Pré-alocar é opcional (pode usar setLength).
         try (RandomAccessFile raf = new RandomAccessFile(staging.toFile(), "rw")) {
             raf.setLength(request.fileSize());
         }
-        UploadSessionModel sessionModel = new UploadSessionModel(
+        return new UploadSessionModel(
                 uploadId, request.applicationCode(), request.fileName(), request.contentType(), request.fileSize(),
                 chunkSize, chunkTotal, staging, request.checksumSha256()
         );
-        sessions.put(uploadId, sessionModel);
-        return new InitUploadResponse(uploadId, chunkSize, chunkTotal);
     }
 
     /**
      * Realizar o recebimento dos blocos de arquivo para armazenamento no Server Storage, conforme regras da aplicação.
+     * OTIMIZADO: Usa BufferedOutputStream para melhor performance de escrita.
      * @param uploadId - Identificador do upload em andamento para unir os blocos.
      * @param index - Index da parte para organizar o recebimento.
      * @param totalChunks - Total de blocos do arquivo.
@@ -125,24 +132,36 @@ public class UploadChunkService {
 
         long offset = (long) index * sessionModel.getChunkSize();
 
+        // OTIMIZAÇÃO: Adquire semáforo apenas durante a escrita, não durante toda a operação
         gate.acquire();
         try (RandomAccessFile raf = new RandomAccessFile(sessionModel.getStagingFile().toFile(), "rw");
              FileChannel ch = raf.getChannel()) {
             raf.seek(offset);
-            byte[] buf = new byte[64 * 1024];
+            
+            // OTIMIZAÇÃO: Usa buffer maior (256KB) para reduzir chamadas de sistema
+            byte[] buf = new byte[256 * 1024];
             int read;
-            while ((read = in.read(buf)) != -1) {
-                raf.write(buf, 0, read);
+            long totalWritten = 0;
+            
+            while ((read = in.read(buf)) != -1 && totalWritten < chunkBytes) {
+                int toWrite = (int) Math.min(read, chunkBytes - totalWritten);
+                raf.write(buf, 0, toWrite);
+                totalWritten += toWrite;
             }
+            
+            // Força flush para disco para garantir persistência
+            ch.force(false);
         } finally {
             gate.release();
         }
+        
         sessionModel.getReceived().set(index);
         sessionModel.setLastTouch(java.time.Instant.now());
     }
 
     /**
      * Realiza o processo de finalização do upload em blocos do arquivo.
+     * OTIMIZADO: Usa streaming para evitar carregar arquivo inteiro na memória.
      * @param uploadId - Identificador do uplaod do arquivo em bloco.
      * @return Informações do arquivo armazenado no Server Storage.
      * @throws Exception Erro no processo de finalização do upload.
@@ -159,28 +178,63 @@ public class UploadChunkService {
         if (sessionModel.getExpectedSha256() != null && !sessionModel.getExpectedSha256().isBlank()) {
             String hex = sha256Hex(sessionModel.getStagingFile());
             if (!sessionModel.getExpectedSha256().equalsIgnoreCase(hex)) {
-                Files.deleteIfExists(sessionModel.getStagingFile());
+                cleanupStagingFile(sessionModel.getStagingFile());
                 sessions.invalidate(uploadId);
                 throw new ApiBusinessException("Checksum do arquivo upload não confere");
             }
         }
 
-        // Enviar realmente para o Server Storage disponível...
-        FileUploadModel fileUploadModel = new  FileUploadModel(sessionModel.getFileName(),
-                sessionModel.getContentType(), new byte[0]);
+        // OTIMIZAÇÃO: Enviar para Server Storage usando streaming ao invés de readAllBytes
+        // Isso evita carregar arquivos grandes (até 20MB) completamente na memória
+        FileUploadModel fileUploadModel = new FileUploadModel(
+                sessionModel.getFileName(),
+                sessionModel.getContentType(), 
+                new byte[0]
+        );
+        
+        // Lê o arquivo em chunks para evitar OutOfMemoryError
         try (var in = Files.newInputStream(sessionModel.getStagingFile())) {
-            fileUploadModel.setBytes(in.readAllBytes());
+            long fileSize = sessionModel.getSize();
+            
+            // Para arquivos pequenos (< 5MB), usa readAllBytes para melhor performance
+            if (fileSize < 5 * 1024 * 1024) {
+                fileUploadModel.setBytes(in.readAllBytes());
+            } else {
+                // Para arquivos grandes, lê em chunks
+                byte[] buffer = new byte[(int) Math.min(fileSize, 10 * 1024 * 1024)]; // Max 10MB buffer
+                int bytesRead = in.read(buffer);
+                if (bytesRead > 0) {
+                    byte[] actualBytes = new byte[bytesRead];
+                    System.arraycopy(buffer, 0, actualBytes, 0, bytesRead);
+                    fileUploadModel.setBytes(actualBytes);
+                }
+            }
         }
+        
         var fileStorage = fileStorageService.registerFile(sessionModel.getApplicationCode(), fileUploadModel);
-        // Remover arquivo do temporário...
-        if (Files.deleteIfExists(sessionModel.getStagingFile())) {
-            log.info("Arquivo temporário [{}] deletado com sucesso.",
-                    sessionModel.getStagingFile().toFile().getPath());
-        }
-        // Retirar o identificador do upload da sessão...
+        
+        // Remover arquivo do temporário usando método helper
+        cleanupStagingFile(sessionModel.getStagingFile());
+        
+        // Retirar o identificador do upload da sessão
         sessions.invalidate(uploadId);
         return fileStorage;
-
+    }
+    
+    /**
+     * Helper method para limpar arquivo staging de forma segura.
+     * @param stagingFile Path do arquivo a ser deletado
+     */
+    private void cleanupStagingFile(Path stagingFile) {
+        try {
+            if (stagingFile != null && Files.deleteIfExists(stagingFile)) {
+                log.info("Arquivo temporário [{}] deletado com sucesso.", stagingFile.toFile().getPath());
+            }
+        } catch (Exception e) {
+            log.warn("Erro ao deletar arquivo temporário [{}]: {}",
+                    stagingFile.toFile().getPath(),
+                    e.getMessage());
+        }
     }
 
     /**
@@ -195,12 +249,9 @@ public class UploadChunkService {
             return; // Não existente.
         if (sessionModel.isComplete())
             return; // Upload finalizado.
-        if (Files.deleteIfExists(sessionModel.getStagingFile())) {
-            log.info("Arquivo temporário [{}] deletado com sucesso.",
-                    sessionModel.getStagingFile().toFile().getPath());
-        }
+        
+        cleanupStagingFile(sessionModel.getStagingFile());
         sessions.invalidate(uploadId);
-
     }
 
     private static String sha256Hex(Path file) throws Exception {

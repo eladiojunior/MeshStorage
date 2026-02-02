@@ -13,7 +13,7 @@ public class MeshstorageClientMain {
     public static void main(String[] args) {
 
         System.out.println("+--------------------------------------------------------------------+");
-        System.out.println("| Configuração do Client do MeshStorage --------------------- v1.0.0 |");
+        System.out.println("| Configuracao do Client do MeshStorage --------------------- v1.0.0 |");
         System.out.println("+--------------------------------------------------------------------+");
         try {
 
@@ -30,11 +30,11 @@ public class MeshstorageClientMain {
             }
 
             if (storageConfig != null && storageConfig.notConnectServer()) {
-                throw new ConnectException("Conexão com o servidor MeshStorage não realizada, verifique as configurações.");
+                throw new ConnectException("Conexao com o servidor MeshStorage nao realizada, verifique as configuracoes.");
             }
 
             System.out.println("+--------------------------------------------------------------------+");
-            System.out.println("| Configuração realizada, MeshStorageClient iniciado com sucesso!    |");
+            System.out.println("| Configuracao realizada, MeshStorageClient iniciado com sucesso!    |");
             System.out.println("+--------------------------------------------------------------------+");
 
             //Inicializar time para enviar Status do Client para o Server.
@@ -46,7 +46,7 @@ public class MeshstorageClientMain {
         } catch (Exception error) {
             System.err.println("Erro: " + error.getMessage());
             System.out.println("+--------------------------------------------------------------------+");
-            System.out.println("| MeshStorageClient NÃO inicializado!                                |");
+            System.out.println("| MeshStorageClient NAO inicializado!                                |");
             System.out.println("+--------------------------------------------------------------------+");
             System.exit(1);
         }
@@ -79,22 +79,22 @@ public class MeshstorageClientMain {
 
             if (server.isEmpty()) {
                 String nomeServidorDefault = UtilClient.getMachineName();
-                System.out.printf(">> Nome Servidor [%s]: ", nomeServidorDefault);
+                System.out.printf(">> Nome servidor [%s]: ", nomeServidorDefault);
                 server = scanner.nextLine().trim();
                 if (server.isEmpty())
                     server = nomeServidorDefault;
             } else {
-                System.out.printf(">> Nome Servidor: %s%n", server);
+                System.out.printf(">> Nome servidor: %s%n", server);
             }
 
             if (storageName.isEmpty()) {
                 String nomeStorageDefault = "STORAGE1";
-                System.out.printf(">> Nome do Armazenamento [%s]: ", nomeStorageDefault);
+                System.out.printf(">> Nome do armazenamento [%s]: ", nomeStorageDefault);
                 storageName = scanner.nextLine().trim();
                 if (storageName.isEmpty())
                     storageName = nomeStorageDefault;
                 if (storageName.isEmpty()) {
-                    throw new IllegalArgumentException("Nome do armazenamento não informado.");
+                    throw new IllegalArgumentException("Nome do armazenamento nao informado.");
                 }
             } else {
                 System.out.printf(">> Nome do Armazenamento: %s%n", storageName);
@@ -104,14 +104,14 @@ public class MeshstorageClientMain {
                 System.out.print(">> Local de Armazenamento: ");
                 storagePath = scanner.nextLine().trim();
                 if (storagePath.isEmpty()) {
-                   throw new IllegalArgumentException("Local de armazenamento não informado.");
+                   throw new IllegalArgumentException("Local de armazenamento nao informado.");
                 }
             } else {
                 System.out.printf(">> Local de Armazenamento: %s%n", storagePath);
             }
         }
         if (!UtilClient.isStorageValid(storagePath)) {
-            throw new IllegalArgumentException("Local de armazenamento inválido ou inexistente.");
+            throw new IllegalArgumentException("Local de armazenamento invalido ou inexistente.");
         }
 
         String ipMaquina = UtilClient.getMachineIp();

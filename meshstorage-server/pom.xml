@@ -38,6 +38,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <!-- Spring Boot Cache -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
@@ -57,12 +58,24 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>8.3.0</version>
         </dependency>
-
+        <!-- Cache com Caffeine -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
-            <version>3.2.2</version><!-- última versão estável -->
         </dependency>
+
+        <!-- Actuator para métricas -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Micrometer para Prometheus (opcional) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- Utilitários -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -70,21 +83,25 @@
             <version>1.18.34</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.3.0</version>   <!-- ou a mais recente -->
+            <version>2.3.0</version>
         </dependency>
+
         <dependency>
             <groupId>br.com.devd2.meshstorage</groupId>
             <artifactId>meshstorage-common</artifactId>
             <version>1.0.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.sejda.imageio</groupId>
             <artifactId>webp-imageio</artifactId>
             <version>0.1.6</version>
         </dependency>
+
         <!-- ZXing (core + JavaSE helpers) -->
         <dependency>
             <groupId>com.google.zxing</groupId>
@@ -96,6 +113,7 @@
             <artifactId>javase</artifactId>
             <version>3.5.3</version>
         </dependency>
+
         <!-- Teste -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

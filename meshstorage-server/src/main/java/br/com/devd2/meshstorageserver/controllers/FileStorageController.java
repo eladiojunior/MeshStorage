@@ -81,7 +81,7 @@ public class FileStorageController {
     public ResponseEntity<?> downloadFile(@PathVariable
                                               @Parameter(description = "Identificador único do arquivo armazenado.") String idFile) {
         try {
-            FileStorage file = fileStorageService.getFile(idFile);
+            FileStorage file = fileStorageService.downloadFile(idFile);
             String contentType = file.getFileContentType();
             if (file.isCompressedFileContent() && file.getFileCompressed() != null)
                 contentType = file.getFileCompressed().getCompressedFileContentType();
@@ -128,7 +128,7 @@ public class FileStorageController {
                     byte[] buf = new byte[8192];
                     for (String id : uniqueIds) {
                         try {
-                            var file = fileStorageService.getFile(id);
+                            var file = fileStorageService.downloadFile(id);
                             var eZip = new java.util.zip.ZipEntry(file.getFileLogicName());
                             eZip.setSize(file.getFileContent().length);
                             zip.putNextEntry(eZip);
@@ -280,7 +280,7 @@ public class FileStorageController {
     public ResponseEntity<?> downloadLinkFile(@PathVariable("token")
                                               @Parameter(description = "Token (chave acesso) ao arquivo para download") String token) {
         try {
-            FileStorage file = fileStorageService.getFileByToken(token);
+            FileStorage file = fileStorageService.downloadFileByToken(token);
             String contentType = file.getFileContentType();
             if (file.isCompressedFileContent() && file.getFileCompressed() != null)
                 contentType = file.getFileCompressed().getCompressedFileContentType();
@@ -356,7 +356,8 @@ public class FileStorageController {
     public ResponseEntity<?> uploadFinalizeFile(@PathVariable("uploadId")
                                                 @Parameter(description = "Identificador único do upload para finalização.") String uploadId) {
         try {
-            var response = fileStorageUploadChunkService.finalizeUpload(uploadId);
+            var fileStorage = fileStorageUploadChunkService.finalizeUpload(uploadId);
+            var response = HelperMapper.ConvertToResponse(fileStorage);
             return ResponseEntity.ok(response);
         } catch (ApiBusinessException error_business) {
             return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
@@ -385,6 +386,28 @@ public class FileStorageController {
             log.error(message, error);
             return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
         }
+    }
+
+    @Operation(summary = "Recupera dados arquivo do ServerStorage", description = "Recupera as informações (não bytes) do arquivo do ServerStorage pelo seu identificador (chave de acesso).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dados do arquivo recuperado com sucesso", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ResponseEntity.class))}),
+            @ApiResponse(responseCode = "400", description = "Parametros inválidos e regras de negócio", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Erro no servidor não tratado, requisição incorreta", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))})})
+    @GetMapping("/get/{idFile}")
+    public ResponseEntity<?> getFile (@PathVariable
+                                          @Parameter(description = "Identificador único do arquivo armazenado.") String idFile) {
+        try {
+            var fileStorage = fileStorageService.getFile(idFile);
+            var response = HelperMapper.ConvertToResponse(fileStorage);
+            return ResponseEntity.ok(response);
+        } catch (ApiBusinessException error_business) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), error_business.getMessage()));
+        } catch (Exception error) {
+            var message = "Erro ao recuperar informações do arquivo no Server Storage.";
+            log.error(message, error);
+            return ResponseEntity.internalServerError().body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
+        }
+
     }
 
 }

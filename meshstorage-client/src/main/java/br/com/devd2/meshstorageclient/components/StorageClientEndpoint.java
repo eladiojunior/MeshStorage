@@ -40,14 +40,14 @@ public class StorageClientEndpoint {
         String idClientStorage = StorageConfig.get().getClient().getIdClient();
         subscribeChannel("/client/"+idClientStorage);
 
-        System.out.println("==> Conexão aberta com o Servidor.");
+        System.out.println("==> Conexao aberta com o Servidor.");
 
     }
 
     public static String extractJsonPayload(String stompMessage) {
         String[] parts = stompMessage.split("\\r?\\n\\r?\\n", 2);
         if (parts.length < 2) {
-            throw new IllegalArgumentException("Mensagem STOMP inválida, corpo não encontrado.");
+            throw new IllegalArgumentException("Mensagem STOMP invalida, corpo nao encontrado.");
         }
         return parts[1].trim(); // O JSON está após a quebra de linha dupla
     }
@@ -87,12 +87,12 @@ public class StorageClientEndpoint {
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        System.out.println("==> Conexão fechada com o Servidor.");
+        System.out.println("==> Conexao fechada com o Servidor.");
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
-        System.err.println("==> Erro na conexão: " + throwable.getMessage());
+        System.err.println("==> Erro na conexao: " + throwable.getMessage());
     }
 
     public void sendMessage(String message) {
@@ -174,8 +174,6 @@ public class StorageClientEndpoint {
     private void registrePartFileStorage(ObjectMapper mapper, String message) throws Exception {
 
         PartFileRegisterMessage partFileRegisterMessage = mapper.readValue(message, PartFileRegisterMessage.class);
-
-        System.out.println("Part file: " + partFileRegisterMessage.getPartFile() + " -> " + partFileRegisterMessage.isLastPartFile());
 
         List<PartFileStorageModel> listPartFile;
         if (partFileStorage.containsKey(partFileRegisterMessage.getIdFile()))

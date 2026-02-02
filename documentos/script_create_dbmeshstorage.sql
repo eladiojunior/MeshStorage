@@ -208,3 +208,20 @@ CREATE TABLE tb_file_storage_client (
 );
 
 
+-- File lookup by hash for duplicate detection
+CREATE INDEX idx_file_hash ON tb_file_storage(ID_APPLICATION, TX_HASH_FILE_BYTES, CD_STATUS_FILE_STORAGE);
+
+-- File listing by application and status
+CREATE INDEX idx_file_app_status ON tb_file_storage(ID_APPLICATION, CD_STATUS_FILE_STORAGE, DH_REGISTERED_FILE_STORAGE DESC);
+
+-- File content type filtering
+CREATE INDEX idx_file_content_type ON tb_file_storage(ID_APPLICATION, DS_FILE_CONTENT_TYPE);
+
+-- Server storage lookup by client ID
+CREATE INDEX idx_storage_client ON tb_server_storage(ID_SERVER_STORAGE_CLIENT);
+
+-- Application lookup by code
+CREATE INDEX idx_app_code ON tb_application(CD_APPLICATION);
+
+-- Access token lookup
+CREATE INDEX idx_access_token ON tb_file_storage_access_token(CD_ACCESS_TOKEN_FILE);

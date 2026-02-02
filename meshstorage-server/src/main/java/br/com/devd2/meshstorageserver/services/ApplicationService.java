@@ -7,18 +7,26 @@ import br.com.devd2.meshstorageserver.helper.HelperFormat;
 import br.com.devd2.meshstorageserver.models.enums.ApplicationStatusEnum;
 import br.com.devd2.meshstorageserver.models.request.ApplicationRequest;
 import br.com.devd2.meshstorageserver.repositories.ApplicationRepository;
+import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class ApplicationService {
     private final ApplicationRepository applicationRepository;
+    private final FileStorageRepository fileStorageRepository;
 
-    public ApplicationService(ApplicationRepository applicationRepository) {
+    public ApplicationService(ApplicationRepository applicationRepository, FileStorageRepository fileStorageRepository) {
         this.applicationRepository = applicationRepository;
+        this.fileStorageRepository = fileStorageRepository;
     }
 
     /**
@@ -149,22 +157,28 @@ public class ApplicationService {
 
     /**
      * Atualizar a quantidade de arquivo registrado na Aplicação, upload.
+     * Métohdo assíncrono para não bloquear a requisição principal.
      * @param idAplicacao - Identificador da Aplicação para atualizar a quantidade;
-     * @param hasAdicionar - flag para que indica se será para adicionar (true) ou subtrair (false) da quantidade.
      * @throws ApiBusinessException - Erro de negócio
      */
-    public void updateApplicationTotalFile(Long idAplicacao, boolean hasAdicionar) throws ApiBusinessException {
+    @Async("taskExecutor")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateApplicationTotalFile(Long idAplicacao) throws ApiBusinessException {
 
-        if (idAplicacao == null || idAplicacao == 0)
-            throw new ApiBusinessException("Identificador da Aplicação não pode ser nulo ou zero.");
+        if (idAplicacao == null || idAplicacao == 0) {
+            log.warn("Identificador da Aplicação não pode ser nulo ou zero.");
+            return;
+        }
 
         //Verificar Application existente para atualização.
         Application application = applicationRepository.findById(idAplicacao).orElse(null);
-        if (application == null)
-            throw new ApiBusinessException("Aplicação não identificada para atualização da quantidade de arquivos.");
+        if (application == null) {
+            log.warn("Aplicação com ID: {} não identificada para atualização da quantidade de arquivos.", idAplicacao);
+            return;
+        }
 
-        long totalFiles = application.getTotalFiles() == null ? 0 : application.getTotalFiles();
-        totalFiles = hasAdicionar ? totalFiles + 1 : totalFiles - 1;
+        long totalFiles = fileStorageRepository.countByIdApplication(idAplicacao);
+        log.debug("Atualizar Aplicação ID: {} - Total arquivos {}.", idAplicacao, totalFiles);
         if (totalFiles < 0) totalFiles = 0; //Evitar informação negativa;
         application.setTotalFiles(totalFiles);
 

@@ -9,13 +9,51 @@ spring:
     driver-class-name: ${DB_DRIVER_CLASS_NAME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      # Optimized HikariCP settings for performance
+      maximum-pool-size: 50                    # Increased from 20 to handle more concurrent requests
+      minimum-idle: 10                         # Increased from 5 to maintain ready connections
+      connection-timeout: 20000                # Reduced from 30000 for faster failure detection
+      idle-timeout: 300000                     # Reduced from 600000 (5 min) for better resource management
+      max-lifetime: 1800000                    # 30 minutes - unchanged
+      connection-test-query: SELECT 1
+      leak-detection-threshold: 60000          # 60 seconds - unchanged
+      pool-name: MeshStorageHikariPool
+      auto-commit: true
+      # Performance optimizations
+      cache-prep-stmts: true                   # Cache prepared statements
+      prep-stmt-cache-size: 250                # Number of prepared statements to cache
+      prep-stmt-cache-sql-limit: 2048          # Max length of SQL to cache
+      use-server-prep-stmts: true              # Use server-side prepared statements
   jpa:
     hibernate:
       ddl-auto: none  # update, create, create-drop, none
     properties:
       hibernate:
         dialect: ${DB_JPA_DIALECT}
+        # Query performance optimizations
+        jdbc:
+          batch_size: 20                       # Batch inserts/updates for better performance
+          fetch_size: 50                       # Number of rows to fetch at once
+        order_inserts: true                    # Order inserts for better batching
+        order_updates: true                    # Order updates for better batching
+        # Connection handling
+        connection:
+          provider_disables_autocommit: false
+        # Statistics for monitoring (disable in production if not needed)
+        generate_statistics: false
     show-sql: ${DB_JPA_SHOW_SQL}        # true = imprime SQL no console
+  
+  # Cache configuration (using Caffeine)
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=10m
+    cache-names:
+      - fileStorageCache
+      - applicationCache
+      - storageClientCache
+      - scoreCalculationCache
 
   servlet:
     multipart:
@@ -56,5 +94,19 @@ logging:
   level:
     root: INFO
     br.com.devd2.meshstorageserver: INFO
-#  pattern:
-#    console: "%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"
+    com.zaxxer.hikari: INFO              # HikariCP logging
+    org.hibernate.SQL: INFO              # SQL logging
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+
+# Async executor configuration for @Async methods
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    enable:
+      jvm: true
+      process: true
+      system: true
+      hikaricp: true

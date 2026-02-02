@@ -56,5 +56,25 @@
     "applyOcrFileContent": false,
     "allowDuplicateFile": true,
     "requiresFileReplication": true
+  },
+  {
+    "applicationCode": "PROCON",
+    "applicationName": "Consumidor.Gov",
+    "applicationDescription": "Consumidor.gov repositório de anexos.",
+    "allowedFileTypes": [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "maximumFileSizeMB": 10,
+    "compressedFileContentToZip": true,
+    "convertImageFileToWebp": true,
+    "applyOcrFileContent": false,
+    "allowDuplicateFile": false,
+    "requiresFileReplication": false
   }
 ]

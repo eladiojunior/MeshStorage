@@ -6,6 +6,7 @@ import br.com.devd2.meshstorageserver.exceptions.ApiBusinessException;
 import br.com.devd2.meshstorageserver.helper.HelperServer;
 import br.com.devd2.meshstorageserver.models.ServerStorageModel;
 import br.com.devd2.meshstorageserver.models.enums.ServerStorageStatusEnum;
+import br.com.devd2.meshstorageserver.repositories.FileStorageRepository;
 import br.com.devd2.meshstorageserver.repositories.ServerStorageRepository;
 import br.com.devd2.meshstorageserver.services.cache.ServerStorageCache;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +25,12 @@ import java.util.Objects;
 public class ServerStorageService {
     private final ServerStorageCache cacheServerStorage;
     private final ServerStorageRepository serverStorageRepository;
+    private final FileStorageRepository fileStorageRepository;
 
-    public ServerStorageService(ServerStorageCache cacheServerStorage, ServerStorageRepository serverStorageRepository) {
+    public ServerStorageService(ServerStorageCache cacheServerStorage, ServerStorageRepository serverStorageRepository, FileStorageRepository fileStorageRepository) {
         this.cacheServerStorage = cacheServerStorage;
         this.serverStorageRepository = serverStorageRepository;
+        this.fileStorageRepository = fileStorageRepository;
     }
 
     /**
@@ -166,22 +169,29 @@ public class ServerStorageService {
 
     /**
      * Atualizar a quantidade de arquivo registrado no Server Storage, upload.
+     * Método assíncrono para não bloquear a requisição principal.
      * @param idServerStorage - Identificador do ServerStorage para atualizar a quantidade;
-     * @param hasAdicionar - flag para que indica se será para adicionar (true) ou subtrair (false) da quantidade.
-     * @throws ApiBusinessException - Erro de negócio
      */
-    public void updateServerStorageTotalFile(Long idServerStorage, boolean hasAdicionar) throws ApiBusinessException {
+    @Async("taskExecutor")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateServerStorageTotalFile(Long idServerStorage) {
 
-        if (idServerStorage == null || idServerStorage == 0)
-            throw new ApiBusinessException("Identificador do ServerStorage não pode ser nulo ou zero.");
+        if (idServerStorage == null || idServerStorage == 0) {
+            log.warn("Identificador do ServerStorage não pode ser nulo ou zero.");
+            return;
+        }
 
         //Verificar Server Storage existente para atualização.
         ServerStorage server = serverStorageRepository.findById(idServerStorage).orElse(null);
-        if (server == null)
-            throw new ApiBusinessException("Server Storage não identificado para atualização da quantidade de arquivos.");
+        if (server == null) {
+            log.warn("Server Storage com ID: {} não identificado para atualização da quantidade de arquivos.",
+                    idServerStorage);
+            return;
+        }
 
-        long totalFiles = server.getMetrics().getTotalFiles() == null ? 0 : server.getMetrics().getTotalFiles();
-        totalFiles = hasAdicionar ? totalFiles + 1 : totalFiles - 1;
+        long totalFiles = fileStorageRepository.countByIdServerStorageClient(server.getIdServerStorageClient());
+        log.debug("Atualizar Server Storage ID Client: {} - Total de arquivos {}.",
+                server.getIdServerStorageClient(), totalFiles);
         if (totalFiles < 0) totalFiles = 0; //Evitar informação negativa;
         server.getMetrics().setTotalFiles(totalFiles);
         server.getMetrics().setDateTimeLastAvailable(LocalDateTime.now());
